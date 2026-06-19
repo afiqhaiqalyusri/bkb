@@ -212,6 +212,9 @@ jobs:
             echo "=== Pulling latest images from GHCR ==="
             docker compose -f docker-compose.prod.yml pull
 
+            echo "=== Cleaning up old containers ==="
+            docker rm -f bkb_backend bkb_frontend || true
+
             echo "=== Starting containers ==="
             docker compose -f docker-compose.prod.yml up -d
 
