@@ -1,0 +1,202 @@
+name: BKB — Build & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Prevent concurrent deployments
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  # ─── Job 1: Build & Test ──────────────────────────────────────
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build & test backend
+        working-directory: backend
+        run: mvn clean package -B
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: https://fyp.afiqhaiqal.my
+
+  # ─── Job 2: Deploy ────────────────────────────────────────────
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    # Only deploy on push to main or manual trigger — not on PRs
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sync project files to VPS
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='target' \
+            --exclude='.env' \
+            --exclude='frontend/dist' \
+            --exclude='bkb_backup.*' \
+            ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/bkb/"
+
+      - name: Write .env on VPS
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+        run: |
+          # Validate required secrets
+          MISSING=""
+          [ -z "$DB_USER" ]            && MISSING="$MISSING DB_USER"
+          [ -z "$DB_PASSWORD" ]        && MISSING="$MISSING DB_PASSWORD"
+          [ -z "$JWT_SECRET" ]         && MISSING="$MISSING JWT_SECRET"
+          [ -z "$JWT_REFRESH_SECRET" ] && MISSING="$MISSING JWT_REFRESH_SECRET"
+          if [ -n "$MISSING" ]; then
+            echo "::error::Missing required secrets:$MISSING"
+            exit 1
+          fi
+
+          # Build .env file locally, then ship securely
+          touch /tmp/bkb.env
+          chmod 600 /tmp/bkb.env
+
+          printf 'DATABASE_URL=%s\n'        "${DATABASE_URL:-jdbc:postgresql://host.docker.internal:5432/bkb}" >> /tmp/bkb.env
+          printf 'DB_USER=%s\n'             "$DB_USER"             >> /tmp/bkb.env
+          printf 'DB_PASSWORD=%s\n'         "$DB_PASSWORD"         >> /tmp/bkb.env
+          printf 'JWT_SECRET=%s\n'          "$JWT_SECRET"          >> /tmp/bkb.env
+          printf 'JWT_REFRESH_SECRET=%s\n'  "$JWT_REFRESH_SECRET"  >> /tmp/bkb.env
+          printf 'FRONTEND_URL=%s\n'        "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
+          printf 'CORS_ALLOWED_ORIGINS=%s\n' "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
+          printf 'VITE_API_BASE_URL=%s\n'   "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
+          printf 'MAIL_USERNAME=%s\n'       "${MAIL_USERNAME:-noreply@example.com}" >> /tmp/bkb.env
+          printf 'MAIL_PASSWORD=%s\n'       "${MAIL_PASSWORD:-placeholder}"         >> /tmp/bkb.env
+          printf 'SPRING_PROFILES_ACTIVE=%s\n' "prod"              >> /tmp/bkb.env
+
+          scp /tmp/bkb.env "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/bkb/.env"
+          ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" "chmod 600 ~/bkb/.env"
+          rm -f /tmp/bkb.env
+
+      - name: Setup PostgreSQL on VPS
+        run: |
+          ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "bash ~/bkb/scripts/setup-postgres.sh"
+
+      - name: Deploy Docker containers on VPS
+        run: |
+          ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" << 'ENDSSH'
+            set -e
+            cd ~/bkb
+
+            echo "=== Pre-flight: Check PostgreSQL ==="
+            if ! pg_isready -h 127.0.0.1 -p 5432; then
+              echo "::error::PostgreSQL is NOT running on localhost:5432"
+              sudo systemctl status postgresql || true
+              exit 1
+            fi
+            echo "PostgreSQL OK."
+
+            echo "=== Pulling latest base images ==="
+            docker compose -f docker-compose.prod.yml pull --ignore-pull-failures || true
+
+            echo "=== Building and starting containers ==="
+            docker compose -f docker-compose.prod.yml up -d --build
+
+            echo "=== Waiting for backend to be healthy (up to 3 min) ==="
+            HEALTHY=false
+            for i in $(seq 1 36); do
+              HEALTH=$(wget -qO- http://localhost:8081/actuator/health 2>/dev/null || echo '{}')
+              if echo "$HEALTH" | grep -q '"status":"UP"'; then
+                echo "Backend is healthy!"
+                HEALTHY=true
+                break
+              fi
+              echo "  Attempt $i/36 — waiting 5s... ($HEALTH)"
+              sleep 5
+            done
+
+            if [ "$HEALTHY" = false ]; then
+              echo "::error::Backend failed to become healthy after 3 minutes."
+              docker compose -f docker-compose.prod.yml logs --tail=100 backend
+              exit 1
+            fi
+
+            echo "=== Reloading nginx ==="
+            sudo nginx -t && sudo systemctl reload nginx
+
+            echo "=== Deployment complete! ==="
+          ENDSSH
+
+      - name: Deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Deployment to https://fyp.afiqhaiqal.my succeeded"
+          else
+            echo "❌ Deployment failed — check logs above"
+          fi
+
+# ─── Required GitHub Secrets ─────────────────────────────────────
+# Set in: GitHub Repo → Settings → Secrets and variables → Actions
+#
+# VPS_SSH_PRIVATE_KEY   — Private SSH key for VPS access
+# VPS_HOST              — VPS IP address or hostname
+# VPS_USER              — SSH username (e.g. ubuntu, afiqhaiqal)
+# DATABASE_URL          — jdbc:postgresql://host.docker.internal:5432/bkb
+# DB_USER               — PostgreSQL username
+# DB_PASSWORD           — Strong database password
+# JWT_SECRET            — Run: openssl rand -hex 64
+# JWT_REFRESH_SECRET    — Run: openssl rand -hex 64
+# MAIL_USERNAME         — Gmail address for sending emails
+# MAIL_PASSWORD         — Gmail App Password (16 chars, no spaces)

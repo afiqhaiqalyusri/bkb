@@ -1,0 +1,40 @@
+# ─────────────────────────────────────────────────────────────
+#  BKB — .dockerignore
+#  Keeps secrets and irrelevant files out of Docker build context
+# ─────────────────────────────────────────────────────────────
+
+# Secrets - NEVER in Docker images
+.env
+.env.*
+*.env
+secrets/
+*.pem
+*.key
+*.p12
+
+# Git history
+.git
+.gitignore
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docs / non-build files
+*.md
+docs/
+howtodeploy.MD
+
+# Logs
+logs/
+*.log
+
+# Test outputs
+coverage/
+
+# Database backups
+*.dump
+*.sql.gz
+bkb_backup.*

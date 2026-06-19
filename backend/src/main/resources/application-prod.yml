@@ -1,0 +1,35 @@
+# ─────────────────────────────────────────────
+#  application-prod.yml — Production overrides
+#  Active when SPRING_PROFILES_ACTIVE=prod
+# ─────────────────────────────────────────────
+
+# Disable Swagger UI and API docs entirely in production
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+# Stricter logging in production
+logging:
+  level:
+    com.bkb: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: ERROR
+    org.flywaydb: INFO          # Keep Flyway visible so migration errors show
+    com.zaxxer.hikari: INFO     # Keep Hikari visible so DB connection errors show
+    root: WARN
+
+spring:
+  datasource:
+    # Inside Docker, host.docker.internal resolves to the host machine
+    # where PostgreSQL is running. This overrides the base application.yml default.
+    url: ${DATABASE_URL:jdbc:postgresql://host.docker.internal:5432/bkb}
+    username: ${DB_USER:bkb_user}
+    password: ${DB_PASSWORD:changeme}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000      # Fail fast (10s) instead of hanging 30s
+      validation-timeout: 5000
+      connection-test-query: SELECT 1 # Verify connection is alive before handing out

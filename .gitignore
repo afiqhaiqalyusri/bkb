@@ -1,0 +1,93 @@
+# ─────────────────────────────────────────────────────────────
+#  BKB — .gitignore
+#  Prevents secrets, build artifacts, and IDE files from being
+#  committed to version control.
+# ─────────────────────────────────────────────────────────────
+
+# ── Environment & Secrets ─────────────────────────────────────
+.env
+.env.*
+*.env
+!.env.example
+!.env.*.example
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# ── Java / Maven ──────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# ── Node / Frontend ───────────────────────────────────────────
+node_modules/
+dist/
+build/
+.cache/
+.parcel-cache/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+
+# ── IDE ───────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── Logs ──────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Docker ────────────────────────────────────────────────────
+.docker/
+
+# ── Database Backups (never commit prod data) ─────────────────
+*.dump
+*.sql.gz
+bkb_backup.*
+
+# ── Test output ───────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+
+# ── Misc ──────────────────────────────────────────────────────
+*.swp
+*.swo
+*~
