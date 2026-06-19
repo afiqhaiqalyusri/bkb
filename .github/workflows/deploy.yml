@@ -1,4 +1,4 @@
-name: BKB — Build & Deploy
+name: BKB — Build, Push & Deploy
 
 on:
   push:
@@ -11,6 +11,11 @@ on:
 concurrency:
   group: production-deploy
   cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE:  ghcr.io/${{ github.repository_owner }}/bkb-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/bkb-frontend
 
 jobs:
   # ─── Job 1: Build & Test ──────────────────────────────────────
@@ -54,13 +59,62 @@ jobs:
         env:
           VITE_API_BASE_URL: https://fyp.afiqhaiqal.my
 
-  # ─── Job 2: Deploy ────────────────────────────────────────────
+  # ─── Job 2: Build Docker Images & Push to GHCR ───────────────
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    # Only build images on push to main or manual trigger (not on PRs)
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      packages: write   # Required to push to GHCR
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          dockerfile: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          dockerfile: ./frontend/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=https://fyp.afiqhaiqal.my
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─── Job 3: Deploy to VPS ─────────────────────────────────────
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
-    needs: build-and-test
-    # Only deploy on push to main or manual trigger — not on PRs
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: build-and-push
 
     steps:
       - name: Checkout
@@ -76,26 +130,30 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Sync project files to VPS
+      - name: Sync config files to VPS
+        # Only sync infrastructure files — no source code needed on VPS anymore
         run: |
-          rsync -az --delete \
+          rsync -az \
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='target' \
             --exclude='.env' \
             --exclude='frontend/dist' \
+            --exclude='frontend/src' \
+            --exclude='frontend/public' \
+            --exclude='backend/src' \
             --exclude='bkb_backup.*' \
             ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/bkb/"
 
       - name: Write .env on VPS
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_URL:      ${{ secrets.DATABASE_URL }}
+          DB_USER:           ${{ secrets.DB_USER }}
+          DB_PASSWORD:       ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET:        ${{ secrets.JWT_SECRET }}
           JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_USERNAME:     ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD:     ${{ secrets.MAIL_PASSWORD }}
         run: |
           # Validate required secrets
           MISSING=""
@@ -108,21 +166,22 @@ jobs:
             exit 1
           fi
 
-          # Build .env file locally, then ship securely
           touch /tmp/bkb.env
           chmod 600 /tmp/bkb.env
 
-          printf 'DATABASE_URL=%s\n'        "${DATABASE_URL:-jdbc:postgresql://host.docker.internal:5432/bkb}" >> /tmp/bkb.env
-          printf 'DB_USER=%s\n'             "$DB_USER"             >> /tmp/bkb.env
-          printf 'DB_PASSWORD=%s\n'         "$DB_PASSWORD"         >> /tmp/bkb.env
-          printf 'JWT_SECRET=%s\n'          "$JWT_SECRET"          >> /tmp/bkb.env
-          printf 'JWT_REFRESH_SECRET=%s\n'  "$JWT_REFRESH_SECRET"  >> /tmp/bkb.env
-          printf 'FRONTEND_URL=%s\n'        "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
+          printf 'DATABASE_URL=%s\n'         "${DATABASE_URL:-jdbc:postgresql://host.docker.internal:5432/bkb}" >> /tmp/bkb.env
+          printf 'DB_USER=%s\n'              "$DB_USER"              >> /tmp/bkb.env
+          printf 'DB_PASSWORD=%s\n'          "$DB_PASSWORD"          >> /tmp/bkb.env
+          printf 'JWT_SECRET=%s\n'           "$JWT_SECRET"           >> /tmp/bkb.env
+          printf 'JWT_REFRESH_SECRET=%s\n'   "$JWT_REFRESH_SECRET"   >> /tmp/bkb.env
+          printf 'FRONTEND_URL=%s\n'         "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
           printf 'CORS_ALLOWED_ORIGINS=%s\n' "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
-          printf 'VITE_API_BASE_URL=%s\n'   "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
-          printf 'MAIL_USERNAME=%s\n'       "${MAIL_USERNAME:-noreply@example.com}" >> /tmp/bkb.env
-          printf 'MAIL_PASSWORD=%s\n'       "${MAIL_PASSWORD:-placeholder}"         >> /tmp/bkb.env
-          printf 'SPRING_PROFILES_ACTIVE=%s\n' "prod"              >> /tmp/bkb.env
+          printf 'VITE_API_BASE_URL=%s\n'    "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
+          printf 'MAIL_USERNAME=%s\n'        "${MAIL_USERNAME:-noreply@example.com}" >> /tmp/bkb.env
+          printf 'MAIL_PASSWORD=%s\n'        "${MAIL_PASSWORD:-placeholder}"         >> /tmp/bkb.env
+          printf 'SPRING_PROFILES_ACTIVE=%s\n' "prod"                >> /tmp/bkb.env
+          printf 'BACKEND_IMAGE=%s\n'        "${{ env.BACKEND_IMAGE }}:${{ github.sha }}" >> /tmp/bkb.env
+          printf 'FRONTEND_IMAGE=%s\n'       "${{ env.FRONTEND_IMAGE }}:${{ github.sha }}" >> /tmp/bkb.env
 
           scp /tmp/bkb.env "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/bkb/.env"
           ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" "chmod 600 ~/bkb/.env"
@@ -133,7 +192,7 @@ jobs:
           ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
             "bash ~/bkb/scripts/setup-postgres.sh"
 
-      - name: Deploy Docker containers on VPS
+      - name: Deploy on VPS
         run: |
           ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" << 'ENDSSH'
             set -e
@@ -147,11 +206,14 @@ jobs:
             fi
             echo "PostgreSQL OK."
 
-            echo "=== Pulling latest base images ==="
-            docker compose -f docker-compose.prod.yml pull --ignore-pull-failures || true
+            echo "=== Logging in to GitHub Container Registry ==="
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
-            echo "=== Building and starting containers ==="
-            docker compose -f docker-compose.prod.yml up -d --build
+            echo "=== Pulling latest images from GHCR ==="
+            docker compose -f docker-compose.prod.yml pull
+
+            echo "=== Starting containers ==="
+            docker compose -f docker-compose.prod.yml up -d
 
             echo "=== Waiting for backend to be healthy (up to 3 min) ==="
             HEALTHY=false
@@ -175,8 +237,14 @@ jobs:
             echo "=== Reloading nginx ==="
             sudo nginx -t && sudo systemctl reload nginx
 
+            echo "=== Removing old/unused Docker images ==="
+            docker image prune -f
+
             echo "=== Deployment complete! ==="
           ENDSSH
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USER:  ${{ github.repository_owner }}
 
       - name: Deployment status
         if: always()
@@ -192,11 +260,12 @@ jobs:
 #
 # VPS_SSH_PRIVATE_KEY   — Private SSH key for VPS access
 # VPS_HOST              — VPS IP address or hostname
-# VPS_USER              — SSH username (e.g. ubuntu, afiqhaiqal)
+# VPS_USER              — SSH username
+# GHCR_TOKEN            — GitHub PAT with read:packages scope (for VPS to pull images)
 # DATABASE_URL          — jdbc:postgresql://host.docker.internal:5432/bkb
 # DB_USER               — PostgreSQL username
 # DB_PASSWORD           — Strong database password
 # JWT_SECRET            — Run: openssl rand -hex 64
-# JWT_REFRESH_SECRET    — Run: openssl rand -hex 64
-# MAIL_USERNAME         — Gmail address for sending emails
+# JWT_REFRESH_SECRET    — Run: openssl rand -hex 64 (different value)
+# MAIL_USERNAME         — Gmail address
 # MAIL_PASSWORD         — Gmail App Password (16 chars, no spaces)

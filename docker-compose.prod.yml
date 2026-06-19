@@ -1,47 +1,45 @@
 version: "3.9"
 
 # ─────────────────────────────────────────────────────────────────
-#  BKB — Production Docker Compose
+#  BKB — Production Docker Compose (GHCR Image Pull)
 #  VPS: Ubuntu 24.04 LTS
-#  PostgreSQL runs on the VPS host — NOT inside Docker.
-#  Containers connect to it via host.docker.internal.
+#  Images are pre-built by GitHub Actions and pulled from GHCR.
+#  PostgreSQL runs on the VPS host (not inside Docker).
 #
-#  Start:   docker compose -f docker-compose.prod.yml up -d --build
+#  Start:   docker compose -f docker-compose.prod.yml up -d
 #  Stop:    docker compose -f docker-compose.prod.yml down
 #  Logs:    docker compose -f docker-compose.prod.yml logs -f
+#  Update:  docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
 # ─────────────────────────────────────────────────────────────────
 
 services:
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ${BACKEND_IMAGE:-ghcr.io/afiqhaiqalyusri/bkb-backend:latest}
     container_name: bkb_backend
     restart: unless-stopped
-    # Allows container to reach host services (e.g. PostgreSQL on the host)
-    # via the hostname "host.docker.internal"
+    # Allows container to reach host PostgreSQL via host.docker.internal
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DATABASE_URL:           ${DATABASE_URL}
-      DB_USER:                ${DB_USER}
-      DB_PASSWORD:            ${DB_PASSWORD}
-      JWT_SECRET:             ${JWT_SECRET}
-      JWT_REFRESH_SECRET:     ${JWT_REFRESH_SECRET}
-      FRONTEND_URL:           ${FRONTEND_URL:-https://fyp.afiqhaiqal.my}
-      CORS_ALLOWED_ORIGINS:   ${CORS_ALLOWED_ORIGINS:-https://fyp.afiqhaiqal.my}
-      SPRING_MAIL_USERNAME:   ${MAIL_USERNAME:-noreply@example.com}
-      SPRING_MAIL_PASSWORD:   ${MAIL_PASSWORD:-placeholder}
-      # Prevent mail health check from failing startup when mail is not configured
+      SPRING_PROFILES_ACTIVE:   prod
+      DATABASE_URL:             ${DATABASE_URL}
+      DB_USER:                  ${DB_USER}
+      DB_PASSWORD:              ${DB_PASSWORD}
+      JWT_SECRET:               ${JWT_SECRET}
+      JWT_REFRESH_SECRET:       ${JWT_REFRESH_SECRET}
+      FRONTEND_URL:             ${FRONTEND_URL:-https://fyp.afiqhaiqal.my}
+      CORS_ALLOWED_ORIGINS:     ${CORS_ALLOWED_ORIGINS:-https://fyp.afiqhaiqal.my}
+      SPRING_MAIL_USERNAME:     ${MAIL_USERNAME:-noreply@example.com}
+      SPRING_MAIL_PASSWORD:     ${MAIL_PASSWORD:-placeholder}
+      # Prevent mail health check from blocking startup
       MANAGEMENT_HEALTH_MAIL_ENABLED:           "false"
       MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS:  never
-      # Short mail timeouts so a bad config fails fast, not after 30s
+      # Short mail timeouts — fail fast on bad config
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_CONNECTIONTIMEOUT: "3000"
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_TIMEOUT:           "3000"
     ports:
-      - "127.0.0.1:8081:8081"   # Bind to localhost only — nginx proxies to this
+      - "127.0.0.1:8081:8081"   # localhost only — nginx proxies to this
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health 2>/dev/null | grep -q '\"status\":\"UP\"' || exit 1"]
       interval: 15s
@@ -50,15 +48,11 @@ services:
       start_period: 90s
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://fyp.afiqhaiqal.my}
+    image: ${FRONTEND_IMAGE:-ghcr.io/afiqhaiqalyusri/bkb-frontend:latest}
     container_name: bkb_frontend
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     ports:
-      - "127.0.0.1:5173:80"    # Bind to localhost only — nginx proxies to this
+      - "127.0.0.1:5173:80"    # localhost only — nginx proxies to this
