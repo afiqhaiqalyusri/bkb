@@ -126,7 +126,7 @@ springdoc:
 # Application security settings
 app:
   mail:
-    from: ${MAIL_USERNAME}
+    from: ${MAIL_USERNAME:${SPRING_MAIL_USERNAME:noreply@example.com}}
     from-name: BKB System
   security:
     otp-expiry-minutes: 10

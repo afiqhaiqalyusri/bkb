@@ -100,15 +100,13 @@ if [ -f "$PG_CONF" ]; then
 fi
 
 if [ -f "$HBA_CONF" ]; then
-  # Allow Docker bridge network ranges
-  for CIDR in "172.17.0.0/16" "172.18.0.0/16"; do
-    if ! sudo grep -qF "$CIDR" "$HBA_CONF"; then
-      info "Adding Docker bridge rule ($CIDR) to pg_hba.conf..."
-      echo "host    bkb    $DB_USER    $CIDR    scram-sha-256" | sudo tee -a "$HBA_CONF"
-    else
-      info "Docker bridge rule ($CIDR) already in pg_hba.conf."
-    fi
-  done
+  # Allow all local connections (Docker uses host-gateway which comes from 172.16.0.0/12 range usually)
+  if ! sudo grep -q "172.16.0.0/12" "$HBA_CONF"; then
+    echo "host    all             all             172.16.0.0/12           scram-sha-256" | sudo tee -a "$HBA_CONF"
+    info "Docker bridge rule (172.16.0.0/12) added to pg_hba.conf."
+  else
+    info "Docker bridge rule (172.16.0.0/12) already in pg_hba.conf."
+  fi
 fi
 
 # ── 7. Reload PostgreSQL ──────────────────────────────────────

@@ -43,6 +43,8 @@ ufw allow 22/tcp   comment 'SSH'
 ufw allow 80/tcp   comment 'HTTP'
 ufw allow 443/tcp  comment 'HTTPS'
 # Port 5432 (PostgreSQL) and 8081 (backend) are NOT opened — accessed only locally
+# Allow Docker bridge subnets to access PostgreSQL on the host
+ufw allow from 172.16.0.0/12 to any port 5432 comment 'Docker to Host'
 
 echo "y" | ufw enable
 ufw status verbose
