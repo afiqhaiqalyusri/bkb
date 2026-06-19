@@ -207,7 +207,7 @@ jobs:
             echo "PostgreSQL OK."
 
             echo "=== Logging in to GitHub Container Registry ==="
-            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
 
             echo "=== Pulling latest images from GHCR ==="
             docker compose -f docker-compose.prod.yml pull
@@ -242,9 +242,6 @@ jobs:
 
             echo "=== Deployment complete! ==="
           ENDSSH
-        env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          GHCR_USER:  ${{ github.repository_owner }}
 
       - name: Deployment status
         if: always()
