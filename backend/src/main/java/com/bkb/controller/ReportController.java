@@ -80,6 +80,8 @@ public class ReportController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bkb-report-" + from + "-to-" + to + ".csv")
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(csv.getBytes());
+    }
+
     @GetMapping("/staff-performance")
     public ResponseEntity<ApiResponse<java.util.List<ReportService.StaffPerformanceEntry>>> getStaffPerformance(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
