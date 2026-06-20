@@ -58,7 +58,6 @@ public class InventoryService {
                 .maxStock(request.getMaxStock())
                 .unitCost(request.getUnitCost() != null ? request.getUnitCost() : BigDecimal.ZERO)
                 .supplier(request.getSupplier())
-                .quantity(request.getCurrentStock().doubleValue()) // Fallback mapping for Double quantity
                 .build();
         inv = inventoryRepository.save(inv);
         return toResponse(inv);
@@ -74,7 +73,6 @@ public class InventoryService {
         inv.setCurrentStock(request.getCurrentStock());
         inv.setMinStock(request.getMinStock());
         inv.setMaxStock(request.getMaxStock());
-        inv.setQuantity(request.getCurrentStock().doubleValue());
         if (request.getUnitCost() != null) inv.setUnitCost(request.getUnitCost());
         if (request.getSupplier() != null) inv.setSupplier(request.getSupplier());
         return toResponse(inventoryRepository.save(inv));
