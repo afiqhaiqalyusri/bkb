@@ -100,6 +100,7 @@ public class InventoryController {
             map.put("inventoryName", t.getInventory() != null ? t.getInventory().getItemName() : "");
             map.put("unit", t.getInventory() != null ? t.getInventory().getUnit() : "");
             map.put("quantity", t.getQuantity());
+            map.put("transactionCost", t.getTransactionCost());
             map.put("reason", t.getReason());
             map.put("createdAt", t.getCreatedAt());
             map.put("loggedBy", t.getCreatedBy() != null ? t.getCreatedBy().getName() : "System");

@@ -16,6 +16,11 @@ public class InventoryResponse {
     private BigDecimal currentStock;
     private BigDecimal minStock;
     private BigDecimal maxStock;
+    private BigDecimal unitCost;
+    private String supplier;
     private String status;
     private LocalDateTime updatedAt;
+    
+    private BigDecimal averageDailyUsage;
+    private Integer estimatedDaysRemaining;
 }

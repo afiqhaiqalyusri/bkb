@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -22,17 +23,14 @@ public class OrderController {
 
     private final OrderService orderService;
     private final com.bkb.service.SecurityLogService securityLogService;
-    /**
-     * In-memory store status flag. Thread-safe via AtomicBoolean.
-     * NOTE: This resets to {@code true} on every container restart.
-     * For persistence across restarts, this should be stored in the database (future enhancement).
-     */
-    private static final java.util.concurrent.atomic.AtomicBoolean isStoreOpen =
-            new java.util.concurrent.atomic.AtomicBoolean(true);
+    private final com.bkb.repository.StoreSettingRepository storeSettingRepository;
 
     @GetMapping("/store-status")
     public ResponseEntity<ApiResponse<Boolean>> getStoreStatus() {
-        return ResponseEntity.ok(ApiResponse.success(isStoreOpen.get()));
+        boolean isOpen = storeSettingRepository.findById("STORE_OPEN")
+                .map(setting -> Boolean.parseBoolean(setting.getSettingValue()))
+                .orElse(true);
+        return ResponseEntity.ok(ApiResponse.success(isOpen));
     }
 
     @PostMapping("/store-status")
@@ -41,21 +39,33 @@ public class OrderController {
             @RequestBody java.util.Map<String, Object> body,
             @AuthenticationPrincipal User user,
             jakarta.servlet.http.HttpServletRequest request) {
-        Boolean oldStatus = isStoreOpen.get();
+        
+        boolean oldStatus = storeSettingRepository.findById("STORE_OPEN")
+                .map(setting -> Boolean.parseBoolean(setting.getSettingValue()))
+                .orElse(true);
+
+        boolean newStatus = oldStatus;
         if (body.containsKey("open")) {
-            isStoreOpen.set((Boolean) body.get("open"));
+            newStatus = (Boolean) body.get("open");
+            com.bkb.entity.StoreSetting setting = storeSettingRepository.findById("STORE_OPEN")
+                    .orElse(new com.bkb.entity.StoreSetting("STORE_OPEN", "true", "Global store open/close status"));
+            setting.setSettingValue(String.valueOf(newStatus));
+            storeSettingRepository.save(setting);
         }
         securityLogService.log(user, "Store Operations Toggle",
-                String.format("Toggled store operations from %s to %s.", oldStatus ? "OPEN" : "CLOSED", isStoreOpen.get() ? "OPEN" : "CLOSED"),
-                String.valueOf(oldStatus), String.valueOf(isStoreOpen.get()), request);
-        return ResponseEntity.ok(ApiResponse.success("Store status updated successfully", isStoreOpen.get()));
+                String.format("Toggled store operations from %s to %s.", oldStatus ? "OPEN" : "CLOSED", newStatus ? "OPEN" : "CLOSED"),
+                String.valueOf(oldStatus), String.valueOf(newStatus), request);
+        return ResponseEntity.ok(ApiResponse.success("Store status updated successfully", newStatus));
     }
 
     @PostMapping({"", "/create"})
     public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(
             @Valid @RequestBody PlaceOrderRequest request,
             @AuthenticationPrincipal User user) {
-        if (!isStoreOpen.get()) {
+        boolean isStoreOpen = storeSettingRepository.findById("STORE_OPEN")
+                .map(setting -> Boolean.parseBoolean(setting.getSettingValue()))
+                .orElse(true);
+        if (!isStoreOpen) {
             throw new com.bkb.exception.BkbException("Store is closed. We are not accepting new orders at this time.");
         }
         OrderResponse response = orderService.placeOrder(request, user);
@@ -107,7 +117,7 @@ public class OrderController {
         OrderResponse oldOrder = orderService.getOrderById(id);
         String oldStatus = oldOrder.getStatus();
         
-        OrderResponse updated = orderService.updateOrderStatus(id, newStatus);
+        OrderResponse updated = orderService.updateOrderStatus(id, newStatus, user);
         
         if ("COMPLETED".equalsIgnoreCase(newStatus)) {
             securityLogService.log(user, "Manual Order Completion",
@@ -170,5 +180,16 @@ public class OrderController {
                 String.format("Manager/Admin cancelled scheduled order %s (ID: %d).", response.getOrderNumber(), id),
                 oldStatus, "CANCELLED", servletRequest);
         return ResponseEntity.ok(ApiResponse.success("Scheduled order cancelled successfully", response));
+    }
+
+    @PostMapping("/{id}/feedback")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<OrderResponse>> submitFeedback(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user,
+            @RequestBody Map<String, Object> body) {
+        Integer rating = body.get("rating") != null ? Integer.valueOf(body.get("rating").toString()) : null;
+        String feedback = body.get("feedback") != null ? body.get("feedback").toString() : null;
+        return ResponseEntity.ok(ApiResponse.success(orderService.submitFeedback(id, user, rating, feedback)));
     }
 }

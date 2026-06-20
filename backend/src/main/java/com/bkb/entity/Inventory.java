@@ -25,11 +25,21 @@ public class Inventory {
     @Column(name = "item_name", nullable = false, length = 150)
     private String itemName;
 
+    @Column(nullable = false)
+    private Double quantity;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal unitCost = BigDecimal.ZERO;
+
+    @Column(length = 100)
+    private String supplier;
+
+    @Column(length = 20)
+    private String unit;
+
     @Column(length = 80)
     private String category;
-
-    @Column(length = 30)
-    private String unit;
 
     @Column(name = "current_stock", nullable = false, precision = 10, scale = 2)
     private BigDecimal currentStock;

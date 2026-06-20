@@ -6,7 +6,8 @@ import {
   LoyaltyReward,
   LoyaltyAccountManagerDetail,
   PageResponse,
-  SecurityLog
+  SecurityLog,
+  CustomerInsightsResponse
 } from '../types';
 
 export const staffService = {
@@ -26,7 +27,7 @@ export const staffService = {
     api.put<ApiResponse<void>>(`/api/staff/${id}/documents`, docs).then(r => r.data),
   
   getSecurityLogs: (page = 0, size = 50) =>
-    api.get<ApiResponse<PageResponse<SecurityLog>>>(`/api/staff/security-logs?page=${page}&size=${size}`).then(r => r.data),
+    api.get<ApiResponse<PageResponse<SecurityLog>>>(`/api/audit-logs?page=${page}&size=${size}`).then(r => r.data),
 
   toggleStatus: (id: number) =>
     api.put<ApiResponse<void>>(`/api/staff/${id}/status`).then(r => r.data),
@@ -59,4 +60,17 @@ export const loyaltyManagerService = {
 
   adjustPoints: (id: number, points: number, reason?: string) =>
     api.post<ApiResponse<void>>(`/api/loyalty/accounts/${id}/adjust`, { points, reason }).then(r => r.data),
+};
+
+export const reportService = {
+  getCustomerInsights: () =>
+    api.get<ApiResponse<CustomerInsightsResponse>>('/api/reports/customer-insights').then(r => r.data),
+};
+
+export const globalSettingsService = {
+  getAll: () =>
+    api.get<ApiResponse<{ settingKey: string; settingValue: string; description: string }[]>>('/api/settings').then(r => r.data),
+  
+  updateAll: (settings: { settingKey: string; settingValue: string; description: string }[]) =>
+    api.post<ApiResponse<void>>('/api/settings', settings).then(r => r.data),
 };

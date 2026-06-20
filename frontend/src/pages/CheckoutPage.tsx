@@ -112,6 +112,10 @@ export const CheckoutPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const orderSubmittedRef = useRef(false);
 
+  const [promoCodeInput, setPromoCodeInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<any>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+
   // Workflow Protection: Redirect to menu if cart is empty (ignore if order was just submitted)
   useEffect(() => {
     if (!orderSubmittedRef.current && items.length === 0) {
@@ -134,8 +138,50 @@ export const CheckoutPage: React.FC = () => {
     const price = item.isFree ? 0 : (item.menuItem.promoPrice ?? item.menuItem.price);
     return sum + price * item.quantity;
   }, 0);
-  const tax = sub * 0.06;
-  const tot = sub + tax;
+
+  let discountAmount = 0;
+  if (appliedPromo) {
+    if (!appliedPromo.applicableItemIds || appliedPromo.applicableItemIds.length === 0) {
+      if (appliedPromo.type === 'PERCENTAGE') {
+        discountAmount = sub * (appliedPromo.value / 100);
+      } else {
+        discountAmount = appliedPromo.value;
+      }
+    } else {
+      let applicableSub = 0;
+      checkoutItems.forEach((item: any) => {
+        if (appliedPromo.applicableItemIds.includes(item.menuItem.id)) {
+          const price = item.isFree ? 0 : (item.menuItem.promoPrice ?? item.menuItem.price);
+          applicableSub += price * item.quantity;
+        }
+      });
+      if (appliedPromo.type === 'PERCENTAGE') {
+        discountAmount = applicableSub * (appliedPromo.value / 100);
+      } else {
+        discountAmount = Math.min(appliedPromo.value, applicableSub);
+      }
+    }
+  }
+  discountAmount = Math.min(discountAmount, sub); // discount can't exceed subtotal
+
+  const discountedSub = sub - discountAmount;
+  const tax = discountedSub * 0.06;
+  const tot = discountedSub + tax;
+
+  const handleApplyPromo = async () => {
+    if (!promoCodeInput.trim()) return;
+    setPromoLoading(true);
+    try {
+      const res = await orderService.validatePromoCode(promoCodeInput.trim());
+      setAppliedPromo(res.data);
+      toast.success('Promo code applied!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Invalid promo code');
+      setAppliedPromo(null);
+    } finally {
+      setPromoLoading(false);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (checkoutItems.length === 0) return;
@@ -222,6 +268,7 @@ export const CheckoutPage: React.FC = () => {
         notes: notes.trim() || undefined,
         guestName: (!isAuthenticated || user?.role === 'GUEST') ? guestName.trim() : undefined,
         guestPhone: (!isAuthenticated || user?.role === 'GUEST') ? guestPhone.trim() : undefined,
+        promoCode: appliedPromo?.code || undefined,
       });
 
       // Set orderSubmitted to true to prevent empty cart redirect logic
@@ -708,6 +755,37 @@ export const CheckoutPage: React.FC = () => {
                   <span>Merchandise Subtotal</span>
                   <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatRM(sub)}</span>
                 </div>
+                
+                {/* Promo Code UI */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '4px 0' }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      placeholder="Promo Code"
+                      value={promoCodeInput}
+                      onChange={e => setPromoCodeInput(e.target.value.toUpperCase())}
+                      style={{
+                        flex: 1, padding: '8px 12px', borderRadius: 8, border: '1.5px solid var(--border)',
+                        background: 'var(--background)', color: 'var(--text-primary)', fontSize: '0.75rem', outline: 'none'
+                      }}
+                    />
+                    {appliedPromo ? (
+                      <button onClick={() => { setAppliedPromo(null); setPromoCodeInput(''); }} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: 'rgba(239,68,68,0.1)', color: '#EF4444', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                        Remove
+                      </button>
+                    ) : (
+                      <button onClick={handleApplyPromo} disabled={promoLoading || !promoCodeInput.trim()} style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--surface)', color: 'var(--text-primary)', border: '1.5px solid var(--border)', fontSize: '0.75rem', fontWeight: 700, cursor: promoCodeInput.trim() ? 'pointer' : 'not-allowed', opacity: promoCodeInput.trim() ? 1 : 0.5 }}>
+                        {promoLoading ? '...' : 'Apply'}
+                      </button>
+                    )}
+                  </div>
+                  {appliedPromo && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#22C55E', fontWeight: 600 }}>
+                      <span>Discount ({appliedPromo.code})</span>
+                      <span>-{formatRM(discountAmount)}</span>
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                   <span>Tax (6% SST)</span>
                   <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatRM(tax)}</span>

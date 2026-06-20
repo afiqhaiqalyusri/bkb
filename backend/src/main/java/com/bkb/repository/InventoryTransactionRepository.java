@@ -26,4 +26,19 @@ public interface InventoryTransactionRepository extends JpaRepository<InventoryT
 
     @Query("SELECT t FROM InventoryTransaction t WHERE t.type = :type ORDER BY t.createdAt DESC")
     List<InventoryTransaction> findByType(@Param("type") InventoryTransactionType type);
+
+    @Query("SELECT COALESCE(SUM(t.quantity), 0) FROM InventoryTransaction t WHERE t.inventory.id = :inventoryId AND t.type = :type AND t.createdAt BETWEEN :from AND :to")
+    java.math.BigDecimal sumQuantityByInventoryIdAndTypeAndDateRange(
+        @Param("inventoryId") Long inventoryId,
+        @Param("type") InventoryTransactionType type,
+        @Param("from") LocalDateTime from,
+        @Param("to") LocalDateTime to
+    );
+
+    @Query("SELECT COALESCE(SUM(t.transactionCost), 0) FROM InventoryTransaction t WHERE t.type = :type AND t.createdAt BETWEEN :from AND :to")
+    java.math.BigDecimal sumTransactionCostByTypeAndDateRange(
+        @Param("type") InventoryTransactionType type,
+        @Param("from") LocalDateTime from,
+        @Param("to") LocalDateTime to
+    );
 }

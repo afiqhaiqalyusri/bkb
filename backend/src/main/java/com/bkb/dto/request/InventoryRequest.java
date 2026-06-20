@@ -22,7 +22,10 @@ public class InventoryRequest {
     @DecimalMin("0")
     private BigDecimal minStock;
 
-    @NotNull
-    @DecimalMin("0")
+    @NotNull(message = "Max stock is required")
     private BigDecimal maxStock;
+
+    private BigDecimal unitCost;
+
+    private String supplier;
 }

@@ -40,4 +40,34 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.createdAt >= :since AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
     java.math.BigDecimal sumRevenueSince(@Param("since") LocalDateTime since);
+
+    @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
+    java.math.BigDecimal sumRevenueBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COALESCE(SUM(o.estimatedProfit), 0) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
+    java.math.BigDecimal sumProfitBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
+    long countOrdersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COUNT(DISTINCT o.user.id) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID AND o.user IS NOT NULL")
+    long countUniqueCustomersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query(value = "SELECT EXTRACT(HOUR FROM created_at) as hr, COUNT(*) as cnt FROM orders WHERE payment_status = 'PAID' AND created_at BETWEEN :from AND :to GROUP BY hr ORDER BY cnt DESC", nativeQuery = true)
+    List<Object[]> getPeakHours(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID AND o.user IS NOT NULL")
+    java.math.BigDecimal sumUserRevenue();
+
+    @Query(value = "SELECT COUNT(*) FROM (SELECT user_id FROM orders WHERE payment_status = 'PAID' AND user_id IS NOT NULL GROUP BY user_id HAVING COUNT(*) > 1) AS repeat_cust", nativeQuery = true)
+    long countRepeatCustomers();
+
+    @Query("SELECT AVG(o.rating) FROM Order o WHERE o.rating IS NOT NULL")
+    java.math.BigDecimal getAverageRating();
+
+    @Query("SELECT o FROM Order o WHERE o.rating IS NOT NULL ORDER BY o.createdAt DESC LIMIT 20")
+    List<Order> findRecentFeedback();
+
+    @Query("SELECT o.completedByName, COUNT(o.id) FROM Order o WHERE o.completedById IS NOT NULL AND o.createdAt BETWEEN :from AND :to GROUP BY o.completedByName ORDER BY COUNT(o.id) DESC")
+    List<Object[]> getStaffPerformance(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

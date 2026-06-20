@@ -8,6 +8,7 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, A
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { reportService } from '../../services/report.service';
 import { inventoryService } from '../../services/inventory.service';
+import { reportService as managerReportService } from '../../services/manager.service';
 import { formatRM } from '../../utils/formatCurrency';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { KPISkeleton, ChartSkeleton, TableSkeleton } from '../../components/ui/SkeletonLoader';
@@ -345,39 +346,42 @@ const OverviewContent: React.FC<{
   }
 
   const todayStr = new Date().toLocaleDateString('sv-SE');
-  const todayData = report?.dailyRevenue?.find((d: any) => d.date === todayStr);
+  const execData = report; // This is now ExecutiveDashboardResponse
 
   const kpis = [
     {
+      icon: <DollarSign size={22} />,
+      label: "Revenue",
+      value: formatRM(execData?.revenue?.value ?? 0),
+      sub: execData?.revenue?.percentChange ? `${execData.revenue.percentChange > 0 ? '+' : ''}${parseFloat(execData.revenue.percentChange).toFixed(1)}% vs last period` : 'No prev data',
+      isPositive: execData?.revenue?.isPositive
+    },
+    {
       icon: <TrendingUp size={22} />,
-      label: "Today's Revenue",
-      value: formatRM(todayData?.revenue ?? 0),
-      sub: `${todayData?.orders ?? 0} orders`,
+      label: "Estimated Profit",
+      value: formatRM(execData?.profit?.value ?? 0),
+      sub: execData?.profit?.percentChange ? `${execData.profit.percentChange > 0 ? '+' : ''}${parseFloat(execData.profit.percentChange).toFixed(1)}% vs last period` : 'No prev data',
+      isPositive: execData?.profit?.isPositive
     },
     {
       icon: <ShoppingBag size={22} />,
-      label: 'Monthly Revenue',
-      value: formatRM(report?.totalRevenue ?? 0),
-      sub: `${report?.totalOrders ?? 0} total orders`,
+      label: 'Total Orders',
+      value: execData?.orders?.value ?? 0,
+      sub: execData?.orders?.percentChange ? `${execData.orders.percentChange > 0 ? '+' : ''}${parseFloat(execData.orders.percentChange).toFixed(1)}% vs last period` : 'No prev data',
+      isPositive: execData?.orders?.isPositive
     },
     {
-      icon: <Flame size={22} />,
-      label: 'Avg Order Value',
-      value: formatRM(report?.avgOrderValue ?? 0),
-      sub: 'This month',
-    },
-    {
-      icon: <AlertTriangle size={22} />,
-      label: 'Low Stock Alerts',
-      value: String(lowStock.length),
-      sub: lowStock.length > 0 ? 'Need attention' : 'All good ✓',
+      icon: <Users size={22} />,
+      label: 'Unique Customers',
+      value: execData?.customers?.value ?? 0,
+      sub: execData?.customers?.percentChange ? `${execData.customers.percentChange > 0 ? '+' : ''}${parseFloat(execData.customers.percentChange).toFixed(1)}% vs last period` : 'No prev data',
+      isPositive: execData?.customers?.isPositive
     },
   ];
 
-  const chartData = report?.dailyRevenue?.slice(-14).map((d: any) => ({
-    name: d.date.substring(8, 10),
-    Revenue: d.revenue,
-    Orders: d.orders,
+  const chartData = execData?.peakHours?.map((d: any) => ({
+    name: d.hour,
+    Orders: d.orderCount,
   })) || [];
 
   return (
@@ -407,11 +411,7 @@ const OverviewContent: React.FC<{
               <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins', letterSpacing: '-0.5px' }}>
                 {kpi.value}
               </div>
-              <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ 
-                  display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
-                  background: kpi.label.includes('Low Stock') ? (lowStock.length > 0 ? '#EF4444' : '#22C55E') : 'var(--text-secondary)'
-                }} />
+              <div style={{ fontSize: '0.74rem', color: kpi.isPositive ? '#22C55E' : '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 {kpi.sub}
               </div>
             </div>
@@ -428,8 +428,8 @@ const OverviewContent: React.FC<{
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>Revenue Trend</h3>
-              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Daily revenue over the last 14 days</p>
+              <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>Peak Hours</h3>
+              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Busiest time of day (orders)</p>
             </div>
             <ArrowUp size={16} style={{ color: '#22C55E' }} />
           </div>
@@ -449,7 +449,7 @@ const OverviewContent: React.FC<{
                   <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={10} tickLine={false} />
                   <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} />
                   <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 11 }} />
-                  <Area type="monotone" dataKey="Revenue" stroke="var(--red)" strokeWidth={1.5} fill="url(#revGrad)" />
+                  <Area type="monotone" dataKey="Orders" stroke="var(--bkb-orange)" strokeWidth={1.5} fill="url(#revGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -547,14 +547,21 @@ const ReportsContent: React.FC = () => {
   const [to, setTo] = useState(getTodayStr());
   const [report, setReport] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [staffPerformance, setStaffPerformance] = useState<any[]>([]);
 
   useEffect(() => { loadReport(); }, []);
 
   const loadReport = () => {
     setLoading(true);
-    reportService.getDailySales(from, to)
-      .then(res => setReport(res.data))
-      .catch(() => toast.error('Failed to load sales reports'))
+    Promise.all([
+      reportService.getDailySales(from, to),
+      reportService.getStaffPerformance(from, to)
+    ])
+      .then(([salesRes, staffRes]) => {
+        setReport(salesRes.data);
+        setStaffPerformance(staffRes.data || []);
+      })
+      .catch(() => toast.error('Failed to load reports'))
       .finally(() => setLoading(false));
   };
 
@@ -665,7 +672,7 @@ const ReportsContent: React.FC = () => {
               {!report?.topItems || report.topItems.length === 0 ? (
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', minHeight: 250 }}>No sales data available</div>
               ) : (
-                <div style={{ flex: 1, overflowY: 'auto' }}>
+                <div style={{ flex: 1, overflowY: 'auto', maxHeight: 300 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
@@ -682,6 +689,37 @@ const ReportsContent: React.FC = () => {
                           </td>
                           <td style={{ padding: '12px', textAlign: 'left', fontSize: '0.88rem' }}>{item.totalQuantity}</td>
                           <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, fontSize: '0.88rem' }}>{formatRM(item.totalRevenue)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Staff Performance Table */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20 }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-sm)' }}>
+              <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>👩‍🍳 Staff Performance</h3>
+              {!staffPerformance || staffPerformance.length === 0 ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', minHeight: 150 }}>No staff data available for this period</div>
+              ) : (
+                <div style={{ flex: 1, overflowY: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+                        <th style={{ padding: '8px 12px 12px' }}>Staff Name</th>
+                        <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Orders Completed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {staffPerformance.map((staff: any, idx: number) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '12px', fontWeight: 600, fontSize: '0.88rem' }}>
+                            {staff.staffName}
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, fontSize: '0.88rem', color: 'var(--bkb-orange)' }}>{staff.ordersCompleted}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -757,6 +795,167 @@ const AuditLogsContent: React.FC = () => {
   );
 };
 
+// 4. Menu Analytics Tab Content
+const MenuAnalyticsContent: React.FC = () => {
+  const getTodayStr = () => new Date().toISOString().split('T')[0];
+  const getMonthStartStr = () => new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+
+  const [from, setFrom] = useState(getMonthStartStr());
+  const [to, setTo] = useState(getTodayStr());
+  const [analytics, setAnalytics] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { loadAnalytics(); }, []);
+
+  const loadAnalytics = () => {
+    setLoading(true);
+    reportService.getMenuAnalytics(from, to)
+      .then(res => setAnalytics(res.data))
+      .catch(() => toast.error('Failed to load menu analytics'))
+      .finally(() => setLoading(false));
+  };
+
+  if (loading) return <TableSkeleton rows={8} />;
+
+  return (
+    <div>
+      {/* Date Filter */}
+      <div style={{
+        background: 'var(--cream-dark)', border: '1px solid var(--border)',
+        borderRadius: 16, padding: '16px 20px', marginBottom: 24,
+        display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center'
+      }}>
+        <Calendar size={18} style={{ color: 'var(--red)' }} />
+        <input type="date" value={from} onChange={e => setFrom(e.target.value)}
+          style={{ padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: '0.85rem' }} />
+        <span style={{ color: 'var(--text-secondary)' }}>to</span>
+        <input type="date" value={to} onChange={e => setTo(e.target.value)}
+          style={{ padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: '0.85rem' }} />
+        <button className="bkb-btn-primary" onClick={loadAnalytics} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>Analyze</button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20 }}>
+        {/* Top Sellers */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700, color: '#22C55E' }}>🌟 Best Performers</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+                <th style={{ padding: '8px 12px 12px' }}>Item</th>
+                <th style={{ padding: '8px 12px 12px' }}>Units</th>
+                <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Revenue</th>
+                <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Profit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics?.topSellers?.map((item: any, idx: number) => (
+                <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, fontSize: '0.88rem' }}>{item.itemName}</td>
+                  <td style={{ padding: '12px', fontSize: '0.88rem' }}>{item.totalSold}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', fontSize: '0.88rem' }}>{formatRM(item.totalRevenue)}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: '#22C55E', fontSize: '0.88rem' }}>{formatRM(item.estimatedProfit)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Worst Sellers */}
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700, color: '#EF4444' }}>⚠️ Needs Attention</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+                <th style={{ padding: '8px 12px 12px' }}>Item</th>
+                <th style={{ padding: '8px 12px 12px' }}>Units</th>
+                <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Revenue</th>
+                <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Profit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics?.worstSellers?.map((item: any, idx: number) => (
+                <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, fontSize: '0.88rem' }}>{item.itemName}</td>
+                  <td style={{ padding: '12px', fontSize: '0.88rem' }}>{item.totalSold}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', fontSize: '0.88rem' }}>{formatRM(item.totalRevenue)}</td>
+                  <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: '#EF4444', fontSize: '0.88rem' }}>{formatRM(item.estimatedProfit)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 5. Customer Insights Tab Content
+const CustomerInsightsContent: React.FC = () => {
+  const [insights, setInsights] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    managerReportService.getCustomerInsights()
+      .then(res => setInsights(res.data))
+      .catch(() => toast.error('Failed to load customer insights'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <TableSkeleton rows={8} />;
+
+  const kpis = [
+    { label: 'Total Unique Customers', value: insights?.totalUniqueCustomers || 0, icon: <Users size={22} />, color: '#3B82F6' },
+    { label: 'Repeat Customers', value: insights?.repeatCustomers || 0, icon: <TrendingUp size={22} />, color: '#10B981' },
+    { label: 'Avg Customer LTV', value: formatRM(insights?.averageCustomerLtv || 0), icon: <DollarSign size={22} />, color: '#F59E0B' },
+    { label: 'Avg Rating', value: `${insights?.averageRating || 0} / 5.0`, icon: <Award size={22} />, color: '#8B5CF6' },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* KPI Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+        {kpis.map((kpi, i) => (
+          <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px', display: 'flex', alignItems: 'center', gap: 16, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: `${kpi.color}18`, color: kpi.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{kpi.icon}</div>
+            <div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{kpi.label}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>{kpi.value}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent Feedback */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, boxShadow: 'var(--shadow-sm)' }}>
+        <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>Recent Customer Feedback</h3>
+        {!insights?.recentFeedback || insights.recentFeedback.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', minHeight: 150 }}>No feedback available yet</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {insights.recentFeedback.map((fb: any, idx: number) => (
+              <div key={idx} style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: 12, background: 'var(--background)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{fb.customerName}</div>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'var(--surface)', padding: '2px 8px', borderRadius: 4 }}>Order #{fb.orderNumber}</span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{fb.date}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <span key={star} style={{ color: star <= fb.rating ? '#F59E0B' : 'var(--border)', fontSize: '1.1rem' }}>★</span>
+                  ))}
+                </div>
+                {fb.feedback && <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>"{fb.feedback}"</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ─── Unified Dashboard Main Component ────────────────────────
 export const ManagerDashboard: React.FC = () => {
   const location = useLocation();
@@ -780,7 +979,7 @@ export const ManagerDashboard: React.FC = () => {
     const today = new Date().toISOString().split('T')[0];
     const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
     Promise.all([
-      reportService.getDailySales(monthStart, today),
+      reportService.getExecutiveDashboard(monthStart, today),
       inventoryService.getLowStock(),
     ]).then(([repRes, lowRes]) => {
       setReport(repRes.data);
@@ -796,6 +995,8 @@ export const ManagerDashboard: React.FC = () => {
   const rawTabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'reports', label: 'Sales Reports' },
+    { id: 'menu', label: 'Menu Analytics' },
+    { id: 'insights', label: 'Customer Insights' },
     { id: 'logs', label: 'Audit Logs', adminOnly: true },
   ];
 
@@ -821,6 +1022,8 @@ export const ManagerDashboard: React.FC = () => {
         />
       )}
       {activeTab === 'reports' && <ReportsContent />}
+      {activeTab === 'menu' && <MenuAnalyticsContent />}
+      {activeTab === 'insights' && <CustomerInsightsContent />}
       {activeTab === 'logs' && <AuditLogsContent />}
     </ManagerLayout>
   );

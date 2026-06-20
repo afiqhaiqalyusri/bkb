@@ -12,4 +12,6 @@ import java.util.List;
 public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND (p.startDate IS NULL OR p.startDate <= :today) AND (p.endDate IS NULL OR p.endDate >= :today)")
     List<Promotion> findActivePromotions(LocalDate today);
+
+    java.util.Optional<Promotion> findByPromoCode(String promoCode);
 }

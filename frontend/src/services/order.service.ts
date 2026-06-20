@@ -9,6 +9,7 @@ export interface PlaceOrderPayload {
   notes?: string;
   guestName?: string;
   guestPhone?: string;
+  promoCode?: string;
 }
 
 /**
@@ -42,6 +43,9 @@ export const orderService = {
 
   getStoreStatus: () =>
     api.get<ApiResponse<boolean>>('/api/orders/store-status').then(r => r.data),
+
+  validatePromoCode: (code: string) =>
+    api.get<ApiResponse<any>>(`/api/promotions/validate?code=${encodeURIComponent(code)}`).then(res => res.data),
 
   updateStoreStatus: (open: boolean) =>
     api.post<ApiResponse<boolean>>('/api/orders/store-status', { open }).then(r => r.data),

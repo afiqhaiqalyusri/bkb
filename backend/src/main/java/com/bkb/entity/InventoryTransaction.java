@@ -33,6 +33,10 @@ public class InventoryTransaction {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;
 
+    @Column(name = "transaction_cost", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal transactionCost = BigDecimal.ZERO;
+
     @Column(columnDefinition = "TEXT")
     private String reason;
 

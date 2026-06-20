@@ -23,6 +23,7 @@ public class PlaceOrderRequest {
     private String guestName;
     private String guestPhone;
     private Long loyaltyRedemptionId;
+    private String promoCode;
 
     @Data
     public static class OrderItemRequest {

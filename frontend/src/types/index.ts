@@ -66,6 +66,8 @@ export interface Order {
   customerId?: number;
   paymentToken?: string;
   paymentChannel?: string;
+  rating?: number;
+  feedback?: string;
   items: OrderItem[];
 }
 
@@ -99,6 +101,8 @@ export interface InventoryItem {
   maxStock: number;
   status: 'GOOD' | 'LOW' | 'CRITICAL';
   updatedAt: string;
+  averageDailyUsage?: number;
+  estimatedDaysRemaining?: number | null;
 }
 
 export interface LoyaltyAccount {
@@ -167,6 +171,22 @@ export interface DailyRevenue {
   orders: number;
 }
 
+export interface CustomerInsightsResponse {
+  totalUniqueCustomers: number;
+  repeatCustomers: number;
+  averageCustomerLtv: number;
+  averageRating: number;
+  recentFeedback: FeedbackEntry[];
+}
+
+export interface FeedbackEntry {
+  customerName: string;
+  orderNumber: string;
+  rating: number;
+  feedback: string;
+  date: string;
+}
+
 export interface TopItem {
   itemName: string;
   totalQuantity: number;
@@ -195,6 +215,7 @@ export interface WasteEntry {
   reason: string;
   createdAt: string;
   loggedBy: string;
+  transactionCost?: number;
 }
 
 export interface LoyaltyAccountManagerDetail {

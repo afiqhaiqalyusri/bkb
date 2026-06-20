@@ -8,6 +8,7 @@ import com.bkb.exception.InvalidOrderStateException;
 import com.bkb.exception.ResourceNotFoundException;
 import com.bkb.repository.MenuItemRepository;
 import com.bkb.repository.OrderRepository;
+import com.bkb.repository.PromotionRepository;
 import com.bkb.util.OrderNumberGenerator;
 import com.bkb.util.OrderRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +39,7 @@ public class OrderService {
     private final ObjectMapper objectMapper;
     private final EmailService emailService;
     private final ReceiptService receiptService;
+    private final PromotionRepository promotionRepository;
 
     @Value("${bkb.tax.rate:0.06}")
     private BigDecimal taxRate;
@@ -58,13 +60,83 @@ public class OrderService {
         // 1. Build OrderItems and validate
         List<OrderItem> orderItems = buildOrderItems(request.getItems());
 
-        // 2. Calculate totals
-        BigDecimal subtotal = orderItems.stream()
-                .map(oi -> oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 2. Calculate totals and cost
+        BigDecimal subtotal = BigDecimal.ZERO;
+        BigDecimal totalCost = BigDecimal.ZERO;
+
+        for (OrderItem oi : orderItems) {
+            subtotal = subtotal.add(oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity())));
+
+            // Calculate cost for this item
+            BigDecimal itemCost = BigDecimal.ZERO;
+            if (oi.getMenuItem().getInventoryLinks() != null) {
+                for (com.bkb.entity.MenuItemInventory link : oi.getMenuItem().getInventoryLinks()) {
+                    if (link.getInventory() != null && link.getInventory().getUnitCost() != null) {
+                        itemCost = itemCost.add(
+                                link.getInventory().getUnitCost().multiply(link.getQuantityUsed())
+                        );
+                    }
+                }
+            }
+            oi.setUnitCost(itemCost);
+            totalCost = totalCost.add(itemCost.multiply(BigDecimal.valueOf(oi.getQuantity())));
+        }
+
+        // Apply Promotion if present
+        if (request.getPromoCode() != null && !request.getPromoCode().isBlank()) {
+            Promotion promo = promotionRepository.findByPromoCode(request.getPromoCode())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid promo code: " + request.getPromoCode()));
+            
+            if (!Boolean.TRUE.equals(promo.getIsActive())) {
+                throw new IllegalArgumentException("Promo code is no longer active");
+            }
+            if (promo.getStartDate() != null && promo.getStartDate().isAfter(java.time.LocalDate.now())) {
+                throw new IllegalArgumentException("Promo code is not yet valid");
+            }
+            if (promo.getEndDate() != null && promo.getEndDate().isBefore(java.time.LocalDate.now())) {
+                throw new IllegalArgumentException("Promo code has expired");
+            }
+
+            BigDecimal discountAmount = BigDecimal.ZERO;
+
+            if (promo.getApplicableItems() == null || promo.getApplicableItems().isEmpty()) {
+                // Apply to entire subtotal
+                if (promo.getDiscountType() == DiscountType.PERCENT) {
+                    discountAmount = subtotal.multiply(promo.getDiscountValue().divide(new BigDecimal("100")));
+                } else if (promo.getDiscountType() == DiscountType.FIXED) {
+                    discountAmount = promo.getDiscountValue();
+                }
+            } else {
+                // Apply ONLY to applicable items
+                BigDecimal applicableSubtotal = BigDecimal.ZERO;
+                for (OrderItem oi : orderItems) {
+                    boolean isApplicable = promo.getApplicableItems().stream()
+                        .anyMatch(mi -> mi.getId().equals(oi.getMenuItem().getId()));
+                    if (isApplicable) {
+                        applicableSubtotal = applicableSubtotal.add(oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity())));
+                    }
+                }
+                
+                if (promo.getDiscountType() == DiscountType.PERCENT) {
+                    discountAmount = applicableSubtotal.multiply(promo.getDiscountValue().divide(new BigDecimal("100")));
+                } else if (promo.getDiscountType() == DiscountType.FIXED) {
+                    // Fixed discount is capped at applicable subtotal
+                    discountAmount = promo.getDiscountValue().min(applicableSubtotal);
+                }
+            }
+            
+            // Ensure discount doesn't exceed total subtotal
+            discountAmount = discountAmount.min(subtotal);
+            subtotal = subtotal.subtract(discountAmount);
+            
+            // Increment usage
+            promo.setUsageCount(promo.getUsageCount() + 1);
+            promotionRepository.save(promo);
+        }
 
         BigDecimal tax = subtotal.multiply(taxRate).setScale(2, RoundingMode.HALF_UP);
         BigDecimal total = subtotal.add(tax);
+        BigDecimal estimatedProfit = subtotal.subtract(totalCost);
 
         // 3. Determine payment method
         PaymentMethod paymentMethod;
@@ -110,6 +182,8 @@ public class OrderService {
                 .subtotal(subtotal)
                 .tax(tax)
                 .total(total)
+                .totalCost(totalCost)
+                .estimatedProfit(estimatedProfit)
                 .pickupTime(request.getPickupTime())
                 .scheduledTime(scheduledTime)
                 .queueEnteredAt(queueEnteredAt)
@@ -200,7 +274,7 @@ public class OrderService {
     // ─── Order Updates ───────────────────────────────────────────
 
     @Transactional
-    public OrderResponse updateOrderStatus(Long id, String newStatus) {
+    public OrderResponse updateOrderStatus(Long id, String newStatus, User user) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
@@ -231,6 +305,13 @@ public class OrderService {
             if (order.getUser() != null && order.getUser().getRole() == UserRole.CUSTOMER) {
                 loyaltyService.awardPoints(order.getUser(), order);
             }
+
+            // Track who completed the order
+            if (user != null) {
+                order.setCompletedById(user.getId());
+                order.setCompletedByName(user.getName());
+            }
+            order.setCompletedAt(java.time.LocalDateTime.now());
         }
 
         // Send Email Ready notification
@@ -334,6 +415,32 @@ public class OrderService {
         }
     }
 
+    @Transactional
+    public OrderResponse submitFeedback(Long id, User user, Integer rating, String feedback) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", id));
+
+        // Validate user
+        if (user != null && (user.getRole() == UserRole.CUSTOMER || user.getRole() == UserRole.GUEST)) {
+            if (order.getUser() != null && !order.getUser().getId().equals(user.getId())) {
+                throw new InvalidOrderStateException("You can only rate your own orders");
+            }
+        }
+
+        if (order.getStatus() != OrderStatus.COMPLETED) {
+            throw new InvalidOrderStateException("You can only rate completed orders");
+        }
+
+        if (rating == null || rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
+        }
+
+        order.setRating(rating);
+        order.setFeedback(feedback);
+
+        return toResponse(orderRepository.save(order));
+    }
+
     // ─── Mapping ─────────────────────────────────────────────────
 
     private List<OrderItem> buildOrderItems(List<PlaceOrderRequest.OrderItemRequest> itemRequests) {
@@ -409,6 +516,8 @@ public class OrderService {
                 .customerId(order.getUser() != null ? order.getUser().getId() : null)
                 .paymentToken(order.getPaymentToken())
                 .paymentChannel(order.getPaymentChannel())
+                .rating(order.getRating())
+                .feedback(order.getFeedback())
                 .items(itemResponses)
                 .build();
     }

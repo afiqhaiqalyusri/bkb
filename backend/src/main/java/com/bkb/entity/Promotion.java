@@ -6,6 +6,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "promotions")
@@ -42,4 +44,20 @@ public class Promotion {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    @Column(name = "promo_code", unique = true, length = 50)
+    private String promoCode;
+
+    @Column(name = "usage_count")
+    @Builder.Default
+    private Integer usageCount = 0;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "promotion_menu_items",
+        joinColumns = @JoinColumn(name = "promotion_id"),
+        inverseJoinColumns = @JoinColumn(name = "menu_item_id")
+    )
+    @Builder.Default
+    private Set<MenuItem> applicableItems = new HashSet<>();
 }

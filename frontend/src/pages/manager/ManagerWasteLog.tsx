@@ -13,7 +13,10 @@ interface WasteEntry {
   reason: string;
   createdAt: string;
   loggedBy: string;
+  transactionCost?: number;
 }
+
+import { formatRM } from '../../utils/formatCurrency';
 
 export const WasteContent: React.FC = () => {
   const [entries, setEntries] = useState<WasteEntry[]>([]);
@@ -38,6 +41,7 @@ export const WasteContent: React.FC = () => {
   );
 
   const totalQty = filtered.reduce((sum, e) => sum + Number(e.quantity), 0);
+  const totalCost = filtered.reduce((sum, e) => sum + Number(e.transactionCost || 0), 0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -71,6 +75,7 @@ export const WasteContent: React.FC = () => {
         {[
           { label: 'Total Entries', value: filtered.length, icon: <Trash2 size={20} />, color: '#EF4444' },
           { label: 'Total Items Wasted', value: totalQty.toFixed(1), icon: <Trash2 size={20} />, color: '#F59E0B' },
+          { label: 'Total Wasted Cost', value: formatRM(totalCost), icon: <Trash2 size={20} />, color: '#EF4444' },
         ].map((kpi, i) => (
           <div key={i} style={{
             background: 'var(--bkb-card-bg)', border: '1px solid var(--bkb-border)',
@@ -101,7 +106,7 @@ export const WasteContent: React.FC = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-                  {['Date', 'Ingredient', 'Quantity', 'Reason', 'Logged By'].map(h => (
+                  {['Date', 'Ingredient', 'Quantity', 'Cost', 'Reason', 'Logged By'].map(h => (
                     <th key={h} style={{ padding: '14px 18px', fontSize: '0.8rem', color: 'var(--bkb-gray-400)', fontWeight: 600 }}>{h}</th>
                   ))}
                 </tr>
@@ -116,6 +121,9 @@ export const WasteContent: React.FC = () => {
                     <td style={{ padding: '14px 18px' }}>
                       <span style={{ color: '#EF4444', fontWeight: 700 }}>{entry.quantity}</span>{' '}
                       <span style={{ color: 'var(--bkb-gray-400)', fontSize: '0.8rem' }}>{entry.unit}</span>
+                    </td>
+                    <td style={{ padding: '14px 18px', color: '#EF4444', fontWeight: 600 }}>
+                      {entry.transactionCost ? formatRM(entry.transactionCost) : '-'}
                     </td>
                     <td style={{ padding: '14px 18px', color: 'var(--bkb-gray-400)', fontSize: '0.85rem' }}>{entry.reason || '—'}</td>
                     <td style={{ padding: '14px 18px', fontSize: '0.85rem' }}>{entry.loggedBy}</td>

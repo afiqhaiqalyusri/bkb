@@ -5,6 +5,7 @@ import { orderService } from '../services/order.service';
 import { formatRM } from '../utils/formatCurrency';
 import { PageShell } from '../components/PageShell';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { OrderHistorySkeleton } from '../components/ui/SkeletonLoader';
 
@@ -33,6 +34,10 @@ export const OrderHistoryPage: React.FC = () => {
   const [filter, setFilter] = useState<Filter>('All');
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+
   const fetchOrders = async (showLoader = false) => {
     if (showLoader) setRefreshing(true);
     try {
@@ -57,6 +62,22 @@ export const OrderHistoryPage: React.FC = () => {
     return true;
   });
   const activeCount = orders.filter(o => !['COMPLETED','CANCELLED'].includes(o.status)).length;
+
+  const submitFeedback = async (orderId: number) => {
+    if (!feedbackRating) return;
+    setFeedbackSubmitting(true);
+    try {
+      await api.post(`/api/orders/${orderId}/feedback`, { rating: feedbackRating, feedback: feedbackText });
+      toast.success('Thank you for your feedback! 🍔');
+      fetchOrders(); // refresh
+      setFeedbackRating(5);
+      setFeedbackText('');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to submit feedback');
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
 
   return (
     <PageShell activeKey="/history">
@@ -177,6 +198,48 @@ export const OrderHistoryPage: React.FC = () => {
                           </button>
                         )}
                       </div>
+
+                      {order.status === 'COMPLETED' && (
+                        <div style={{ marginTop: 16, borderTop: '1px dashed var(--border)', paddingTop: 16 }}>
+                          {order.rating ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: 'var(--cream-dark)', padding: '12px', borderRadius: 10 }}>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Your Rating</div>
+                              <div style={{ display: 'flex', gap: 4 }}>
+                                {[1, 2, 3, 4, 5].map(star => (
+                                  <span key={star} style={{ color: star <= order.rating! ? '#F59E0B' : 'var(--border)', fontSize: '1.2rem' }}>★</span>
+                                ))}
+                              </div>
+                              {order.feedback && <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontStyle: 'italic' }}>"{order.feedback}"</div>}
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Rate your experience!</div>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                {[1, 2, 3, 4, 5].map(star => (
+                                  <button
+                                    key={star}
+                                    onClick={() => setFeedbackRating(star)}
+                                    style={{ background: 'none', border: 'none', color: star <= feedbackRating ? '#F59E0B' : 'var(--border)', fontSize: '1.8rem', cursor: 'pointer', padding: 0, transition: 'all 0.1s', transform: star <= feedbackRating ? 'scale(1.1)' : 'scale(1)' }}
+                                  >
+                                    ★
+                                  </button>
+                                ))}
+                              </div>
+                              <textarea
+                                placeholder="Any additional comments? (Optional)"
+                                value={feedbackText}
+                                onChange={e => setFeedbackText(e.target.value)}
+                                style={{ width: '100%', boxSizing: 'border-box', height: 60, padding: '8px 12px', borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--background)', color: 'var(--text-primary)', fontSize: '0.8rem', outline: 'none', resize: 'none' }}
+                                onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                                onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                              />
+                              <button onClick={() => submitFeedback(order.id)} disabled={feedbackSubmitting} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontFamily: 'Poppins', fontWeight: 700, fontSize: '0.8rem', cursor: feedbackSubmitting ? 'not-allowed' : 'pointer', opacity: feedbackSubmitting ? 0.7 : 1 }}>
+                                {feedbackSubmitting ? 'Submitting...' : 'Submit Feedback'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

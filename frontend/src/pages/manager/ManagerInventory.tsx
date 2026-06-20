@@ -204,8 +204,8 @@ export const InventoryContent: React.FC = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-                  {['Ingredient', 'Category', 'Current Stock', 'Min Threshold', 'Status', 'Actions'].map((h, i) => (
-                    <th key={h} style={{ padding: '14px 18px', fontSize: '0.8rem', color: 'var(--bkb-gray-400)', textAlign: i === 5 ? 'right' : 'left' }}>{h}</th>
+                  {['Ingredient', 'Category', 'Current Stock', 'Min Threshold', 'Est. Days Left', 'Status', 'Actions'].map((h, i) => (
+                    <th key={h} style={{ padding: '14px 18px', fontSize: '0.8rem', color: 'var(--bkb-gray-400)', textAlign: i === 6 ? 'right' : 'left' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -222,6 +222,11 @@ export const InventoryContent: React.FC = () => {
                         {item.currentStock} <span style={{ color: 'var(--bkb-gray-400)', fontSize: '0.78rem', fontWeight: 400 }}>{item.unit}</span>
                       </td>
                       <td style={{ padding: '14px 18px', color: 'var(--bkb-gray-400)' }}>{item.minStock} {item.unit}</td>
+                      <td style={{ padding: '14px 18px', fontWeight: 600 }}>
+                        <div style={{ color: (item.estimatedDaysRemaining ?? 0) <= 3 ? '#EF4444' : 'var(--text-secondary)' }}>
+                          {item.estimatedDaysRemaining !== null ? `${item.estimatedDaysRemaining} days` : '—'}
+                        </div>
+                      </td>
                       <td style={{ padding: '14px 18px' }}>
                         <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '3px 9px', borderRadius: 6, color: sc, background: `${sc}18` }}>{item.status}</span>
                       </td>

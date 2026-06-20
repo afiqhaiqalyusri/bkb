@@ -38,29 +38,43 @@ public class Order {
     @Column(name = "guest_phone", length = 20)
     private String guestPhone;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "order_status")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
     private OrderStatus status = OrderStatus.PENDING;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", columnDefinition = "payment_method_type")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
     private PaymentMethod paymentMethod = PaymentMethod.CASH;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", columnDefinition = "payment_status_type")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
+    @Builder.Default
     @Column(precision = 10, scale = 2)
     private BigDecimal subtotal = BigDecimal.ZERO;
 
+    @Builder.Default
     @Column(precision = 10, scale = 2)
     private BigDecimal tax = BigDecimal.ZERO;
 
+    @Builder.Default
     @Column(precision = 10, scale = 2)
     private BigDecimal total = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "total_cost", precision = 10, scale = 2)
+    private BigDecimal totalCost = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "estimated_profit", precision = 10, scale = 2)
+    private BigDecimal estimatedProfit = BigDecimal.ZERO;
 
     @Column(name = "pickup_time")
     private LocalDateTime pickupTime;
@@ -73,6 +87,21 @@ public class Order {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "rating")
+    private Integer rating;
+
+    @Column(name = "feedback", columnDefinition = "TEXT")
+    private String feedback;
+
+    @Column(name = "completed_by_id")
+    private Long completedById;
+
+    @Column(name = "completed_by_name")
+    private String completedByName;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

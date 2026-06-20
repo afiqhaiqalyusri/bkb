@@ -8,6 +8,7 @@ import { LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useConfirmation } from '../../components/ConfirmationProvider';
 import { authService } from '../../services/auth.service';
+import { globalSettingsService } from '../../services/manager.service';
 import { FullScreenLoader } from '../../components/ui/FullScreenLoader';
 
 export const ManagerSettings: React.FC = () => {
@@ -59,6 +60,30 @@ export const ManagerSettings: React.FC = () => {
     orderService.getStoreStatus()
       .then(res => setRestaurantOpen(res.data))
       .catch(() => {});
+    
+    // Load global settings
+    globalSettingsService.getAll().then(res => {
+      if (res.data) {
+        res.data.forEach(setting => {
+          if (setting.settingKey === 'SST_RATE') setSstRate(Number(setting.settingValue));
+          if (setting.settingKey === 'LOYALTY_RATIO') setPointsRatio(Number(setting.settingValue));
+          if (setting.settingKey === 'MAINTENANCE_MODE') setMaintenanceMode(setting.settingValue === 'true');
+          if (setting.settingKey === 'VERBOSE_LOGS') setVerboseLogs(setting.settingValue === 'true');
+          if (setting.settingKey === 'SIM_DELAY') setSimDelay(Number(setting.settingValue));
+          if (setting.settingKey === 'SIM_FAILURE_RATE') setSimFailure(Number(setting.settingValue));
+          
+          if (setting.settingKey.startsWith('PAY_')) {
+            const val = setting.settingValue === 'true';
+            if (setting.settingKey === 'PAY_DUITNOW') setPayDUITNOW(val);
+            if (setting.settingKey === 'PAY_TNG') setPayTNG(val);
+            if (setting.settingKey === 'PAY_SHOPEEPAY') setPaySHOPEEPAY(val);
+            if (setting.settingKey === 'PAY_GRABPAY') setPayGRABPAY(val);
+            if (setting.settingKey === 'PAY_BOOST') setPayBOOST(val);
+            if (setting.settingKey === 'PAY_CASH') setPayCASH(val);
+          }
+        });
+      }
+    }).catch(console.error);
   }, []);
 
   const [sstRate, setSstRate] = React.useState(() => {
@@ -111,6 +136,7 @@ export const ManagerSettings: React.FC = () => {
     const val = !currentVal;
     localStorage.setItem(`bkb-pay-enabled-${channelId}`, String(val));
     setVal(val);
+    globalSettingsService.updateAll([{ settingKey: `PAY_${channelId}`, settingValue: String(val), description: `Enable ${channelName}` }]).catch(console.error);
     if (user?.email) {
       securityLogger.logSecurityEvent(
         user.email,
@@ -283,6 +309,7 @@ export const ManagerSettings: React.FC = () => {
                     if (!confirmed) return;
                     setSstRate(val);
                     localStorage.setItem('bkb-sst-rate', String(val));
+                    globalSettingsService.updateAll([{ settingKey: 'SST_RATE', settingValue: String(val), description: 'SST Service Tax Rate' }]).catch(console.error);
                     if (user?.email) {
                       securityLogger.logSecurityEvent(user.email, user.role, 'SST Tax Rate Update', `Tax rate set to ${val.toFixed(1)}%`);
                     }
@@ -303,6 +330,7 @@ export const ManagerSettings: React.FC = () => {
                     if (!confirmed) return;
                     setSstRate(val);
                     localStorage.setItem('bkb-sst-rate', String(val));
+                    globalSettingsService.updateAll([{ settingKey: 'SST_RATE', settingValue: String(val), description: 'SST Service Tax Rate' }]).catch(console.error);
                     if (user?.email) {
                       securityLogger.logSecurityEvent(user.email, user.role, 'SST Tax Rate Update', `Tax rate set to ${val.toFixed(1)}%`);
                     }
@@ -332,6 +360,7 @@ export const ManagerSettings: React.FC = () => {
                     if (!confirmed) return;
                     setPointsRatio(val);
                     localStorage.setItem('bkb-points-ratio', String(val));
+                    globalSettingsService.updateAll([{ settingKey: 'LOYALTY_RATIO', settingValue: String(val), description: 'Minimum RM spent per loyalty point earned' }]).catch(console.error);
                     if (user?.email) {
                       securityLogger.logSecurityEvent(user.email, user.role, 'Loyalty Point Ratio Update', `Loyalty points earning ratio set to RM ${val} per point`);
                     }
@@ -352,6 +381,7 @@ export const ManagerSettings: React.FC = () => {
                     if (!confirmed) return;
                     setPointsRatio(val);
                     localStorage.setItem('bkb-points-ratio', String(val));
+                    globalSettingsService.updateAll([{ settingKey: 'LOYALTY_RATIO', settingValue: String(val), description: 'Minimum RM spent per loyalty point earned' }]).catch(console.error);
                     if (user?.email) {
                       securityLogger.logSecurityEvent(user.email, user.role, 'Loyalty Point Ratio Update', `Loyalty points earning ratio set to RM ${val} per point`);
                     }
@@ -419,6 +449,7 @@ export const ManagerSettings: React.FC = () => {
                     const val = Number(e.target.value);
                     setSimDelay(val);
                     localStorage.setItem('bkb-sim-delay', String(val));
+                    globalSettingsService.updateAll([{ settingKey: 'SIM_DELAY', settingValue: String(val), description: 'Simulated scan delay in seconds' }]).catch(console.error);
                     if (user?.email) {
                       securityLogger.logSecurityEvent(user.email, user.role, 'Payment Config Update', `Simulated scan delay set to ${val} seconds`);
                     }
@@ -444,6 +475,7 @@ export const ManagerSettings: React.FC = () => {
                     const val = Number(e.target.value);
                     setSimFailure(val);
                     localStorage.setItem('bkb-sim-failure-rate', String(val));
+                    globalSettingsService.updateAll([{ settingKey: 'SIM_FAILURE_RATE', settingValue: String(val), description: 'Simulated scan failure rate (%)' }]).catch(console.error);
                     if (user?.email) {
                       securityLogger.logSecurityEvent(user.email, user.role, 'Payment Config Update', `Simulated scan failure rate set to ${val}%`);
                     }
@@ -496,6 +528,7 @@ export const ManagerSettings: React.FC = () => {
                   if (!confirmed) return;
                   setMaintenanceMode(val);
                   localStorage.setItem('bkb-maint-mode', String(val));
+                  globalSettingsService.updateAll([{ settingKey: 'MAINTENANCE_MODE', settingValue: String(val), description: 'Maintenance Mode Flag' }]).catch(console.error);
                   if (user?.email) {
                     securityLogger.logSecurityEvent(user.email, user.role, 'Maintenance Mode Update', `Maintenance Mode set to ${val ? 'ENABLED' : 'DISABLED'}`);
                   }
@@ -545,6 +578,7 @@ export const ManagerSettings: React.FC = () => {
                   if (!confirmed) return;
                   setVerboseLogs(val);
                   localStorage.setItem('bkb-verbose-logs', String(val));
+                  globalSettingsService.updateAll([{ settingKey: 'VERBOSE_LOGS', settingValue: String(val), description: 'Verbose Logs Flag' }]).catch(console.error);
                   if (user?.email) {
                     securityLogger.logSecurityEvent(user.email, user.role, 'Server Logging Config', `Verbose Logging set to ${val ? 'ENABLED' : 'DISABLED'}`);
                   }

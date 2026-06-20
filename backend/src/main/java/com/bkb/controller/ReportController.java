@@ -1,6 +1,9 @@
 package com.bkb.controller;
 
 import com.bkb.dto.response.ApiResponse;
+import com.bkb.dto.response.CustomerInsightsResponse;
+import com.bkb.dto.response.ExecutiveDashboardResponse;
+import com.bkb.dto.response.MenuAnalyticsResponse;
 import com.bkb.dto.response.SalesReportResponse;
 import com.bkb.service.ReportService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,28 @@ public class ReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return ResponseEntity.ok(ApiResponse.success(reportService.getDailySalesReport(from, to)));
+    }
+
+    @GetMapping("/executive")
+    public ResponseEntity<ApiResponse<ExecutiveDashboardResponse>> getExecutiveDashboard(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(ApiResponse.success(reportService.getExecutiveDashboardMetrics(from, to)));
+    }
+
+    @GetMapping("/menu-analytics")
+    public ResponseEntity<ApiResponse<MenuAnalyticsResponse>> getMenuAnalytics(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        LocalDate fromDate = (from == null) ? LocalDate.now().minusDays(30) : from;
+        LocalDate toDate = (to == null) ? LocalDate.now() : to;
+        return ResponseEntity.ok(ApiResponse.success(reportService.getAdvancedMenuPerformance(fromDate, toDate)));
+    }
+
+    @GetMapping("/customer-insights")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<ApiResponse<CustomerInsightsResponse>> getCustomerInsights() {
+        return ResponseEntity.ok(ApiResponse.success(reportService.getCustomerInsights()));
     }
 
     @GetMapping("/sales/monthly")
@@ -55,5 +80,12 @@ public class ReportController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bkb-report-" + from + "-to-" + to + ".csv")
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(csv.getBytes());
+    @GetMapping("/staff-performance")
+    public ResponseEntity<ApiResponse<java.util.List<ReportService.StaffPerformanceEntry>>> getStaffPerformance(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        LocalDate fromDate = (from == null) ? LocalDate.now().minusDays(30) : from;
+        LocalDate toDate = (to == null) ? LocalDate.now() : to;
+        return ResponseEntity.ok(ApiResponse.success(reportService.getStaffPerformance(fromDate, toDate)));
     }
 }

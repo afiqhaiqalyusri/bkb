@@ -28,6 +28,8 @@ public class OrderResponse {
     private Long customerId;
     private String paymentToken;
     private String paymentChannel;
+    private Integer rating;
+    private String feedback;
     private List<OrderItemResponse> items;
 
     @Data

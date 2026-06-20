@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,9 @@ public class InventoryService {
                 .currentStock(request.getCurrentStock())
                 .minStock(request.getMinStock())
                 .maxStock(request.getMaxStock())
+                .unitCost(request.getUnitCost() != null ? request.getUnitCost() : BigDecimal.ZERO)
+                .supplier(request.getSupplier())
+                .quantity(request.getCurrentStock().doubleValue()) // Fallback mapping for Double quantity
                 .build();
         inv = inventoryRepository.save(inv);
         return toResponse(inv);
@@ -69,6 +74,9 @@ public class InventoryService {
         inv.setCurrentStock(request.getCurrentStock());
         inv.setMinStock(request.getMinStock());
         inv.setMaxStock(request.getMaxStock());
+        inv.setQuantity(request.getCurrentStock().doubleValue());
+        if (request.getUnitCost() != null) inv.setUnitCost(request.getUnitCost());
+        if (request.getSupplier() != null) inv.setSupplier(request.getSupplier());
         return toResponse(inventoryRepository.save(inv));
     }
 
@@ -94,10 +102,13 @@ public class InventoryService {
 
         inventoryRepository.save(inv);
 
+        BigDecimal transactionCost = inv.getUnitCost() != null ? inv.getUnitCost().multiply(qty) : BigDecimal.ZERO;
+
         InventoryTransaction tx = InventoryTransaction.builder()
                 .inventory(inv)
                 .type(type)
                 .quantity(qty)
+                .transactionCost(transactionCost)
                 .reason(request.getReason())
                 .createdBy(createdBy)
                 .build();
@@ -129,10 +140,13 @@ public class InventoryService {
             inv.setCurrentStock(inv.getCurrentStock().subtract(needed));
             inventoryRepository.save(inv);
 
+            BigDecimal transactionCost = inv.getUnitCost() != null ? inv.getUnitCost().multiply(needed) : BigDecimal.ZERO;
+
             InventoryTransaction tx = InventoryTransaction.builder()
                     .inventory(inv)
                     .type(InventoryTransactionType.DEDUCT)
                     .quantity(needed)
+                    .transactionCost(transactionCost)
                     .reason("Order " + order.getOrderNumber())
                     .order(order)
                     .build();
@@ -150,6 +164,20 @@ public class InventoryService {
     }
 
     public InventoryResponse toResponse(Inventory inv) {
+        // Calculate average daily usage over the last 30 days
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        BigDecimal totalDeducted = transactionRepository.sumQuantityByInventoryIdAndTypeAndDateRange(
+                inv.getId(), InventoryTransactionType.DEDUCT, thirtyDaysAgo, LocalDateTime.now());
+        
+        BigDecimal avgDailyUsage = totalDeducted.divide(BigDecimal.valueOf(30), 2, RoundingMode.HALF_UP);
+        
+        Integer estimatedDaysRemaining = null;
+        if (avgDailyUsage.compareTo(BigDecimal.ZERO) > 0) {
+            estimatedDaysRemaining = inv.getCurrentStock().divide(avgDailyUsage, 0, RoundingMode.HALF_UP).intValue();
+        } else if (inv.getCurrentStock().compareTo(BigDecimal.ZERO) == 0) {
+            estimatedDaysRemaining = 0;
+        }
+
         return InventoryResponse.builder()
                 .id(inv.getId())
                 .itemName(inv.getItemName())
@@ -158,8 +186,12 @@ public class InventoryService {
                 .currentStock(inv.getCurrentStock())
                 .minStock(inv.getMinStock())
                 .maxStock(inv.getMaxStock())
+                .unitCost(inv.getUnitCost())
+                .supplier(inv.getSupplier())
                 .status(inv.getStatus() != null ? inv.getStatus().name() : "GOOD")
                 .updatedAt(inv.getUpdatedAt())
+                .averageDailyUsage(avgDailyUsage)
+                .estimatedDaysRemaining(estimatedDaysRemaining)
                 .build();
     }
 }
