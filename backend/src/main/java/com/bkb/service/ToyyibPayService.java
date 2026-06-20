@@ -77,34 +77,62 @@ public class ToyyibPayService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
         String url = properties.getBaseUrl() + "/index.php/api/createBill";
 
+        log.info("ToyyibPay createBill: secretKey length={}, categoryCode={}, amount={}",
+                properties.getSecretKey() != null ? properties.getSecretKey().length() : 0,
+                properties.getCategoryCode(), amountInCents);
+
         try {
-            ResponseEntity<List> response = restTemplate.postForEntity(url, request, List.class);
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null && !response.getBody().isEmpty()) {
-                Map<String, Object> responseData = (Map<String, Object>) response.getBody().get(0);
-                String billCode = (String) responseData.get("BillCode");
+            // Try to parse as List (normal success response)
+            ResponseEntity<String> rawResponse = restTemplate.postForEntity(url, request, String.class);
+            String rawBody = rawResponse.getBody();
+            log.info("ToyyibPay raw response: {}", rawBody);
 
-                // Save Payment Record
-                Payment payment = Payment.builder()
-                        .order(order)
-                        .method(PaymentMethodEnum.ONLINE)
-                        .amount(order.getTotal())
-                        .status(PaymentStatusEnum.PENDING)
-                        .billCode(billCode)
-                        .build();
-                paymentRepository.save(payment);
-
-                String paymentUrl = properties.getBaseUrl() + "/" + billCode;
-                return Map.of(
-                        "paymentUrl", paymentUrl,
-                        "billCode", billCode
-                );
-            } else {
-                log.error("Failed to create ToyyibPay bill: {}", response.getBody());
-                throw new RuntimeException("Failed to create payment gateway bill");
+            if (rawBody == null || rawBody.isBlank()) {
+                throw new RuntimeException("ToyyibPay returned empty response");
             }
+
+            // If ToyyibPay returns an error string (not JSON array), throw with the message
+            if (!rawBody.trim().startsWith("[")) {
+                log.error("ToyyibPay error response: {}", rawBody);
+                throw new RuntimeException("ToyyibPay error: " + rawBody.trim());
+            }
+
+            // Parse as JSON array
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, Object>> list =
+                    mapper.readValue(rawBody, mapper.getTypeFactory().constructCollectionType(java.util.List.class, java.util.Map.class));
+
+            if (list.isEmpty()) {
+                throw new RuntimeException("ToyyibPay returned empty list");
+            }
+
+            Map<String, Object> responseData = list.get(0);
+            String billCode = (String) responseData.get("BillCode");
+
+            if (billCode == null || billCode.isBlank()) {
+                log.error("ToyyibPay response missing BillCode: {}", responseData);
+                throw new RuntimeException("ToyyibPay did not return a bill code. Response: " + responseData);
+            }
+
+            // Save Payment Record
+            Payment payment = Payment.builder()
+                    .order(order)
+                    .method(PaymentMethodEnum.ONLINE)
+                    .amount(order.getTotal())
+                    .status(PaymentStatusEnum.PENDING)
+                    .billCode(billCode)
+                    .build();
+            paymentRepository.save(payment);
+
+            String paymentUrl = properties.getBaseUrl() + "/" + billCode;
+            log.info("ToyyibPay bill created successfully. billCode={}, paymentUrl={}", billCode, paymentUrl);
+            return Map.of(
+                    "paymentUrl", paymentUrl,
+                    "billCode", billCode
+            );
         } catch (Exception e) {
-            log.error("Error calling ToyyibPay API: {}", e.getMessage());
-            throw new RuntimeException("Payment gateway integration error", e);
+            log.error("Error calling ToyyibPay API: {}", e.getMessage(), e);
+            throw new RuntimeException("Payment gateway error: " + e.getMessage(), e);
         }
     }
 
