@@ -493,7 +493,7 @@ export const SettingsPage: React.FC = () => {
                     orders.slice(0, 3).map(ord => (
                       <div
                         key={ord.id}
-                        onClick={() => navigate(`/order/${ord.id}/tracking`)}
+                        onClick={() => navigate(ord.guestToken ? `/track/${ord.guestToken}` : `/order/${ord.id}/tracking`)}
                         style={{
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                           padding: '10px 12px', background: 'var(--surface)', border: '1px solid var(--border)',

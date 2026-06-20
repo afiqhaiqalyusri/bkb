@@ -130,7 +130,7 @@ const LevelStepper: React.FC<{ value:Level; onChange:(v:Level)=>void; label:stri
 };
 
 /* ─── Active Order Popup ─── */
-const ActiveOrderPopup: React.FC<{ orders:Order[]; onDismiss:(id:number)=>void; onTrack:(id:number)=>void }> = ({ orders, onDismiss, onTrack }) => {
+const ActiveOrderPopup: React.FC<{ orders:Order[]; onDismiss:(id:number)=>void; onTrack:(order:Order)=>void }> = ({ orders, onDismiss, onTrack }) => {
   if (orders.length === 0) return null;
   const order = orders[0];
   const cfg = STATUS_CFG[order.status] || STATUS_CFG.PENDING;
@@ -158,7 +158,7 @@ const ActiveOrderPopup: React.FC<{ orders:Order[]; onDismiss:(id:number)=>void; 
           <div style={{ fontSize:'0.7rem', color:'var(--text-secondary)' }}>{order.items.length} item{order.items.length!==1?'s':''} · {formatRM(order.total)}</div>
         </div>
         <div style={{ display:'flex', gap:6 }}>
-          <button onClick={() => onTrack(order.id)} style={{ background:'var(--red)', color:'#fff', border:'none', borderRadius:10, padding:'8px 12px', fontSize:'0.75rem', fontWeight:700, cursor:'pointer' }}>Track</button>
+          <button onClick={() => onTrack(order)} style={{ background:'var(--red)', color:'#fff', border:'none', borderRadius:10, padding:'8px 12px', fontSize:'0.75rem', fontWeight:700, cursor:'pointer' }}>Track</button>
           <button onClick={() => onDismiss(order.id)} style={{ background:'var(--cream-dark)', color:'var(--text-secondary)', border:'none', borderRadius:10, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><IcoClose /></button>
         </div>
       </div>
@@ -438,7 +438,7 @@ export const MenuPage: React.FC = () => {
       <ActiveOrderPopup
         orders={activeOrders}
         onDismiss={id => setDismissedIds(p => new Set([...p,id]))}
-        onTrack={id => navigate(`/order/${id}/tracking`)}
+        onTrack={order => navigate(order.guestToken ? `/track/${order.guestToken}` : `/order/${order.id}/tracking`)}
       />
     </PageShell>
   );

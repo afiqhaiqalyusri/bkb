@@ -33,3 +33,12 @@ spring:
       connection-timeout: 10000      # Fail fast (10s) instead of hanging 30s
       validation-timeout: 5000
       connection-test-query: SELECT 1 # Verify connection is alive before handing out
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

@@ -26,6 +26,9 @@ export const orderService = {
   getById: (id: number) =>
     api.get<ApiResponse<Order>>(`/api/orders/${id}`).then(r => r.data),
 
+  trackByGuestToken: (token: string) =>
+    api.get<ApiResponse<Order>>(`/api/orders/track/${token}`).then(r => r.data),
+
   getAll: (status?: string) =>
     api.get<ApiResponse<Order[]>>('/api/orders', { params: { status } }).then(r => r.data),
 

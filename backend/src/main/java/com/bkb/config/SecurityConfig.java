@@ -124,10 +124,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/menu/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/loyalty/rewards").permitAll()
 
-                // Guest ordering
+                // Guest tracking
                 .requestMatchers(HttpMethod.POST, "/api/orders", "/api/orders/create").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/orders/store-status").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/orders/{id:\\d+}", "/api/orders/ref/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/orders/track/*").permitAll()
 
                 // Payment callbacks and redirects (from ToyyibPay - no auth)
                 .requestMatchers("/api/payments/callback", "/api/payments/verify-redirect").permitAll()

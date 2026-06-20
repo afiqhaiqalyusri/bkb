@@ -18,15 +18,23 @@ public class SecurityLogService {
 
     @Transactional
     public void log(User user, String action, String details, String prevVal, String newVal, HttpServletRequest request) {
+        String ipAddress = "unknown";
+        if (request != null) {
+            String xForwardedFor = request.getHeader("X-Forwarded-For");
+            if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+                ipAddress = xForwardedFor.split(",")[0].trim();
+            } else {
+                ipAddress = request.getRemoteAddr();
+            }
+        }
+        log(user, action, details, prevVal, newVal, ipAddress);
+    }
+
+    @Transactional
+    public void log(User user, String action, String details, String prevVal, String newVal, String ipAddress) {
         try {
-            String ipAddress = "unknown";
-            if (request != null) {
-                String xForwardedFor = request.getHeader("X-Forwarded-For");
-                if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-                    ipAddress = xForwardedFor.split(",")[0].trim();
-                } else {
-                    ipAddress = request.getRemoteAddr();
-                }
+            if (ipAddress == null || ipAddress.isBlank()) {
+                ipAddress = "unknown";
             }
 
             SecurityLog securityLog = SecurityLog.builder()

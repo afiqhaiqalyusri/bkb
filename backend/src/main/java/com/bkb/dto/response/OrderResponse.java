@@ -28,6 +28,7 @@ public class OrderResponse {
     private Long customerId;
     private String paymentToken;
     private String paymentChannel;
+    private String guestToken;
     private Integer rating;
     private String feedback;
     private List<OrderItemResponse> items;

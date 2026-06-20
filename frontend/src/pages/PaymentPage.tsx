@@ -288,7 +288,7 @@ export const PaymentPage: React.FC = () => {
         toast.success(`Payment verified successfully via ${activeTheme.name}!`, { icon: '🎉', duration: 3000 });
         
         setTimeout(() => {
-          navigate(`/order/${order.id}/tracking`, { replace: true });
+          navigate(order.guestToken ? `/track/${order.guestToken}` : `/order/${order.id}/tracking`, { replace: true });
         }, 1800);
       } catch (err: any) {
         setScanStatus('waiting');
@@ -387,7 +387,7 @@ export const PaymentPage: React.FC = () => {
               This transaction has already been finalized and paid. Your order is being processed by our kitchen crew.
             </p>
             <button
-              onClick={() => navigate(`/order/${order.id}/tracking`, { replace: true })}
+              onClick={() => navigate(order.guestToken ? `/track/${order.guestToken}` : `/order/${order.id}/tracking`, { replace: true })}
               style={{
                 background: 'var(--success)',
                 color: '#white',

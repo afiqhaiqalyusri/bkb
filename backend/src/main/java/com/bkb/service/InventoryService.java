@@ -80,7 +80,7 @@ public class InventoryService {
 
     @Transactional
     public InventoryResponse adjustStock(Long id, InventoryAdjustRequest request, User createdBy) {
-        Inventory inv = inventoryRepository.findById(id)
+        Inventory inv = inventoryRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory", id));
 
         InventoryTransactionType type = InventoryTransactionType.valueOf(request.getType());
@@ -125,7 +125,8 @@ public class InventoryService {
                 menuItemInventoryRepository.findByMenuItemIdWithInventory(orderItem.getMenuItem().getId());
 
         for (MenuItemInventory link : recipeLinks) {
-            Inventory inv = link.getInventory();
+            Inventory inv = inventoryRepository.findByIdForUpdate(link.getInventory().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventory", link.getInventory().getId()));
             BigDecimal needed = link.getQuantityUsed()
                     .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
 

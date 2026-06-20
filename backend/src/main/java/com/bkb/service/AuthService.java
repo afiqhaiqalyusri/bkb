@@ -39,6 +39,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
+    private final SecurityLogService securityLogService;
 
     @Value("${app.security.otp-expiry-minutes:10}")
     private int otpExpiryMinutes;
@@ -204,6 +205,7 @@ public class AuthService {
         userRepository.save(user);
 
         log.info("Successful login: {}", user.getEmail());
+        securityLogService.log(user, "LOGIN", "User logged in successfully", null, null, request.getEmail());
         return buildAuthResponse(user);
     }
 
@@ -329,6 +331,7 @@ public class AuthService {
         refreshTokenRepository.revokeAllByUserId(user.getId());
 
         log.info("Password reset successfully for: {}", user.getEmail());
+        securityLogService.log(user, "PASSWORD_RESET", "User reset password", null, null, "127.0.0.1");
     }
 
     // ─── Profile ──────────────────────────────────────────────
@@ -407,6 +410,11 @@ public class AuthService {
             String email = "unknown";
             try { email = jwtUtil.extractEmail(accessToken); } catch (Exception ignored) {}
             log.info("Session destroyed ({}): User {} logged out.", reason, email);
+            
+            final String finalEmail = email;
+            userRepository.findByEmail(email).ifPresent(user -> {
+                securityLogService.log(user, "LOGOUT", "User logged out. Reason: " + reason, null, null, "127.0.0.1");
+            });
 
         } catch (Exception e) {
             log.error("Failed to invalidate token during logout: {}", e.getMessage());

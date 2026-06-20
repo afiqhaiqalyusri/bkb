@@ -287,7 +287,7 @@ export const CheckoutPage: React.FC = () => {
         window.location.href = payRes.data.data.paymentUrl;
       } else {
         toast.success('Order placed successfully! 🍔');
-        navigate(`/order/${res.data.id}/tracking`, { replace: true });
+        navigate(res.data.guestToken ? `/track/${res.data.guestToken}` : `/order/${res.data.id}/tracking`, { replace: true });
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to place order');

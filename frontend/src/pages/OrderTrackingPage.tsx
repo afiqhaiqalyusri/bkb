@@ -19,7 +19,7 @@ import { useAuthStore } from '../store/authStore';
 import { BurgerStackGame } from '../components/game/BurgerStackGame';
 
 export const OrderTrackingPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, token } = useParams<{ id?: string, token?: string }>();
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,9 +43,16 @@ export const OrderTrackingPage: React.FC = () => {
   };
 
   const fetchOrder = async () => {
-    if (!id) return;
+    if (!id && !token) return;
     try {
-      const res = await orderService.getById(Number(id));
+      let res;
+      if (token) {
+        res = await orderService.trackByGuestToken(token);
+      } else if (id) {
+        res = await orderService.getById(Number(id));
+      } else {
+        return;
+      }
       const newOrder = res.data;
 
       // Check status transitions
@@ -85,7 +92,7 @@ export const OrderTrackingPage: React.FC = () => {
     // Poll every 8 seconds
     const interval = setInterval(fetchOrder, 8000);
     return () => clearInterval(interval);
-  }, [id]);
+  }, [id, token]);
 
   if (loading) return (
     <PageShell>

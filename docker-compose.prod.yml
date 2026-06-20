@@ -58,3 +58,24 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:5173:80"    # localhost only — nginx proxies to this
+
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local:16
+    container_name: bkb_pgbackups
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      POSTGRES_HOST: host.docker.internal
+      POSTGRES_DB: bkb
+      POSTGRES_USER: ${DB_USER:-bkb_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+      HEALTHCHECK_PORT: 8080
+    volumes:
+      - /opt/bkb/backups:/backups
+    ports:
+      - "127.0.0.1:8080:8080" # Optional: Check health or trigger backup manually

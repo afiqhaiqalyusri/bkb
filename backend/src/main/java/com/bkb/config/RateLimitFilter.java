@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *  - /api/auth/register      → 3 requests per minute per IP
  *  - /api/auth/refresh       → 10 requests per minute per IP
  *  - /api/auth/forgot-password → 3 requests per minute per IP
+ *  - /api/payment/callback   → 20 requests per minute per IP
  */
 @Component
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return !path.startsWith("/api/auth/");
+        return !path.startsWith("/api/auth/") && !path.startsWith("/api/payment/callback");
     }
 
     @Override
@@ -68,22 +69,25 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         if (path.contains("/login")) {
             // 5 attempts per minute
-            limit = Bandwidth.classic(5, Refill.greedy(5, Duration.ofMinutes(1)));
+            limit = Bandwidth.builder().capacity(5).refillGreedy(5, Duration.ofMinutes(1)).build();
         } else if (path.contains("/register")) {
             // 3 registrations per minute
-            limit = Bandwidth.classic(3, Refill.greedy(3, Duration.ofMinutes(1)));
+            limit = Bandwidth.builder().capacity(3).refillGreedy(3, Duration.ofMinutes(1)).build();
         } else if (path.contains("/forgot-password")) {
             // 3 reset requests per minute
-            limit = Bandwidth.classic(3, Refill.greedy(3, Duration.ofMinutes(1)));
+            limit = Bandwidth.builder().capacity(3).refillGreedy(3, Duration.ofMinutes(1)).build();
         } else if (path.contains("/refresh")) {
             // 10 refreshes per minute
-            limit = Bandwidth.classic(10, Refill.greedy(10, Duration.ofMinutes(1)));
+            limit = Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build();
         } else if (path.contains("/verify-email") || path.contains("/resend-verification")) {
             // 5 OTP submissions per 5 minutes
-            limit = Bandwidth.classic(5, Refill.greedy(5, Duration.ofMinutes(5)));
+            limit = Bandwidth.builder().capacity(5).refillGreedy(5, Duration.ofMinutes(5)).build();
+        } else if (path.contains("/payment/callback")) {
+            // 20 callbacks per minute per IP
+            limit = Bandwidth.builder().capacity(20).refillGreedy(20, Duration.ofMinutes(1)).build();
         } else {
             // Default: 20 per minute for other auth endpoints
-            limit = Bandwidth.classic(20, Refill.greedy(20, Duration.ofMinutes(1)));
+            limit = Bandwidth.builder().capacity(20).refillGreedy(20, Duration.ofMinutes(1)).build();
         }
 
         return Bucket.builder().addLimit(limit).build();

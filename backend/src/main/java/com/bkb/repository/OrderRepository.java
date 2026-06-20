@@ -3,6 +3,7 @@ package com.bkb.repository;
 import com.bkb.entity.Order;
 import com.bkb.entity.enums.OrderStatus;
 import com.bkb.entity.enums.PaymentStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,23 +16,36 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
 
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     Optional<Order> findByOrderNumber(String orderNumber);
 
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
+    Optional<Order> findByGuestToken(String guestToken);
+
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     List<Order> findByStatusOrderByCreatedAtAsc(OrderStatus status);
 
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     List<Order> findByStatusOrderByQueueEnteredAtAsc(OrderStatus status);
 
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     List<Order> findByStatusOrderByScheduledTimeAsc(OrderStatus status);
 
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     List<Order> findByStatusInOrderByCreatedAtAsc(List<OrderStatus> statuses);
+
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
+    List<Order> findAll();
 
     long countByStatus(OrderStatus status);
 
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.menuItem WHERE o.id = :id")
     Optional<Order> findByIdWithItems(@Param("id") Long id);
 
+    @EntityGraph(attributePaths = {"items", "items.menuItem"})
     @Query("SELECT o FROM Order o WHERE o.createdAt BETWEEN :from AND :to ORDER BY o.createdAt DESC")
     List<Order> findByDateRange(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 

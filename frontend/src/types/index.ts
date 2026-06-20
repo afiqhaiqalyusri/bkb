@@ -66,6 +66,7 @@ export interface Order {
   customerId?: number;
   paymentToken?: string;
   paymentChannel?: string;
+  guestToken?: string;
   rating?: number;
   feedback?: string;
   items: OrderItem[];

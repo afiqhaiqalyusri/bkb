@@ -41,8 +41,8 @@ public class User {
     private Boolean isActive = true;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @Column(updatable = false)
+    private java.time.LocalDateTime createdAt;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private LoyaltyAccount loyaltyAccount;

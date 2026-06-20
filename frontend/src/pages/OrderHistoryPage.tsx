@@ -188,7 +188,7 @@ export const OrderHistoryPage: React.FC = () => {
 
                       <div style={{ display:'flex', gap:8, marginTop:12 }}>
                         {isActive && (
-                          <button onClick={() => navigate(`/order/${order.id}/tracking`)} style={{ flex:1, background:'var(--red)', color:'#fff', border:'none', borderRadius:10, padding:'10px', fontFamily:'Poppins', fontWeight:700, fontSize:'0.82rem', cursor:'pointer', boxShadow:'var(--shadow-red)' }}>
+                          <button onClick={() => navigate(order.guestToken ? `/track/${order.guestToken}` : `/order/${order.id}/tracking`)} style={{ flex:1, background:'var(--red)', color:'#fff', border:'none', borderRadius:10, padding:'10px', fontFamily:'Poppins', fontWeight:700, fontSize:'0.82rem', cursor:'pointer', boxShadow:'var(--shadow-red)' }}>
                             Track Order
                           </button>
                         )}

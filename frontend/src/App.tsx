@@ -70,6 +70,7 @@ const router = createBrowserRouter([
       { path: 'payment/:orderId', element: <CustomerGuard><PaymentPage /></CustomerGuard> },
       { path: 'loyalty', element: <CustomerRouteGuard><LoyaltyPage /></CustomerRouteGuard> },
       { path: 'order/:id/tracking', element: <CustomerGuard><OrderTrackingPage /></CustomerGuard> },
+      { path: 'track/:token', element: <OrderTrackingPage /> },
       { path: 'history', element: <CustomerRouteGuard><OrderHistoryPage /></CustomerRouteGuard> },
       { path: 'settings', element: <CustomerRouteGuard><SettingsPage /></CustomerRouteGuard> },
       { path: 'favourites', element: <CustomerRouteGuard><FavouritesPage /></CustomerRouteGuard> },

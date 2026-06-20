@@ -78,12 +78,22 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orderService.getOrdersForUser(user)));
     }
 
+    @GetMapping("/track/{guestToken}")
+    public ResponseEntity<ApiResponse<OrderResponse>> trackGuestOrder(@PathVariable String guestToken) {
+        OrderResponse order = orderService.toResponse(
+                orderService.getOrderByGuestToken(guestToken)
+        );
+        return ResponseEntity.ok(ApiResponse.success(order));
+    }
+
     @GetMapping("/{id:\\d+}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<OrderResponse>> getOrder(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(orderService.getOrderById(id)));
     }
 
     @GetMapping("/ref/{ref}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<OrderResponse>> getOrderByRef(
             @PathVariable String ref,
             @RequestParam(required = false) String token) {

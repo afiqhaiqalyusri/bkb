@@ -38,6 +38,9 @@ public class Order {
     @Column(name = "guest_phone", length = 20)
     private String guestPhone;
 
+    @Column(name = "guest_token", length = 255)
+    private String guestToken;
+
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "order_status")

@@ -38,6 +38,7 @@ public class ToyyibPayService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
+    private final SecurityLogService securityLogService;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Transactional
@@ -140,19 +141,25 @@ public class ToyyibPayService {
     public void verifyPayment(Map<String, String> payload) {
         String billCode = payload.get("billcode");
         String status = payload.get("status_id"); // 1 = Success, 2 = Pending, 3 = Fail
+        String statusId = payload.get("status_id"); // 1 = Success, 2 = Pending, 3 = Fail
         String transactionId = payload.get("transaction_id");
-        String externalRef = payload.get("order_id"); // In callback it's usually order_id
         String amountStr = payload.get("amount");
+        String msg = payload.get("msg");
 
         log.info("Received ToyyibPay callback: {}", payload);
 
-        if (billCode == null) return;
-
-        Payment payment = paymentRepository.findByBillCode(billCode)
-                .orElse(null);
+        // 1. Verify Bill Code Exists
+        Payment payment = paymentRepository.findByBillCode(billCode).orElse(null);
 
         if (payment == null) {
-            log.error("Payment not found for billCode: {}", billCode);
+            log.error("SECURITY ALERT: Callback received for unknown billCode: {}", billCode);
+            securityLogService.log(null, "PAYMENT_SPOOFING", "Unknown billCode: " + billCode, null, null, "ToyyibPay Callback");
+            return;
+        }
+
+        Order order = payment.getOrder();
+        if (order == null) {
+            log.error("SECURITY ALERT: Payment {} has no associated order", billCode);
             return;
         }
 
@@ -164,21 +171,62 @@ public class ToyyibPayService {
         payment.setTransactionId(transactionId);
         payment.setGatewayResponse(payload.toString());
 
-        Order order = payment.getOrder();
+        // 3. Verify Payment Status with ToyyibPay
+        if (!verifyWithToyyibPay(billCode, amountStr)) {
+            log.error("SECURITY ALERT: ToyyibPay verification failed for order {}. Possible spoofing attempt.", order.getOrderNumber());
+            securityLogService.log(order.getUser(), "PAYMENT_SPOOFING", "Verification failed for amount: " + amountStr + " and msg: " + msg, null, null, "ToyyibPay Callback");
+            return;
+        }
 
-        if ("1".equals(status)) {
+        if ("1".equals(statusId)) {
             payment.setStatus(PaymentStatusEnum.PAID);
             payment.setPaidAt(LocalDateTime.now());
             paymentRepository.save(payment);
             
-            // Delegate successful flow logic
             orderService.handlePaymentSuccess(order.getId());
-        } else if ("3".equals(status)) {
+            securityLogService.log(order.getUser(), "PAYMENT_SUCCESS", "ToyyibPay payment success for RM " + order.getTotal(), null, null, "ToyyibPay Callback");
+        } else if ("2".equals(statusId) || "3".equals(statusId)) {
             payment.setStatus(PaymentStatusEnum.FAILED);
             paymentRepository.save(payment);
             
             // Delegate failure flow logic
             orderService.handlePaymentFailure(order.getId());
+        }
+    }
+
+    private boolean verifyWithToyyibPay(String billCode, String expectedAmount) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("billCode", billCode);
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+            String url = properties.getBaseUrl() + "/index.php/api/getBillTransactions";
+
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            String rawBody = response.getBody();
+
+            if (rawBody == null || !rawBody.trim().startsWith("[")) {
+                return false;
+            }
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, Object>> list =
+                    mapper.readValue(rawBody, mapper.getTypeFactory().constructCollectionType(java.util.List.class, java.util.Map.class));
+
+            for (Map<String, Object> tx : list) {
+                String txStatus = String.valueOf(tx.get("billpaymentStatus"));
+                String txAmount = String.valueOf(tx.get("billpaymentAmount"));
+                if ("1".equals(txStatus) && (expectedAmount == null || expectedAmount.equals(txAmount))) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            log.error("Error verifying payment with ToyyibPay: {}", e.getMessage(), e);
+            return false;
         }
     }
 }

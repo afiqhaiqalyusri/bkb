@@ -4,6 +4,7 @@ import com.bkb.dto.request.PlaceOrderRequest;
 import com.bkb.dto.response.OrderResponse;
 import com.bkb.entity.*;
 import com.bkb.entity.enums.*;
+import com.bkb.event.OrderPaidEvent;
 import com.bkb.exception.InvalidOrderStateException;
 import com.bkb.exception.ResourceNotFoundException;
 import com.bkb.repository.MenuItemRepository;
@@ -34,10 +35,9 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
     private final InventoryService inventoryService;
-    private final LoyaltyService loyaltyService;
     private final OrderNumberGenerator orderNumberGenerator;
     private final ObjectMapper objectMapper;
-    private final EmailService emailService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ReceiptService receiptService;
     private final PromotionRepository promotionRepository;
 
@@ -188,6 +188,7 @@ public class OrderService {
                 .scheduledTime(scheduledTime)
                 .queueEnteredAt(queueEnteredAt)
                 .notes(request.getNotes())
+                .guestToken(java.util.UUID.randomUUID().toString())
                 .items(new ArrayList<>())
                 .build();
 
@@ -212,28 +213,8 @@ public class OrderService {
         log.info("Order placed: {} for {}", savedOrder.getOrderNumber(),
                 user != null ? user.getEmail() : "guest");
 
-        // Send Email Notification
-        if (savedOrder.getUser() != null && savedOrder.getUser().getEmail() != null) {
-            try {
-                if (savedOrder.getStatus() == OrderStatus.ON_HOLD) {
-                    emailService.sendOrderScheduledEmail(
-                            savedOrder.getUser().getEmail(),
-                            savedOrder.getUser().getName(),
-                            savedOrder.getOrderNumber(),
-                            savedOrder.getScheduledTime(),
-                            savedOrder.getTotal()
-                    );
-                } else if (savedOrder.getStatus() == OrderStatus.INCOMING_ORDER) {
-                    emailService.sendOrderEnteredQueueEmail(
-                            savedOrder.getUser().getEmail(),
-                            savedOrder.getUser().getName(),
-                            savedOrder.getOrderNumber()
-                    );
-                }
-            } catch (Exception e) {
-                log.error("Failed to send placement email: {}", e.getMessage());
-            }
-        }
+        // Send Event
+        eventPublisher.publishEvent(new com.bkb.event.OrderPlacedEvent(this, savedOrder));
 
         return toResponse(savedOrder);
     }
@@ -254,6 +235,11 @@ public class OrderService {
     public OrderResponse getOrderByRef(String ref) {
         Order order = OrderRef.resolveWithItems(ref, orderRepository);
         return toResponse(order);
+    }
+
+    public Order getOrderByGuestToken(String guestToken) {
+        return orderRepository.findByGuestToken(guestToken)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with tracking token"));
     }
 
     public List<OrderResponse> getAllOrders() {
@@ -285,6 +271,42 @@ public class OrderService {
             throw new InvalidOrderStateException("Invalid order status: " + newStatus);
         }
 
+        // --- ORDER STATE MACHINE VALIDATION ---
+        OrderStatus currentStatus = order.getStatus();
+        if (currentStatus != status && currentStatus != OrderStatus.CANCELLED) {
+            boolean validTransition = false;
+            switch (currentStatus) {
+                case INCOMING_ORDER:
+                    if (status == OrderStatus.ACCEPTED || status == OrderStatus.CANCELLED) validTransition = true;
+                    break;
+                case PENDING_PAYMENT:
+                    if (status == OrderStatus.ACCEPTED || status == OrderStatus.CANCELLED) validTransition = true;
+                    break;
+                case ON_HOLD:
+                    if (status == OrderStatus.INCOMING_ORDER || status == OrderStatus.CANCELLED) validTransition = true;
+                    break;
+                case ACCEPTED:
+                    if (status == OrderStatus.GRILLING || status == OrderStatus.CANCELLED) validTransition = true;
+                    break;
+                case GRILLING:
+                    if (status == OrderStatus.ASSEMBLING || status == OrderStatus.CANCELLED) validTransition = true;
+                    break;
+                case ASSEMBLING:
+                    if (status == OrderStatus.READY || status == OrderStatus.CANCELLED) validTransition = true;
+                    break;
+                case READY:
+                    if (status == OrderStatus.COMPLETED || status == OrderStatus.CANCELLED) validTransition = true;
+                    break;
+                case COMPLETED:
+                case CANCELLED:
+                    validTransition = false; // Terminal states
+                    break;
+            }
+            if (!validTransition && user != null && user.getRole() != UserRole.ADMIN) {
+                throw new InvalidOrderStateException("Cannot transition order from " + currentStatus + " to " + status);
+            }
+        }
+
         order.setStatus(status);
 
         // When ACCEPTED and ONLINE payment → auto-mark PAID
@@ -297,13 +319,10 @@ public class OrderService {
             order.setPaymentStatus(PaymentStatus.PAID);
         }
 
-        // Defer inventory and loyalty processing until the order is COMPLETED
+        // Defer inventory processing until the order is COMPLETED
         if (status == OrderStatus.COMPLETED) {
             for (OrderItem oi : order.getItems()) {
                 inventoryService.deductByOrderItem(oi, order);
-            }
-            if (order.getUser() != null && order.getUser().getRole() == UserRole.CUSTOMER) {
-                loyaltyService.awardPoints(order.getUser(), order);
             }
 
             // Track who completed the order
@@ -314,31 +333,8 @@ public class OrderService {
             order.setCompletedAt(java.time.LocalDateTime.now());
         }
 
-        // Send Email Ready notification
-        if (status == OrderStatus.READY && order.getUser() != null && order.getUser().getEmail() != null) {
-            try {
-                emailService.sendOrderReadyEmail(
-                        order.getUser().getEmail(),
-                        order.getUser().getName(),
-                        order.getOrderNumber()
-                );
-            } catch (Exception e) {
-                log.error("Failed to send ready email for order {}: {}", order.getOrderNumber(), e.getMessage());
-            }
-        }
-
-        // Send Email Completed notification
-        if (status == OrderStatus.COMPLETED && order.getUser() != null && order.getUser().getEmail() != null) {
-            try {
-                emailService.sendOrderCompletedEmail(
-                        order.getUser().getEmail(),
-                        order.getUser().getName(),
-                        order.getOrderNumber()
-                );
-            } catch (Exception e) {
-                log.error("Failed to send completed email for order {}: {}", order.getOrderNumber(), e.getMessage());
-            }
-        }
+        // Publish Status Changed Event
+        eventPublisher.publishEvent(new com.bkb.event.OrderStatusChangedEvent(this, order, currentStatus, status));
 
         return toResponse(orderRepository.save(order));
     }
@@ -516,6 +512,7 @@ public class OrderService {
                 .customerId(order.getUser() != null ? order.getUser().getId() : null)
                 .paymentToken(order.getPaymentToken())
                 .paymentChannel(order.getPaymentChannel())
+                .guestToken(order.getGuestToken())
                 .rating(order.getRating())
                 .feedback(order.getFeedback())
                 .items(itemResponses)
@@ -558,15 +555,8 @@ public class OrderService {
         order.setStatus(OrderStatus.ACCEPTED);
         orderRepository.save(order);
 
-        // Notify customer and generate receipt
-        if (order.getUser() != null && order.getUser().getEmail() != null) {
-            emailService.sendPaymentSuccessEmail(
-                    order.getUser().getEmail(),
-                    order.getUser().getName(),
-                    order.getOrderNumber(),
-                    order.getTotal()
-            );
-        }
+        // Notify customer and generate receipt via Events
+        eventPublisher.publishEvent(new com.bkb.event.OrderPaidEvent(this, order));
         receiptService.generateReceipt(order);
     }
 
