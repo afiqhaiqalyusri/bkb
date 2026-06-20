@@ -220,7 +220,11 @@ jobs:
             docker rm -f bkb_backend bkb_frontend || true
 
             echo "=== Starting containers ==="
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d || {
+              echo "::error::Docker compose up failed! Printing backend logs:"
+              docker compose -f docker-compose.prod.yml logs --tail=200 backend
+              exit 1
+            }
 
             echo "=== Waiting for backend to be healthy (up to 3 min) ==="
             HEALTHY=false
