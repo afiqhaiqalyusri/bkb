@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/PageShell';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
+import { useCartStore } from '../store/cartStore';
+import api from '../services/api';
 
 export const PaymentResultPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -12,11 +14,35 @@ export const PaymentResultPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // We assume backend webhook handles DB update. 
-    // We just display the UI based on status_id
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    const verifyPayment = async () => {
+      const billcode = searchParams.get('billcode');
+      const transactionId = searchParams.get('transaction_id');
+      
+      // Fallback verification: Tell the backend to verify the payment
+      // in case the server-to-server webhook failed or was delayed
+      if (billcode && statusId) {
+        try {
+          await api.post('/payments/verify-redirect', {
+            billcode,
+            status_id: statusId,
+            transaction_id: transactionId,
+            order_id: orderIdStr
+          });
+        } catch (err) {
+          console.error("Failed to verify payment via redirect", err);
+        }
+      }
+
+      if (statusId === '1') {
+        // Clear the cart on successful payment
+        useCartStore.getState().clearCart();
+      }
+      
+      setLoading(false);
+    };
+
+    verifyPayment();
+  }, [statusId, searchParams, orderIdStr]);
 
   const isSuccess = statusId === '1';
   const isPending = statusId === '2';

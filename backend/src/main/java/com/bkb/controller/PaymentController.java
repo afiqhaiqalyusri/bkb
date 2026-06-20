@@ -25,6 +25,12 @@ public class PaymentController {
         return ResponseEntity.ok("OK");
     }
 
+    @PostMapping("/verify-redirect")
+    public ResponseEntity<ApiResponse<Void>> verifyRedirect(@RequestBody java.util.Map<String, String> payload) {
+        toyyibPayService.verifyPayment(payload);
+        return ResponseEntity.ok(ApiResponse.success("Payment verified from redirect", null));
+    }
+
     @PostMapping("/toyyibpay/{orderId}")
     public ResponseEntity<ApiResponse<java.util.Map<String, String>>> createToyyibPayBill(@PathVariable Long orderId) {
         return ResponseEntity.ok(ApiResponse.success("Bill created", toyyibPayService.createBill(orderId)));

@@ -129,8 +129,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/orders/store-status").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/orders/{id:\\d+}", "/api/orders/ref/*").permitAll()
 
-                // Payment callbacks (from ToyyibPay — no auth)
-                .requestMatchers("/api/payments/callback").permitAll()
+                // Payment callbacks and redirects (from ToyyibPay - no auth)
+                .requestMatchers("/api/payments/callback", "/api/payments/verify-redirect").permitAll()
                 .requestMatchers(
                     "/api/payments/*/online-confirm",
                     "/api/payments/*/simulate-success",

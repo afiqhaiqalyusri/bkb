@@ -78,6 +78,15 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, html);
     }
 
+    // ─── Order Completed Email ────────────────────────────────
+
+    @Async
+    public void sendOrderCompletedEmail(String toEmail, String name, String orderNumber) {
+        String subject = "BKB — Order Completed! Thank you! #" + orderNumber;
+        String html = buildOrderCompletedEmailHtml(name, orderNumber);
+        sendHtmlEmail(toEmail, subject, html);
+    }
+
     // ─── Core Send Method ─────────────────────────────────────
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
@@ -291,5 +300,32 @@ public class EmailService {
                 </body>
                 </html>
                 """.formatted(firstName, amount.toString(), orderNumber);
+    }
+
+    private String buildOrderCompletedEmailHtml(String name, String orderNumber) {
+        String firstName = name != null ? name.split(" ")[0] : "there";
+        return """
+                <!DOCTYPE html>
+                <html>
+                <body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px;">
+                  <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%%, #16213e 100%%); padding: 32px 40px; text-align: center;">
+                      <h1 style="color: #f5a623; margin: 0; font-size: 28px; letter-spacing: 2px;">🍔 BKB</h1>
+                      <p style="color: #a0a8b0; margin: 8px 0 0; font-size: 14px;">Bukan Kedai Burger</p>
+                    </div>
+                    <div style="padding: 40px;">
+                      <h2 style="color: #1a1a2e; margin: 0 0 16px; font-size: 22px;">Enjoy Your Meal!</h2>
+                      <p style="color: #555; line-height: 1.6; margin: 0 0 24px;">Hi <strong>%s</strong>,</p>
+                      <p style="color: #555; line-height: 1.6; margin: 0 0 28px;">
+                        Your order <strong>#%s</strong> has been completed. We hope you enjoy your food!
+                      </p>
+                      <p style="color: #888; font-size: 13px; line-height: 1.6; border-top: 1px solid #eee; padding-top: 20px; margin: 0;">
+                        Thank you for choosing BKB. We look forward to serving you again soon!
+                      </p>
+                    </div>
+                  </div>
+                </body>
+                </html>
+                """.formatted(firstName, orderNumber);
     }
 }

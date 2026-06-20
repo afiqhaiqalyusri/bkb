@@ -227,10 +227,12 @@ export const CheckoutPage: React.FC = () => {
       // Set orderSubmitted to true to prevent empty cart redirect logic
       orderSubmittedRef.current = true;
 
-      // Remove checked out items from cart
-      checkoutItems.forEach((item: any) => {
-        useCartStore.getState().removeItem(item.menuItem.id, item.customisations, item.isFree);
-      });
+      // Only clear cart immediately if it's a CASH order
+      if (paymentChannel === 'CASH') {
+        checkoutItems.forEach((item: any) => {
+          useCartStore.getState().removeItem(item.menuItem.id, item.customisations, item.isFree);
+        });
+      }
 
       if (paymentChannel !== 'CASH') {
         toast.success('Order created. Proceeding to online payment...');

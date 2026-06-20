@@ -246,6 +246,19 @@ public class OrderService {
             }
         }
 
+        // Send Email Completed notification
+        if (status == OrderStatus.COMPLETED && order.getUser() != null && order.getUser().getEmail() != null) {
+            try {
+                emailService.sendOrderCompletedEmail(
+                        order.getUser().getEmail(),
+                        order.getUser().getName(),
+                        order.getOrderNumber()
+                );
+            } catch (Exception e) {
+                log.error("Failed to send completed email for order {}: {}", order.getOrderNumber(), e.getMessage());
+            }
+        }
+
         return toResponse(orderRepository.save(order));
     }
 
