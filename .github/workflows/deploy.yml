@@ -154,6 +154,8 @@ jobs:
           JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
           MAIL_USERNAME:     ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD:     ${{ secrets.MAIL_PASSWORD }}
+          TOYYIBPAY_SECRET_KEY: ${{ secrets.TOYYIBPAY_SECRET_KEY }}
+          TOYYIBPAY_CATEGORY_CODE: ${{ secrets.TOYYIBPAY_CATEGORY_CODE }}
         run: |
           # Validate required secrets
           MISSING=""
@@ -179,6 +181,8 @@ jobs:
           printf 'VITE_API_BASE_URL=%s\n'    "https://fyp.afiqhaiqal.my" >> /tmp/bkb.env
           printf 'MAIL_USERNAME=%s\n'        "${MAIL_USERNAME:-noreply@example.com}" >> /tmp/bkb.env
           printf 'MAIL_PASSWORD=%s\n'        "${MAIL_PASSWORD:-placeholder}"         >> /tmp/bkb.env
+          printf 'TOYYIBPAY_SECRET_KEY=%s\n' "$TOYYIBPAY_SECRET_KEY"                 >> /tmp/bkb.env
+          printf 'TOYYIBPAY_CATEGORY_CODE=%s\n' "$TOYYIBPAY_CATEGORY_CODE"           >> /tmp/bkb.env
           printf 'SPRING_PROFILES_ACTIVE=%s\n' "prod"                >> /tmp/bkb.env
           printf 'BACKEND_IMAGE=%s\n'        "${{ env.BACKEND_IMAGE }}:${{ github.sha }}" >> /tmp/bkb.env
           printf 'FRONTEND_IMAGE=%s\n'       "${{ env.FRONTEND_IMAGE }}:${{ github.sha }}" >> /tmp/bkb.env

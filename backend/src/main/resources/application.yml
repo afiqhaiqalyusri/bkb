@@ -135,3 +135,11 @@ app:
     password-reset-max-per-hour: 3
     account-lockout-attempts: 5
     account-lockout-minutes: 15
+
+# ToyyibPay Sandbox
+toyyibpay:
+  base-url: ${TOYYIBPAY_BASE_URL:https://dev.toyyibpay.com}
+  secret-key: ${TOYYIBPAY_SECRET_KEY:YOUR_SANDBOX_SECRET_KEY}
+  category-code: ${TOYYIBPAY_CATEGORY_CODE:YOUR_SANDBOX_CATEGORY_CODE}
+  callback-url: ${TOYYIBPAY_CALLBACK_URL:https://fyp.afiqhaiqal.my/api/payments/callback}
+  return-url: ${TOYYIBPAY_RETURN_URL:https://fyp.afiqhaiqal.my/payment/result}

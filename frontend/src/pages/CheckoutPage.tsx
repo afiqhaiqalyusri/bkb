@@ -11,6 +11,7 @@ import { CartItem } from '../types';
 import { useConfirmation } from '../components/ConfirmationProvider';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
 import { getFoodImage } from '../utils/foodImages';
+import api from '../services/api';
 
 const PICKUP_SLOTS = (() => {
   const slots: string[] = ['NOW'];
@@ -32,73 +33,15 @@ const getItemEmoji = (name: string) => {
 
 const CHANNELS = [
   {
-    id: 'DUITNOW' as const,
-    name: 'DuitNow QR',
-    desc: 'Universal DuitNow QR scan',
-    color: '#d91b5c',
-    bg: 'rgba(217,27,92,0.06)',
-    logo: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#d91b5c" />
-        <circle cx="16" cy="16" r="8" fill="white" />
-        <circle cx="16" cy="16" r="4.5" fill="#d91b5c" />
-        <circle cx="16" cy="16" r="2.2" fill="#005fa9" />
-      </svg>
-    )
-  },
-  {
-    id: 'TNG' as const,
-    name: 'Touch \'n Go',
-    desc: 'Pay via TNG eWallet app',
+    id: 'TOYYIBPAY' as const,
+    name: 'ToyyibPay',
+    desc: 'Pay with Online Banking or E-wallet',
     color: '#005fa9',
     bg: 'rgba(0,95,169,0.06)',
     logo: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#005fa9" />
-        <path d="M6 10H14M10 10V22M15 14C15 12 17 12 17 12H23C23 12 25 12 25 14V18C25 20 23 20 23 20H17M15 20V22M18 16H22" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-        <circle cx="21" cy="21" r="2.5" fill="#fbc02d" />
-      </svg>
-    )
-  },
-  {
-    id: 'SHOPEEPAY' as const,
-    name: 'ShopeePay',
-    desc: 'Pay using ShopeePay wallet',
-    color: '#ee4d2d',
-    bg: 'rgba(238,77,45,0.06)',
-    logo: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#ee4d2d" />
-        <path d="M16 6C10.5 6 10 10 10 12.5C10 17 22 17.5 22 20.5C22 22 20.5 23 16 23C11 23 10.5 21 10.5 20" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-        <circle cx="16" cy="14.5" r="2.5" fill="white" />
-      </svg>
-    )
-  },
-  {
-    id: 'GRABPAY' as const,
-    name: 'GrabPay',
-    desc: 'Instant pay with GrabPay',
-    color: '#00b14f',
-    bg: 'rgba(0,177,79,0.06)',
-    logo: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#00b14f" />
-        <path d="M8 12C12 12 13 8 20 8M12 24C19 24 20 20 24 20M7 18C12 18 13 14 25 14" stroke="white" strokeWidth="3.2" strokeLinecap="round"/>
-      </svg>
-    )
-  },
-  {
-    id: 'BOOST' as const,
-    name: 'Boost',
-    desc: 'Pay with Boost eWallet app',
-    color: '#ee2e24',
-    bg: 'rgba(238,46,36,0.06)',
-    logo: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#ee2e24" />
-        <rect x="8" y="8" width="16" height="16" rx="4" fill="white" />
-        <path d="M12 12V20H15.5C17.5 20 18.5 19 18.5 17.5C18.5 16.5 17.5 15.8 16 15.8C17.5 15.8 18 15 18 14C18 12.8 17 12 15 12H12ZM14.2 13.8H15.2C15.8 13.8 16.1 14.1 16.1 14.5C16.1 14.9 15.8 15.2 15.2 15.2H14.2V13.8ZM14.2 16.7H15.5C16.2 16.7 16.6 17 16.6 17.5C16.6 18 16.2 18.3 15.5 18.3H14.2V16.7Z" fill="#ee2e24" />
-      </svg>
+      <div style={{ fontWeight: 800, color: '#005fa9', fontSize: '0.8rem', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0f2fe', borderRadius: 8 }}>
+        TP
+      </div>
     )
   },
   {
@@ -156,9 +99,9 @@ export const CheckoutPage: React.FC = () => {
     return CHANNELS.filter(chan => localStorage.getItem(`bkb-pay-enabled-${chan.id}`) !== 'false');
   }, []);
 
-  const [paymentChannel, setPaymentChannel] = useState<'TNG' | 'SHOPEEPAY' | 'GRABPAY' | 'BOOST' | 'DUITNOW' | 'CASH'>(() => {
+  const [paymentChannel, setPaymentChannel] = useState<'TOYYIBPAY' | 'CASH'>(() => {
     const firstEnabled = CHANNELS.find(chan => localStorage.getItem(`bkb-pay-enabled-${chan.id}`) !== 'false');
-    return (firstEnabled?.id || 'DUITNOW') as any;
+    return (firstEnabled?.id || 'TOYYIBPAY') as any;
   });
 
   const [guestName, setGuestName] = useState(user?.name || '');
@@ -291,7 +234,8 @@ export const CheckoutPage: React.FC = () => {
 
       if (paymentChannel !== 'CASH') {
         toast.success('Order created. Proceeding to online payment...');
-        navigate(`/payment/${res.data.orderNumber}?channel=${paymentChannel}&token=${res.data.paymentToken}`, { replace: true });
+        const payRes = await api.post(`/payments/toyyibpay/${res.data.id}`);
+        window.location.href = payRes.data.data.paymentUrl;
       } else {
         toast.success('Order placed successfully! 🍔');
         navigate(`/order/${res.data.id}/tracking`, { replace: true });

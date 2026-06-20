@@ -1,5 +1,5 @@
 package com.bkb.entity.enums;
 
 public enum PaymentStatusEnum {
-    PENDING, SUCCESS, FAILED
+    PENDING, PAID, SUCCESS, FAILED, CANCELLED
 }

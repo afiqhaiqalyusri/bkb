@@ -17,14 +17,17 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final OrderService orderService;
     private final com.bkb.service.SecurityLogService securityLogService;
+    private final com.bkb.service.ToyyibPayService toyyibPayService;
 
-    /**
-     * TODO: ToyyibPay webhook callback — implement in Phase 2
-     */
-    @PostMapping("/callback")
-    public ResponseEntity<String> handleCallback(@RequestBody(required = false) Object payload) {
-        paymentService.handleToyyibPayCallback(payload);
+    @PostMapping(value = "/callback", consumes = org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<String> handleCallback(@RequestParam java.util.Map<String, String> payload) {
+        toyyibPayService.verifyPayment(payload);
         return ResponseEntity.ok("OK");
+    }
+
+    @PostMapping("/toyyibpay/{orderId}")
+    public ResponseEntity<ApiResponse<java.util.Map<String, String>>> createToyyibPayBill(@PathVariable Long orderId) {
+        return ResponseEntity.ok(ApiResponse.success("Bill created", toyyibPayService.createBill(orderId)));
     }
 
     @PatchMapping("/{orderId}/cash-confirm")

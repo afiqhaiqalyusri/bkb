@@ -37,6 +37,7 @@ public class OrderService {
     private final OrderNumberGenerator orderNumberGenerator;
     private final ObjectMapper objectMapper;
     private final EmailService emailService;
+    private final ReceiptService receiptService;
 
     @Value("${bkb.tax.rate:0.06}")
     private BigDecimal taxRate;
@@ -90,6 +91,9 @@ public class OrderService {
         String paymentToken = null;
         if (paymentMethod == PaymentMethod.ONLINE) {
             paymentToken = PAYMENT_TOKEN_PREFIX + java.util.UUID.randomUUID().toString().replace("-", "");
+            if (initialStatus == OrderStatus.INCOMING_ORDER) {
+                initialStatus = OrderStatus.PENDING_PAYMENT;
+            }
         }
 
         // 5. Build and persist Order
@@ -128,15 +132,8 @@ public class OrderService {
         });
         orderRepository.save(savedOrder);
 
-        // 7. Deduct inventory (throws InsufficientStockException if not enough)
-        for (OrderItem oi : savedOrder.getItems()) {
-            inventoryService.deductByOrderItem(oi, savedOrder);
-        }
-
-        // 8. Award loyalty points for CUSTOMER
-        if (user != null && user.getRole() == UserRole.CUSTOMER) {
-            loyaltyService.awardPoints(user, savedOrder);
-        }
+        // Immediate inventory deduction and loyalty award removed.
+        // These are now deferred until the order is COMPLETED.
 
         log.info("Order placed: {} for {}", savedOrder.getOrderNumber(),
                 user != null ? user.getEmail() : "guest");
@@ -224,6 +221,16 @@ public class OrderService {
         // If marked COMPLETED and CASH payment → auto-mark as PAID
         if (status == OrderStatus.COMPLETED && order.getPaymentMethod() == PaymentMethod.CASH) {
             order.setPaymentStatus(PaymentStatus.PAID);
+        }
+
+        // Defer inventory and loyalty processing until the order is COMPLETED
+        if (status == OrderStatus.COMPLETED) {
+            for (OrderItem oi : order.getItems()) {
+                inventoryService.deductByOrderItem(oi, order);
+            }
+            if (order.getUser() != null && order.getUser().getRole() == UserRole.CUSTOMER) {
+                loyaltyService.awardPoints(order.getUser(), order);
+            }
         }
 
         // Send Email Ready notification
@@ -416,5 +423,38 @@ public class OrderService {
         }
         order.setStatus(OrderStatus.CANCELLED);
         return toResponse(orderRepository.save(order));
+    }
+
+    // ─── Payment Callbacks ───────────────────────────────────────
+
+    @Transactional
+    public void handlePaymentSuccess(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
+
+        order.setPaymentStatus(PaymentStatus.PAID);
+        order.setStatus(OrderStatus.ACCEPTED);
+        orderRepository.save(order);
+
+        // Notify customer and generate receipt
+        if (order.getUser() != null && order.getUser().getEmail() != null) {
+            emailService.sendPaymentSuccessEmail(
+                    order.getUser().getEmail(),
+                    order.getUser().getName(),
+                    order.getOrderNumber(),
+                    order.getTotal()
+            );
+        }
+        receiptService.generateReceipt(order);
+    }
+
+    @Transactional
+    public void handlePaymentFailure(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
+
+        order.setPaymentStatus(PaymentStatus.UNPAID); // Or FAILED based on PaymentStatusEnum
+        order.setStatus(OrderStatus.PENDING_PAYMENT); // Ensure PENDING_PAYMENT exists in OrderStatus
+        orderRepository.save(order);
     }
 }

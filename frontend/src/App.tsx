@@ -16,6 +16,7 @@ import { MenuPage } from './pages/MenuPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { PaymentPage } from './pages/PaymentPage';
+import { PaymentResultPage } from './pages/PaymentResultPage';
 import { LoyaltyPage } from './pages/LoyaltyPage';
 import { OrderTrackingPage } from './pages/OrderTrackingPage';
 import { OrderHistoryPage } from './pages/OrderHistoryPage';
@@ -65,6 +66,7 @@ const router = createBrowserRouter([
       { path: 'menu', element: <CustomerGuard><MenuPage /></CustomerGuard> },
       { path: 'cart', element: <CustomerGuard><CartPage /></CustomerGuard> },
       { path: 'checkout', element: <CustomerGuard><CheckoutPage /></CustomerGuard> },
+      { path: 'payment/result', element: <PaymentResultPage /> },
       { path: 'payment/:orderId', element: <CustomerGuard><PaymentPage /></CustomerGuard> },
       { path: 'loyalty', element: <CustomerRouteGuard><LoyaltyPage /></CustomerRouteGuard> },
       { path: 'order/:id/tracking', element: <CustomerGuard><OrderTrackingPage /></CustomerGuard> },
