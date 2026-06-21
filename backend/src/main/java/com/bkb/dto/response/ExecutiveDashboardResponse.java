@@ -16,6 +16,7 @@ public class ExecutiveDashboardResponse {
 
     private List<PeakHour> peakHours;
     private List<LowStockAlert> lowStockAlerts;
+    private List<TopItemEntry> topItems;
 
     @Data
     @Builder
@@ -38,5 +39,13 @@ public class ExecutiveDashboardResponse {
         private String itemName;
         private BigDecimal currentStock;
         private BigDecimal minStock;
+    }
+
+    @Data
+    @Builder
+    public static class TopItemEntry {
+        private String itemName;
+        private Long totalQuantity;
+        private BigDecimal totalRevenue;
     }
 }

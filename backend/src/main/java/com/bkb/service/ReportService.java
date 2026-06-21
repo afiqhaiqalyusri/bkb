@@ -139,12 +139,23 @@ public class ReportService {
         long prevOrd = orderRepository.countOrdersBetween(prevFromDt, prevToDt);
         long prevCust = orderRepository.countUniqueCustomersBetween(prevFromDt, prevToDt);
 
+        List<Object[]> topRaw = orderItemRepository.findTopSellingItems(fromDt, toDt);
+        List<ExecutiveDashboardResponse.TopItemEntry> topItems = topRaw.stream()
+                .limit(6)
+                .map(row -> ExecutiveDashboardResponse.TopItemEntry.builder()
+                        .itemName((String) row[1])
+                        .totalQuantity(((Number) row[2]).longValue())
+                        .totalRevenue(row[3] != null ? (row[3] instanceof BigDecimal ? (BigDecimal) row[3] : BigDecimal.valueOf(((Number) row[3]).doubleValue())) : BigDecimal.ZERO)
+                        .build())
+                .toList();
+
         return ExecutiveDashboardResponse.builder()
                 .revenue(buildMetricCard(rev, prevRev))
                 .profit(buildMetricCard(prof, prevProf))
                 .orders(buildMetricCard(BigDecimal.valueOf(ord), BigDecimal.valueOf(prevOrd)))
                 .customers(buildMetricCard(BigDecimal.valueOf(cust), BigDecimal.valueOf(prevCust)))
                 .peakHours(getPeakBusinessHours(from, to))
+                .topItems(topItems)
                 .build();
     }
 
