@@ -8,5 +8,10 @@ import java.util.Optional;
 
 @Repository
 public interface LoyaltyAccountRepository extends JpaRepository<LoyaltyAccount, Long> {
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user"})
     Optional<LoyaltyAccount> findByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user"})
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM LoyaltyAccount a")
+    java.util.List<LoyaltyAccount> findAllWithUser();
 }

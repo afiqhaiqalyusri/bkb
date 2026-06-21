@@ -231,20 +231,18 @@ public class LoyaltyService {
     /**
      * Returns all loyalty accounts with user details for the manager dashboard.
      */
-    public List<Map<String, Object>> getAllAccountsForManager() {
-        return accountRepository.findAll().stream().map(acc -> {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("id", acc.getId());
-            m.put("userName", acc.getUser() != null ? acc.getUser().getName() : "");
-            m.put("userEmail", acc.getUser() != null ? acc.getUser().getEmail() : "");
-            m.put("points", acc.getPoints());
-            m.put("totalEarned", acc.getTotalEarned());
-            m.put("updatedAt", acc.getUpdatedAt());
-            m.put("userRole", acc.getUser() != null && acc.getUser().getRole() != null
-                    ? acc.getUser().getRole().name() : "CUSTOMER");
-            m.put("phone", acc.getUser() != null ? acc.getUser().getPhone() : "");
-            return m;
-        }).toList();
+    public List<com.bkb.dto.response.LoyaltyAccountManagerResponse> getAllAccountsForManager() {
+        return accountRepository.findAllWithUser().stream().map(acc -> com.bkb.dto.response.LoyaltyAccountManagerResponse.builder()
+            .id(acc.getId())
+            .userName(acc.getUser() != null ? acc.getUser().getName() : "")
+            .userEmail(acc.getUser() != null ? acc.getUser().getEmail() : "")
+            .points(acc.getPoints())
+            .totalEarned(acc.getTotalEarned())
+            .updatedAt(acc.getUpdatedAt())
+            .userRole(acc.getUser() != null && acc.getUser().getRole() != null ? acc.getUser().getRole().name() : "CUSTOMER")
+            .phone(acc.getUser() != null ? acc.getUser().getPhone() : "")
+            .build()
+        ).toList();
     }
 
     /**

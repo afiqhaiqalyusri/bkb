@@ -162,6 +162,31 @@ public class InventoryService {
         return transactionRepository.findAll();
     }
 
+    public List<com.bkb.dto.response.WasteLogResponse> getWasteLogs(java.time.LocalDate from, java.time.LocalDate to) {
+        List<InventoryTransaction> txList;
+        if (from != null && to != null) {
+            txList = transactionRepository.findByTypeAndDateRange(
+                InventoryTransactionType.WASTE,
+                from.atStartOfDay(),
+                to.plusDays(1).atStartOfDay()
+            );
+        } else {
+            txList = transactionRepository.findByType(InventoryTransactionType.WASTE);
+        }
+
+        return txList.stream().map(t -> com.bkb.dto.response.WasteLogResponse.builder()
+                .id(t.getId())
+                .inventoryName(t.getInventory() != null ? t.getInventory().getItemName() : "")
+                .unit(t.getInventory() != null ? t.getInventory().getUnit() : "")
+                .quantity(t.getQuantity())
+                .transactionCost(t.getTransactionCost())
+                .reason(t.getReason())
+                .createdAt(t.getCreatedAt())
+                .loggedBy(t.getCreatedBy() != null ? t.getCreatedBy().getName() : "System")
+                .build()
+        ).collect(Collectors.toList());
+    }
+
     public InventoryResponse toResponse(Inventory inv) {
         // Calculate average daily usage over the last 30 days
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);

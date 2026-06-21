@@ -86,7 +86,7 @@ public class LoyaltyController {
 
     @GetMapping("/accounts")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getAllAccounts() {
+    public ResponseEntity<ApiResponse<List<com.bkb.dto.response.LoyaltyAccountManagerResponse>>> getAllAccounts() {
         return ResponseEntity.ok(ApiResponse.success(loyaltyService.getAllAccountsForManager()));
     }
 

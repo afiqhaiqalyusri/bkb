@@ -79,6 +79,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT AVG(o.rating) FROM Order o WHERE o.rating IS NOT NULL")
     java.math.BigDecimal getAverageRating();
 
+    @EntityGraph(attributePaths = {"user"})
     @Query("SELECT o FROM Order o WHERE o.rating IS NOT NULL ORDER BY o.createdAt DESC LIMIT 20")
     List<Order> findRecentFeedback();
 

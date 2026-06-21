@@ -79,35 +79,10 @@ public class InventoryController {
 
     @GetMapping("/transactions/waste")
     @PreAuthorize("hasRole('STAFF')")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getWasteLog(
+    public ResponseEntity<ApiResponse<List<com.bkb.dto.response.WasteLogResponse>>> getWasteLog(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 
-        List<InventoryTransaction> txList;
-        if (from != null && to != null) {
-            txList = transactionRepository.findByTypeAndDateRange(
-                InventoryTransactionType.WASTE,
-                from.atStartOfDay(),
-                to.plusDays(1).atStartOfDay()
-            );
-        } else {
-            txList = transactionRepository.findByType(InventoryTransactionType.WASTE);
-        }
-
-        List<Map<String, Object>> result = txList.stream().map(t -> {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", t.getId());
-            map.put("inventoryName", t.getInventory() != null ? t.getInventory().getItemName() : "");
-            map.put("unit", t.getInventory() != null ? t.getInventory().getUnit() : "");
-            map.put("quantity", t.getQuantity());
-            map.put("transactionCost", t.getTransactionCost());
-            map.put("reason", t.getReason());
-            map.put("createdAt", t.getCreatedAt());
-            map.put("loggedBy", t.getCreatedBy() != null ? t.getCreatedBy().getName() : "System");
-            return map;
-        }).toList();
-
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.success(inventoryService.getWasteLogs(from, to)));
     }
 }
