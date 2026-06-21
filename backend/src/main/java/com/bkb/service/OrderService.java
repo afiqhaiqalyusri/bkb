@@ -72,7 +72,7 @@ public class OrderService {
             BigDecimal itemCost = BigDecimal.ZERO;
             if (oi.getMenuItem().getInventoryLinks() != null) {
                 for (com.bkb.entity.MenuItemInventory link : oi.getMenuItem().getInventoryLinks()) {
-                    if (link.getInventory() != null && link.getInventory().getUnitCost() != null) {
+                    if (link.getInventory() != null && link.getInventory().getUnitCost() != null && link.getQuantityUsed() != null) {
                         itemCost = itemCost.add(
                                 link.getInventory().getUnitCost().multiply(link.getQuantityUsed())
                         );

@@ -89,13 +89,13 @@ public class ToyyibPayService {
             log.info("ToyyibPay raw response: {}", rawBody);
 
             if (rawBody == null || rawBody.isBlank()) {
-                throw new RuntimeException("ToyyibPay returned empty response");
+                throw new com.bkb.exception.BkbException("ToyyibPay returned empty response");
             }
 
             // If ToyyibPay returns an error string (not JSON array), throw with the message
             if (!rawBody.trim().startsWith("[")) {
                 log.error("ToyyibPay error response: {}", rawBody);
-                throw new RuntimeException("ToyyibPay error: " + rawBody.trim());
+                throw new com.bkb.exception.BkbException("ToyyibPay error: " + rawBody.trim());
             }
 
             // Parse as JSON array
@@ -104,7 +104,7 @@ public class ToyyibPayService {
                     mapper.readValue(rawBody, mapper.getTypeFactory().constructCollectionType(java.util.List.class, java.util.Map.class));
 
             if (list.isEmpty()) {
-                throw new RuntimeException("ToyyibPay returned empty list");
+                throw new com.bkb.exception.BkbException("ToyyibPay returned empty list");
             }
 
             Map<String, Object> responseData = list.get(0);
@@ -112,7 +112,7 @@ public class ToyyibPayService {
 
             if (billCode == null || billCode.isBlank()) {
                 log.error("ToyyibPay response missing BillCode: {}", responseData);
-                throw new RuntimeException("ToyyibPay did not return a bill code. Response: " + responseData);
+                throw new com.bkb.exception.BkbException("ToyyibPay did not return a bill code. Response: " + responseData);
             }
 
             // Save Payment Record
@@ -131,9 +131,11 @@ public class ToyyibPayService {
                     "paymentUrl", paymentUrl,
                     "billCode", billCode
             );
+        } catch (com.bkb.exception.BkbException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error calling ToyyibPay API: {}", e.getMessage(), e);
-            throw new RuntimeException("Payment gateway error: " + e.getMessage(), e);
+            throw new com.bkb.exception.BkbException("Payment gateway error: " + e.getMessage());
         }
     }
 
