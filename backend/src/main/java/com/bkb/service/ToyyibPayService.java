@@ -140,11 +140,21 @@ public class ToyyibPayService {
     @Transactional
     public void verifyPayment(Map<String, String> payload) {
         String billCode = payload.get("billcode");
-        String status = payload.get("status_id"); // 1 = Success, 2 = Pending, 3 = Fail
         String statusId = payload.get("status_id"); // 1 = Success, 2 = Pending, 3 = Fail
+        if (statusId == null) {
+            statusId = payload.get("status");
+        }
+        
         String transactionId = payload.get("transaction_id");
+        if (transactionId == null) {
+            transactionId = payload.get("refno");
+        }
+        
         String amountStr = payload.get("amount");
         String msg = payload.get("msg");
+        if (msg == null) {
+            msg = payload.get("reason");
+        }
 
         log.info("Received ToyyibPay callback: {}", payload);
 
@@ -219,8 +229,21 @@ public class ToyyibPayService {
             for (Map<String, Object> tx : list) {
                 String txStatus = String.valueOf(tx.get("billpaymentStatus"));
                 String txAmount = String.valueOf(tx.get("billpaymentAmount"));
-                if ("1".equals(txStatus) && (expectedAmount == null || expectedAmount.equals(txAmount))) {
-                    return true;
+                if ("1".equals(txStatus)) {
+                    if (expectedAmount == null) {
+                        return true;
+                    }
+                    try {
+                        java.math.BigDecimal expected = new java.math.BigDecimal(expectedAmount);
+                        java.math.BigDecimal actual = new java.math.BigDecimal(txAmount);
+                        if (expected.compareTo(actual) == 0) {
+                            return true;
+                        }
+                    } catch (Exception e) {
+                        if (expectedAmount.equals(txAmount)) {
+                            return true;
+                        }
+                    }
                 }
             }
             return false;
