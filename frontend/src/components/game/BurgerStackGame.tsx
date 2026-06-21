@@ -128,7 +128,7 @@ interface BurgerStackGameProps {
   orderStatus: string;
 }
 
-const ACTIVE_STATUSES = ['PENDING', 'ACCEPTED', 'GRILLING', 'ASSEMBLING'];
+const ACTIVE_STATUSES = ['PENDING_PAYMENT', 'PENDING', 'ACCEPTED', 'ON_GRILL', 'GRILLING', 'ASSEMBLING'];
 
 export const BurgerStackGame: React.FC<BurgerStackGameProps> = ({ orderId, orderStatus }) => {
   const { isAuthenticated } = useAuthStore();

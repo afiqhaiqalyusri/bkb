@@ -135,7 +135,8 @@ public class SecurityConfig {
                     "/api/payments/*/online-confirm",
                     "/api/payments/*/simulate-success",
                     "/api/payments/*/simulate-failure",
-                    "/api/payments/*/status"
+                    "/api/payments/*/status",
+                    "/api/payments/toyyibpay/*"
                 ).permitAll()
 
                 // Actuator — health only, publicly (for load balancer/uptime checks)
