@@ -18,7 +18,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
            "JOIN oi.order o " +
            "WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID " +
            "GROUP BY oi.menuItem.id, oi.menuItem.name " +
-           "ORDER BY totalQty DESC")
+           "ORDER BY SUM(oi.quantity) DESC")
     List<Object[]> findTopSellingItems(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * oi.unitCost) as estimatedProfit " +
@@ -26,6 +26,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
            "JOIN oi.order o " +
            "WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID " +
            "GROUP BY oi.menuItem.id, oi.menuItem.name " +
-           "ORDER BY totalQty ASC")
+           "ORDER BY SUM(oi.quantity) ASC")
     List<Object[]> findWorstSellingItems(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }
