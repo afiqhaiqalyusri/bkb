@@ -1,34 +1,28 @@
-import React, { useEffect } from 'react';
-import { ErrorState } from '../../components/ui/ErrorState';
-import { Lock, LogIn } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { StateLayout } from '../../components/ui/StateLayout';
+import { RestrictedIllustration } from '../../components/ui/illustrations/RestrictedIllustration';
 
 export const UnauthorizedPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate('/login', { state: { from: location.pathname } });
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [navigate, location]);
 
   return (
-    <ErrorState
-      title="Session Expired"
-      message="Please log in again to continue. You will be redirected automatically in 5 seconds."
-      icon={<Lock size={48} />}
-      showHomeButton={true}
-      actions={
-        <button
-          onClick={() => navigate('/login', { state: { from: location.pathname } })}
-          className="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 font-bold rounded-xl border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-all focus:ring-4 focus:ring-gray-100 active:scale-95"
-        >
-          <LogIn size={18} />
-          Login Now
-        </button>
-      }
-    />
+    <div className="min-h-screen bg-[var(--cream)] flex items-center justify-center p-6">
+      <StateLayout
+        illustration={<RestrictedIllustration />}
+        title="Hold on a second!"
+        description="You need to sign in before you can place an order or view your rewards."
+        primaryAction={
+          <button onClick={() => navigate('/login')} className="btn-primary w-full sm:w-auto">
+            Sign In
+          </button>
+        }
+        secondaryAction={
+          <button onClick={() => navigate('/register')} className="btn-outline w-full sm:w-auto">
+            Create Account
+          </button>
+        }
+      />
+    </div>
   );
 };

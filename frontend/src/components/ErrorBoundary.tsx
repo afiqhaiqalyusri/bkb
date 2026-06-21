@@ -1,6 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorState } from './ui/ErrorState';
-import { ServerCrash } from 'lucide-react';
+import { ServerErrorIllustration } from './ui/illustrations/ServerErrorIllustration';
 
 interface Props {
   children?: ReactNode;
@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <ErrorState
           title="Something Went Wrong"
           message="Our team has been notified of this issue. Please try again later."
-          icon={<ServerCrash size={48} />}
+          illustration={<ServerErrorIllustration />}
           showHomeButton={true}
           showReloadButton={true}
         />
