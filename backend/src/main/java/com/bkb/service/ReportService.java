@@ -246,10 +246,8 @@ public class ReportService {
             avgLtv = totalRevenueFromUsers.divide(BigDecimal.valueOf(totalUniqueCustomers), 2, RoundingMode.HALF_UP);
         }
 
-        BigDecimal avgRating = orderRepository.getAverageRating();
-        if (avgRating == null) {
-            avgRating = BigDecimal.ZERO;
-        }
+        Double avgRatingDouble = orderRepository.getAverageRating();
+        BigDecimal avgRating = avgRatingDouble != null ? BigDecimal.valueOf(avgRatingDouble) : BigDecimal.ZERO;
 
         List<com.bkb.entity.Order> recentOrders = orderRepository.findRecentFeedback();
         List<CustomerInsightsResponse.FeedbackEntry> feedbackList = new ArrayList<>();

@@ -67,17 +67,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT COUNT(DISTINCT o.user.id) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID AND o.user IS NOT NULL")
     long countUniqueCustomersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query(value = "SELECT EXTRACT(HOUR FROM created_at) as hr, COUNT(*) as cnt FROM orders WHERE payment_status = 'PAID'::payment_status_type AND created_at BETWEEN :from AND :to GROUP BY hr ORDER BY cnt DESC", nativeQuery = true)
+    @Query(value = "SELECT EXTRACT(HOUR FROM created_at) as hr, COUNT(*) as cnt FROM orders WHERE payment_status::varchar = 'PAID' AND created_at BETWEEN :from AND :to GROUP BY hr ORDER BY cnt DESC", nativeQuery = true)
     List<Object[]> getPeakHours(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID AND o.user IS NOT NULL")
     java.math.BigDecimal sumUserRevenue();
 
-    @Query(value = "SELECT COUNT(*) FROM (SELECT user_id FROM orders WHERE payment_status = 'PAID'::payment_status_type AND user_id IS NOT NULL GROUP BY user_id HAVING COUNT(*) > 1) AS repeat_cust", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM (SELECT user_id FROM orders WHERE payment_status::varchar = 'PAID' AND user_id IS NOT NULL GROUP BY user_id HAVING COUNT(*) > 1) AS repeat_cust", nativeQuery = true)
     long countRepeatCustomers();
 
     @Query("SELECT AVG(o.rating) FROM Order o WHERE o.rating IS NOT NULL")
-    java.math.BigDecimal getAverageRating();
+    Double getAverageRating();
 
     @EntityGraph(attributePaths = {"user"})
     @Query("SELECT o FROM Order o WHERE o.rating IS NOT NULL ORDER BY o.createdAt DESC LIMIT 20")

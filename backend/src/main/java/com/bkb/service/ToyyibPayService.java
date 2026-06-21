@@ -219,8 +219,12 @@ public class ToyyibPayService {
 
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
             String rawBody = response.getBody();
+            log.info("ToyyibPay getBillTransactions response: {}", rawBody);
 
             if (rawBody == null || !rawBody.trim().startsWith("[")) {
+                log.warn("ToyyibPay getBillTransactions returned non-array: {}", rawBody);
+                // In sandbox, sometimes this API fails or is delayed.
+                // We'll return false to be strict, but if user uses localhost, maybe bypass?
                 return false;
             }
 
@@ -248,6 +252,7 @@ public class ToyyibPayService {
                     }
                 }
             }
+            log.warn("No successful transaction found in ToyyibPay response.");
             return false;
         } catch (Exception e) {
             log.error("Error verifying payment with ToyyibPay: {}", e.getMessage(), e);
