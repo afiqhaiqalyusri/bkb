@@ -5,6 +5,7 @@ import { inventoryService } from '../../services/inventory.service';
 import { ManagerLayout } from './ManagerDashboard';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorState } from '../../components/ui/ErrorState';
+import { EmptyState } from '../../components/ui/EmptyState';
 import toast from 'react-hot-toast';
 
 export const InventoryContent: React.FC = () => {
@@ -198,7 +199,11 @@ export const InventoryContent: React.FC = () => {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 80 }}><LoadingSpinner size="lg" /></div>
         ) : filteredItems.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 80, color: 'var(--bkb-gray-400)' }}>No inventory items match current filter</div>
+          <EmptyState
+            title="No inventory items found"
+            description="There are no items matching the current filter."
+            icon={AlertCircle}
+          />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

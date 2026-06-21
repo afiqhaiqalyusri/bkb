@@ -9,9 +9,11 @@ import { useCartStore } from '../store/cartStore';
 import { PageShell } from '../components/PageShell';
 import { ErrorState } from '../components/ui/ErrorState';
 import toast from 'react-hot-toast';
-import { useConfirmation } from '../components/ConfirmationProvider';
 import { BurgerLoader } from '../components/ui/BurgerLoader';
 import { getFoodImage } from '../utils/foodImages';
+import { EmptyState } from '../components/ui/EmptyState';
+import { TrendingUp, Award } from 'lucide-react';
+import { useConfirmation } from '../components/ConfirmationProvider';
 
 export const LoyaltyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -379,7 +381,11 @@ export const LoyaltyPage: React.FC = () => {
                       </div>
                     ))
                   ) : (
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textAlign: 'center', padding: '20px 0' }}>No points earned yet.</div>
+                    <EmptyState
+                      title="No points earned yet"
+                      description="Start ordering to earn points!"
+                      icon={TrendingUp}
+                    />
                   )}
                 </div>
               </div>
@@ -401,7 +407,11 @@ export const LoyaltyPage: React.FC = () => {
                       </div>
                     ))
                   ) : (
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textAlign: 'center', padding: '20px 0' }}>No rewards redeemed yet.</div>
+                    <EmptyState
+                      title="No rewards redeemed yet"
+                      description="Redeem your points for free meals!"
+                      icon={Award}
+                    />
                   )}
                 </div>
               </div>

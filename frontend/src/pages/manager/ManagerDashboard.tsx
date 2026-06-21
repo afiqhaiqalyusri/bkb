@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, TrendingUp, ShoppingBag,
   AlertTriangle, ArrowUp, Flame, Download, Calendar, DollarSign, FileText,
-  Menu, Database, Trash2, Award
+  Menu, Database, Trash2, Award, BarChart3, Package, Settings, AlertCircle, 
+  CreditCard, ChevronRight, MessageSquare
 } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -16,6 +17,7 @@ import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 import { staffService } from '../../services/manager.service';
 import { BkbLogo } from '../../components/ui/BkbLogo';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 // ─── Minimalist Side Navigation ──────────────────────────────
 const NAV_ITEMS = [
@@ -670,7 +672,7 @@ const ReportsContent: React.FC = () => {
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-sm)' }}>
               <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>🏆 Top Selling Items</h3>
               {!report?.topItems || report.topItems.length === 0 ? (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', minHeight: 250 }}>No sales data available</div>
+                <EmptyState title="No sales data" description="There are no top selling items for this period." icon={TrendingUp} />
               ) : (
                 <div style={{ flex: 1, overflowY: 'auto', maxHeight: 300 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -703,7 +705,7 @@ const ReportsContent: React.FC = () => {
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-sm)' }}>
               <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>👩‍🍳 Staff Performance</h3>
               {!staffPerformance || staffPerformance.length === 0 ? (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', minHeight: 150 }}>No staff data available for this period</div>
+                <EmptyState title="No staff data" description="No staff performance data is available for this period." icon={Users} />
               ) : (
                 <div style={{ flex: 1, overflowY: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -767,7 +769,13 @@ const AuditLogsContent: React.FC = () => {
           </thead>
           <tbody>
             {logs.length === 0 ? (
-              <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>No audit logs recorded yet.</td></tr>
+              <tr>
+                <td colSpan={6}>
+                  <div style={{ padding: 40 }}>
+                    <EmptyState title="No audit logs" description="No audit logs have been recorded yet." icon={FileText} />
+                  </div>
+                </td>
+              </tr>
             ) : (
               logs.map((log, idx) => (
                 <tr key={idx} style={{ borderBottom: '1px solid var(--border)', fontSize: '0.84rem' }}>
@@ -929,7 +937,7 @@ const CustomerInsightsContent: React.FC = () => {
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, boxShadow: 'var(--shadow-sm)' }}>
         <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>Recent Customer Feedback</h3>
         {!insights?.recentFeedback || insights.recentFeedback.length === 0 ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', minHeight: 150 }}>No feedback available yet</div>
+          <EmptyState title="No feedback yet" description="There is no customer feedback available at this time." icon={MessageSquare} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {insights.recentFeedback.map((fb: any, idx: number) => (

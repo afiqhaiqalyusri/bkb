@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import { SessionTimeoutManager } from './components/SessionTimeoutManager';
 import { ConfirmationProvider } from './components/ConfirmationProvider';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -31,7 +32,15 @@ import { ManagerUsers } from './pages/manager/ManagerUsers';
 import { SettingsPage } from './pages/SettingsPage';
 import { FavouritesPage } from './pages/FavouritesPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
-import { GlobalErrorPage } from './components/GlobalErrorPage';
+
+// Error Pages
+import { NotFoundPage } from './pages/errors/NotFoundPage';
+import { AccessDeniedPage } from './pages/errors/AccessDeniedPage';
+import { UnauthorizedPage } from './pages/errors/UnauthorizedPage';
+import { ServerErrorPage } from './pages/errors/ServerErrorPage';
+import { ServiceUnavailablePage } from './pages/errors/ServiceUnavailablePage';
+import { PaymentErrorPage } from './pages/errors/PaymentErrorPage';
+import { OrderNotFoundPage } from './pages/errors/OrderNotFoundPage';
 
 // Route Guards
 import {
@@ -55,7 +64,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
-    errorElement: <GlobalErrorPage />,
+    errorElement: <ServerErrorPage />,
     children: [
       { path: '', element: <LandingPage /> },
       { path: 'login', element: <CustomerGuard><LoginPage /></CustomerGuard> },
@@ -68,9 +77,11 @@ const router = createBrowserRouter([
       { path: 'checkout', element: <CustomerGuard><CheckoutPage /></CustomerGuard> },
       { path: 'payment/result', element: <PaymentResultPage /> },
       { path: 'payment/:orderId', element: <CustomerGuard><PaymentPage /></CustomerGuard> },
+      { path: 'payment/error', element: <PaymentErrorPage /> },
       { path: 'loyalty', element: <CustomerRouteGuard><LoyaltyPage /></CustomerRouteGuard> },
       { path: 'order/:id/tracking', element: <CustomerGuard><OrderTrackingPage /></CustomerGuard> },
       { path: 'track/:token', element: <OrderTrackingPage /> },
+      { path: 'order/not-found', element: <OrderNotFoundPage /> },
       { path: 'history', element: <CustomerRouteGuard><OrderHistoryPage /></CustomerRouteGuard> },
       { path: 'settings', element: <CustomerRouteGuard><SettingsPage /></CustomerRouteGuard> },
       { path: 'favourites', element: <CustomerRouteGuard><FavouritesPage /></CustomerRouteGuard> },
@@ -89,7 +100,12 @@ const router = createBrowserRouter([
       { path: 'manager/ingredients', element: <ManagerGuard><Navigate to="/manager/menu?tab=customize" replace /></ManagerGuard> },
       
       { path: 'reset-password', element: <ResetPasswordPage /> },
-      { path: '*', element: <Navigate to="/" replace /> }
+      { path: '403', element: <AccessDeniedPage /> },
+      { path: '401', element: <UnauthorizedPage /> },
+      { path: '500', element: <ServerErrorPage /> },
+      { path: '503', element: <ServiceUnavailablePage /> },
+      { path: '404', element: <NotFoundPage /> },
+      { path: '*', element: <NotFoundPage /> }
     ]
   }
 ]);
@@ -106,10 +122,10 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <ErrorBoundary>
       <RouterProvider router={router} />
       <Toaster position="top-center" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
-    </>
+    </ErrorBoundary>
   );
 };
 

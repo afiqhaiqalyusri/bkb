@@ -4,6 +4,7 @@ import { authService } from '../services/auth.service';
 import { BkbLogo } from '../components/ui/BkbLogo';
 import toast from 'react-hot-toast';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
+import { InlineError } from '../components/ui/InlineError';
 import { 
   User, 
   Mail, 
@@ -201,7 +202,7 @@ export const RegisterPage: React.FC = () => {
                 />
               </div>
               {touched.name && !form.name && (
-                <p style={{ color: 'var(--danger)', fontSize: '0.72rem', fontWeight: 500, marginTop: '4px' }}>Name is required</p>
+                <InlineError message="Name is required" />
               )}
             </div>
 
@@ -232,10 +233,10 @@ export const RegisterPage: React.FC = () => {
                 )}
               </div>
               {touched.email && !form.email && (
-                <p style={{ color: 'var(--danger)', fontSize: '0.72rem', fontWeight: 500, marginTop: '4px' }}>Email is required</p>
+                <InlineError message="Email is required" />
               )}
               {touched.email && form.email && !isEmailValid && (
-                <p style={{ color: 'var(--danger)', fontSize: '0.72rem', fontWeight: 500, marginTop: '4px' }}>Enter a valid email address</p>
+                <InlineError message="Enter a valid email address" />
               )}
             </div>
 
@@ -265,9 +266,7 @@ export const RegisterPage: React.FC = () => {
                 )}
               </div>
               {touched.phone && form.phone && !isPhoneValid && (
-                <p style={{ color: 'var(--danger)', fontSize: '0.72rem', fontWeight: 500, marginTop: '4px' }}>
-                  Enter a valid Malaysian number (e.g. 0123456789)
-                </p>
+                <InlineError message="Enter a valid Malaysian number (e.g. 0123456789)" />
               )}
             </div>
 
@@ -366,7 +365,7 @@ export const RegisterPage: React.FC = () => {
                 </button>
               </div>
               {touched.confirmPassword && confirmPassword && !isConfirmPasswordValid && (
-                <p style={{ color: 'var(--danger)', fontSize: '0.72rem', fontWeight: 500, marginTop: '4px' }}>Passwords do not match</p>
+                <InlineError message="Passwords do not match" />
               )}
             </div>
 

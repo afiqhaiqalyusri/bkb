@@ -10,6 +10,7 @@ import { CustomiseModal } from '../components/CustomiseModal';
 import { CartItem } from '../types';
 import { useConfirmation } from '../components/ConfirmationProvider';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
+import { InlineError } from '../components/ui/InlineError';
 import { getFoodImage } from '../utils/foodImages';
 import api from '../services/api';
 
@@ -115,6 +116,8 @@ export const CheckoutPage: React.FC = () => {
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<any>(null);
   const [promoLoading, setPromoLoading] = useState(false);
+  
+  const [formErrors, setFormErrors] = useState({ name: '', phone: '' });
 
   // Workflow Protection: Redirect to menu if cart is empty (ignore if order was just submitted)
   useEffect(() => {
@@ -185,18 +188,29 @@ export const CheckoutPage: React.FC = () => {
 
   const handlePlaceOrder = async () => {
     if (checkoutItems.length === 0) return;
+    setFormErrors({ name: '', phone: '' });
+    
     if ((!isAuthenticated || user?.role === 'GUEST')) {
+      let hasError = false;
+      const errors = { name: '', phone: '' };
       if (!guestName.trim()) {
-        toast.error('Please enter your name');
-        return;
+        errors.name = 'Please enter your name';
+        hasError = true;
       }
       if (!guestPhone.trim()) {
-        toast.error('Please enter your phone number');
-        return;
+        errors.phone = 'Please enter your phone number';
+        hasError = true;
+      } else {
+        const malaysianPhoneRegex = /^(?:\+?601|01)[0-46-9]\d{7,8}$/;
+        if (!malaysianPhoneRegex.test(guestPhone.trim())) {
+          errors.phone = 'Please enter a valid Malaysian phone number (e.g. 0123456789 or +60123456789)';
+          hasError = true;
+        }
       }
-      const malaysianPhoneRegex = /^(?:\+?601|01)[0-46-9]\d{7,8}$/;
-      if (!malaysianPhoneRegex.test(guestPhone.trim())) {
-        toast.error('Please enter a valid Malaysian phone number (e.g. 0123456789 or +60123456789)');
+      
+      if (hasError) {
+        setFormErrors(errors);
+        toast.error('Please fix the validation errors before proceeding.');
         return;
       }
     }
@@ -356,6 +370,7 @@ export const CheckoutPage: React.FC = () => {
                       onChange={e => setGuestName(e.target.value)}
                       style={{ width: '100%', boxSizing: 'border-box' }}
                     />
+                    <InlineError message={formErrors.name} />
                   </div>
                   <div>
                     <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>PHONE NUMBER</label>
@@ -366,10 +381,12 @@ export const CheckoutPage: React.FC = () => {
                       onChange={e => setGuestPhone(e.target.value)}
                       style={{ width: '100%', boxSizing: 'border-box' }}
                     />
-                    {guestPhone && (
-                      <div style={{ marginTop: 4, fontSize: '0.68rem', fontWeight: 700, color: /^(?:\+?601|01)[0-46-9]\d{7,8}$/.test(guestPhone.trim()) ? 'var(--success)' : 'var(--danger)' }}>
-                        {/^(?:\+?601|01)[0-46-9]\d{7,8}$/.test(guestPhone.trim()) ? '✓ Valid Malaysian Phone' : '✕ Please enter a valid Malaysian format (e.g. 0123456789 or +60123456789)'}
+                    {guestPhone && /^(?:\+?601|01)[0-46-9]\d{7,8}$/.test(guestPhone.trim()) ? (
+                      <div style={{ marginTop: 4, fontSize: '0.68rem', fontWeight: 700, color: 'var(--success)' }}>
+                        ✓ Valid Malaysian Phone
                       </div>
+                    ) : (
+                      <InlineError message={formErrors.phone} />
                     )}
                   </div>
                 </div>

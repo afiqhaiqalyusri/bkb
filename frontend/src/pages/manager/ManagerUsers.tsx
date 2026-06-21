@@ -3,13 +3,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Plus, Edit2, Trash2, X, Search, ShoppingBag,
   Calendar, MessageSquare, Shield, Mail, Phone, FileText,
-  UserCheck, UserX, ChevronDown, ChevronUp, Clock
+  UserCheck, UserX, ChevronDown, ChevronUp, Clock, Users
 } from 'lucide-react';
 import { ManagerLayout } from './ManagerDashboard';
 import { staffService } from '../../services/manager.service';
 import { orderService } from '../../services/order.service';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorState } from '../../components/ui/ErrorState';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { formatRM } from '../../utils/formatCurrency';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
@@ -614,7 +615,13 @@ export const ManagerUsers: React.FC = () => {
                   </thead>
                   <tbody>
                     {customersList.length === 0 ? (
-                      <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>No customer profiles found.</td></tr>
+                      <tr>
+                        <td colSpan={7}>
+                          <div style={{ padding: 40 }}>
+                            <EmptyState title="No customers found" description="No customer profiles match your search criteria." icon={Users} />
+                          </div>
+                        </td>
+                      </tr>
                     ) : (
                       customersList.map(c => {
                         const totalOrdersCount = allOrders.filter(o =>
@@ -723,7 +730,7 @@ export const ManagerUsers: React.FC = () => {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {staffList.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }}>No staff members found.</div>
+                <EmptyState title="No staff members found" description="No staff profiles match your search criteria." icon={Shield} />
               ) : (
                 staffList.map(s => {
                   const isExpanded = expandedStaff === s.id;

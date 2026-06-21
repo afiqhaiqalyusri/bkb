@@ -3,6 +3,7 @@ import { Trash2, Calendar, Search } from 'lucide-react';
 import { ManagerLayout } from './ManagerDashboard';
 import { wasteService } from '../../services/manager.service';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { EmptyState } from '../../components/ui/EmptyState';
 import toast from 'react-hot-toast';
 
 interface WasteEntry {
@@ -97,10 +98,11 @@ export const WasteContent: React.FC = () => {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 60 }}><LoadingSpinner size="lg" /></div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60, color: 'var(--bkb-gray-400)' }}>
-            <Trash2 size={32} style={{ marginBottom: 12, opacity: 0.3 }} />
-            <p style={{ margin: 0 }}>No waste entries found for this period</p>
-          </div>
+          <EmptyState
+            title="No waste entries found"
+            description="There are no waste logs for the selected period."
+            icon={Trash2}
+          />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

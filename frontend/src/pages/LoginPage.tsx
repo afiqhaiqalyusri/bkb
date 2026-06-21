@@ -8,6 +8,7 @@ import { securityLogger } from '../utils/securityLogger';
 import { BkbLogo } from '../components/ui/BkbLogo';
 import toast from 'react-hot-toast';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
+import { InlineError } from '../components/ui/InlineError';
 import { 
   Mail, 
   Lock, 
@@ -35,6 +36,7 @@ export const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(() => {
     return localStorage.getItem('bkb-remember') === 'true';
   });
+  const [formError, setFormError] = useState('');
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('bkb-theme') as 'light' | 'dark') || 'light';
@@ -78,8 +80,9 @@ export const LoginPage: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
     if (!email || !password) {
-      toast.error('Please enter email and password.');
+      setFormError('Please enter both email and password.');
       return;
     }
 
@@ -103,7 +106,7 @@ export const LoginPage: React.FC = () => {
       }
       toast.success(`Welcome back, ${loggedUser.name}! 👋`, { duration: 2500 });
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
+      setFormError(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -431,6 +434,8 @@ export const LoginPage: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            <InlineError message={formError} />
 
             {/* Remember Me */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>

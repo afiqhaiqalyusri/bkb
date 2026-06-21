@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { OrderHistorySkeleton } from '../components/ui/SkeletonLoader';
+import { EmptyState } from '../components/ui/EmptyState';
+import { ShoppingBag } from 'lucide-react';
 
 const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }> = {
   PENDING:    { label:'Received',   color:'#D97706', bg:'rgba(245,158,11,0.1)'  },
@@ -122,12 +124,14 @@ export const OrderHistoryPage: React.FC = () => {
         {loading ? (
           <OrderHistorySkeleton count={3} />
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'60px 20px' }}>
-            <div style={{ fontSize:'3.5rem', marginBottom:14 }}>🥺</div>
-            <p style={{ fontFamily:'Poppins', fontWeight:700, color:'var(--text-primary)', marginBottom:6 }}>{filter==='All'?'No orders yet':`No ${filter.toLowerCase()} orders`}</p>
-            <p style={{ fontSize:'0.82rem', color:'var(--text-secondary)', marginBottom:20 }}>{filter==='All'?'Place your first order!':'Try a different filter'}</p>
-            {filter==='All' && <button onClick={() => navigate('/menu')} style={{ background:'var(--red)', color:'#fff', border:'none', borderRadius:12, padding:'12px 24px', fontFamily:'Poppins', fontWeight:700, cursor:'pointer', boxShadow:'var(--shadow-red)' }}>Browse Menu</button>}
-          </div>
+          <EmptyState
+            title={filter === 'All' ? 'No orders yet' : `No ${filter.toLowerCase()} orders`}
+            description={filter === 'All' ? 'Place your first order!' : 'Try a different filter'}
+            icon={ShoppingBag}
+            action={filter === 'All' ? (
+              <button onClick={() => navigate('/menu')} style={{ background:'var(--red)', color:'#fff', border:'none', borderRadius:12, padding:'12px 24px', fontFamily:'Poppins', fontWeight:700, cursor:'pointer', boxShadow:'var(--shadow-red)' }}>Browse Menu</button>
+            ) : undefined}
+          />
         ) : (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {filtered.map(order => {

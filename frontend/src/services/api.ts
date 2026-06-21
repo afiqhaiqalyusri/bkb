@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { STORAGE_KEYS } from '../constants/storage';
 
@@ -43,6 +44,11 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
+
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED' || !error.response) {
+      toast.error('Unable to connect to server. Please check your internet connection.');
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       // If no refresh token exists, clear auth and redirect

@@ -14,7 +14,9 @@ import { ErrorState } from '../components/ui/ErrorState';
 import toast from 'react-hot-toast';
 import { BurgerLoader } from '../components/ui/BurgerLoader';
 import { getFoodImage } from '../utils/foodImages';
+import { EmptyState } from '../components/ui/EmptyState';
 import { CustomiseModal } from '../components/CustomiseModal';
+import { Search } from 'lucide-react';
 
 /* ─── Food emojis ─── */
 const getFoodEmoji = (category: string): string => {
@@ -408,9 +410,8 @@ export const MenuPage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign:'center', padding:'60px 20px' }}>
-                <div style={{ fontSize:'3rem', marginBottom:10 }}>🥺</div>
-                <p style={{ color:'var(--text-secondary)', fontSize:'0.86rem' }}>No items found</p>
+              <div style={{ padding: '40px 16px' }}>
+                <EmptyState title="No items found" description="Try adjusting your search or category filter" icon={Search} />
               </div>
             )}
           </div>

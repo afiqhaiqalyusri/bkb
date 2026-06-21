@@ -1,19 +1,29 @@
 import React from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Home, RefreshCw, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ErrorStateProps {
   title?: string;
   message?: string;
+  icon?: React.ReactNode;
   onRetry?: () => void;
   retrying?: boolean;
+  showHomeButton?: boolean;
+  showReloadButton?: boolean;
+  actions?: React.ReactNode;
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
-  title = 'Connection Timeout or Error',
-  message = 'We could not connect to the server. Please check if the backend application is running and try again.',
+  title = 'Oops, something went wrong',
+  message = 'We encountered an unexpected error. Please try again later.',
+  icon,
   onRetry,
   retrying = false,
+  showHomeButton = false,
+  showReloadButton = false,
+  actions,
 }) => {
+  const navigate = useNavigate();
   return (
     <div
       style={{
@@ -46,7 +56,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           marginBottom: 20,
         }}
       >
-        <AlertCircle size={28} />
+        {icon ? icon : <AlertTriangle size={28} />}
       </div>
 
       <h3
@@ -61,41 +71,100 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         {title}
       </h3>
 
-      <p
-        style={{
-          fontSize: '0.86rem',
+      {message && (
+        <p style={{
+          fontSize: '0.9rem',
+          color: 'var(--text-secondary)',
           lineHeight: 1.5,
-          color: 'var(--text-muted)',
-          margin: '0 0 24px 0',
-          maxWidth: 340,
-        }}
-      >
-        {message}
-      </p>
+          marginBottom: (onRetry || showHomeButton || showReloadButton || actions) ? 24 : 0,
+        }}>
+          {message}
+        </p>
+      )}
 
-      {onRetry && (
-        <button
-          onClick={onRetry}
-          disabled={retrying}
-          className="btn-primary"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '12px 24px',
-            fontSize: '0.88rem',
-            height: 'auto',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            border: 'none',
-            outline: 'none',
-            boxShadow: 'var(--shadow-red)',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <RefreshCw size={16} className={retrying ? 'animate-spin' : ''} />
-          {retrying ? 'Retrying...' : 'Try Again'}
-        </button>
+      {(onRetry || showHomeButton || showReloadButton || actions) && (
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              disabled={retrying}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 20px',
+                background: 'var(--primary)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 12,
+                fontFamily: 'Poppins',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                cursor: retrying ? 'not-allowed' : 'pointer',
+                opacity: retrying ? 0.8 : 1,
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'all 0.2s',
+              }}
+            >
+              {retrying ? (
+                <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+              ) : (
+                'Try Again'
+              )}
+            </button>
+          )}
+
+          {showReloadButton && (
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 20px',
+                background: 'var(--primary)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 12,
+                fontFamily: 'Poppins',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'all 0.2s',
+              }}
+            >
+              <RefreshCw size={16} />
+              Reload Page
+            </button>
+          )}
+
+          {showHomeButton && (
+            <button
+              onClick={() => navigate('/')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 20px',
+                background: 'var(--surface)',
+                color: 'var(--text-primary)',
+                border: '1.5px solid var(--border)',
+                borderRadius: 12,
+                fontFamily: 'Poppins',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              <Home size={16} />
+              Go Home
+            </button>
+          )}
+
+          {actions}
+        </div>
       )}
     </div>
   );

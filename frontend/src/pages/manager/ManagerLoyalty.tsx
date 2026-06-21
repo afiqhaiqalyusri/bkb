@@ -10,6 +10,7 @@ import { menuService } from '../../services/menu.service';
 import { orderService } from '../../services/order.service';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorState } from '../../components/ui/ErrorState';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { formatRM } from '../../utils/formatCurrency';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
@@ -437,7 +438,13 @@ export const ManagerLoyalty: React.FC = () => {
                   </thead>
                   <tbody>
                     {customersList.length === 0 ? (
-                      <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>No customer profiles found.</td></tr>
+                      <tr>
+                        <td colSpan={7}>
+                          <div style={{ padding: 40 }}>
+                            <EmptyState title="No customers found" description="No customer profiles match your search criteria." icon={Award} />
+                          </div>
+                        </td>
+                      </tr>
                     ) : (
                       customersList.map(c => {
                         const totalOrdersCount = allOrders.filter(o =>
@@ -515,7 +522,7 @@ export const ManagerLoyalty: React.FC = () => {
             <div style={{ textAlign: 'center', padding: 60 }}><LoadingSpinner size="lg" /></div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {rewards.length === 0 && <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)' }}>No rewards configured yet.</div>}
+              {rewards.length === 0 && <EmptyState title="No rewards configured" description="There are no rewards configured in the catalog yet." icon={Star} />}
               {rewards.map(r => (
                 <div key={r.id} style={{
                   background: 'var(--surface)', border: '1px solid var(--border)',
@@ -764,7 +771,7 @@ export const ManagerLoyalty: React.FC = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
               {customerOrders.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>No orders placed by this customer yet.</div>
+                <EmptyState title="No orders found" description="No orders have been placed by this customer yet." icon={ShoppingBag} />
               ) : (
                 customerOrders.map(order => (
                   <div key={order.id} style={{
