@@ -47,14 +47,14 @@ public class MenuController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<MenuItemResponse>> createItem(@Valid @RequestBody MenuItemRequest request) {
         MenuItemResponse response = menuService.createItem(request);
         return ResponseEntity.status(201).body(ApiResponse.success("Menu item created", response));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<MenuItemResponse>> updateItem(
             @PathVariable Long id,
             @Valid @RequestBody MenuItemRequest request) {
@@ -62,14 +62,14 @@ public class MenuController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteItem(@PathVariable Long id) {
         menuService.deleteItem(id);
         return ResponseEntity.ok(ApiResponse.success("Menu item deactivated", null));
     }
 
     @PatchMapping("/{id}/toggle")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<MenuItemResponse>> toggleItem(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(menuService.toggleAvailability(id)));
     }

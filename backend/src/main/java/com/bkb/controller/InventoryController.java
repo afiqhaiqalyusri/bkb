@@ -31,19 +31,19 @@ public class InventoryController {
     private final InventoryTransactionRepository transactionRepository;
 
     @GetMapping
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<InventoryResponse>>> getAllInventory() {
         return ResponseEntity.ok(ApiResponse.success(inventoryService.getAllInventory()));
     }
 
     @GetMapping("/low-stock")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<InventoryResponse>>> getLowStock() {
         return ResponseEntity.ok(ApiResponse.success(inventoryService.getLowStock()));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<InventoryResponse>> createItem(
             @Valid @RequestBody InventoryRequest request) {
         InventoryResponse response = inventoryService.createItem(request);
@@ -51,7 +51,7 @@ public class InventoryController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<InventoryResponse>> updateItem(
             @PathVariable Long id,
             @Valid @RequestBody InventoryRequest request) {
@@ -59,7 +59,7 @@ public class InventoryController {
     }
 
     @PostMapping("/{id}/adjust")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<InventoryResponse>> adjustStock(
             @PathVariable Long id,
             @Valid @RequestBody InventoryAdjustRequest request,
@@ -68,7 +68,7 @@ public class InventoryController {
     }
 
     @PostMapping("/{id}/waste")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<InventoryResponse>> recordWaste(
             @PathVariable Long id,
             @Valid @RequestBody InventoryAdjustRequest request,
@@ -78,7 +78,7 @@ public class InventoryController {
     }
 
     @GetMapping("/transactions/waste")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<com.bkb.dto.response.WasteLogResponse>>> getWasteLog(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {

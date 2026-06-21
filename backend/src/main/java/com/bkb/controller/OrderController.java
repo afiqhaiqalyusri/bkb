@@ -117,7 +117,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(
             @PathVariable Long id,
             @Valid @RequestBody UpdateOrderStatusRequest request,
@@ -139,7 +139,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/details")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderDetails(
             @PathVariable Long id,
             @RequestBody com.bkb.dto.request.UpdateOrderDetailsRequest request) {
@@ -164,7 +164,7 @@ public class OrderController {
     }
 
     @GetMapping("/on-hold")
-    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getOnHoldOrders() {
         return ResponseEntity.ok(ApiResponse.success(orderService.getOnHoldOrders()));
     }

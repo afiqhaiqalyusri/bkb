@@ -19,7 +19,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('MANAGER')")
+@PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
 public class ReportController {
 
     private final ReportService reportService;
@@ -48,7 +48,7 @@ public class ReportController {
     }
 
     @GetMapping("/customer-insights")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<CustomerInsightsResponse>> getCustomerInsights() {
         return ResponseEntity.ok(ApiResponse.success(reportService.getCustomerInsights()));
     }
