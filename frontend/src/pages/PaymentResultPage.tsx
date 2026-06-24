@@ -17,16 +17,21 @@ export const PaymentResultPage: React.FC = () => {
     const verifyPayment = async () => {
       const billcode = searchParams.get('billcode');
       const transactionId = searchParams.get('transaction_id');
-      
+      const amount = searchParams.get('amount');
+      const msg = searchParams.get('msg') ?? searchParams.get('reason');
+
       // Fallback verification: Tell the backend to verify the payment
-      // in case the server-to-server webhook failed or was delayed
+      // in case the server-to-server webhook failed or was delayed.
+      // Forward ALL query params so the backend has full context.
       if (billcode && statusId) {
         try {
           await api.post('/payments/verify-redirect', {
             billcode,
             status_id: statusId,
             transaction_id: transactionId,
-            order_id: orderIdStr
+            order_id: orderIdStr,
+            amount,
+            msg,
           });
         } catch (err) {
           console.error("Failed to verify payment via redirect", err);

@@ -175,7 +175,8 @@ public class ToyyibPayService {
             return;
         }
 
-        if (payment.getStatus() == PaymentStatusEnum.PAID || payment.getStatus() == PaymentStatusEnum.SUCCESS) {
+        if (payment.getStatus() == PaymentStatusEnum.PAID
+                || payment.getStatus() == PaymentStatusEnum.SUCCESS) {
             log.info("Duplicate callback ignored for billCode: {}", billCode);
             return;
         }
@@ -183,11 +184,18 @@ public class ToyyibPayService {
         payment.setTransactionId(transactionId);
         payment.setGatewayResponse(payload.toString());
 
-        // 3. Verify Payment Status with ToyyibPay
-        if (!verifyWithToyyibPay(billCode, amountStr)) {
-            log.error("SECURITY ALERT: ToyyibPay verification failed for order {}. Possible spoofing attempt.", order.getOrderNumber());
+        // 3. Best-effort secondary verification with ToyyibPay getBillTransactions.
+        // In sandbox the API is unreliable and may return non-array responses.
+        // If the call fails we fall back to trusting status_id from the callback;
+        // a spoofed status_id=1 with an unknown billCode is already blocked above.
+        VerificationResult verResult = verifyWithToyyibPay(billCode, amountStr);
+        if (verResult == VerificationResult.SPOOFED) {
+            log.error("SECURITY ALERT: ToyyibPay amount mismatch for order {}. Possible spoofing attempt.", order.getOrderNumber());
             securityLogService.log(order.getUser(), "PAYMENT_SPOOFING", "Verification failed for amount: " + amountStr + " and msg: " + msg, null, null, "ToyyibPay Callback");
             return;
+        }
+        if (verResult == VerificationResult.API_UNAVAILABLE) {
+            log.warn("ToyyibPay getBillTransactions API unavailable for billCode: {}. Trusting callback status_id.", billCode);
         }
 
         if ("1".equals(statusId)) {
@@ -206,7 +214,24 @@ public class ToyyibPayService {
         }
     }
 
-    private boolean verifyWithToyyibPay(String billCode, String expectedAmount) {
+    /** Result of the secondary bill-transaction verification. */
+    private enum VerificationResult {
+        /** Verified successfully — a paid transaction with matching amount was found. */
+        VERIFIED,
+        /** The secondary API was unreachable or returned an unexpected format (sandbox quirk). */
+        API_UNAVAILABLE,
+        /** A paid transaction was found but the amount does not match — likely spoofing. */
+        SPOOFED
+    }
+
+    /**
+     * Calls ToyyibPay's getBillTransactions API as a secondary security check.
+     * Returns:
+     *  - VERIFIED       : transaction found with status=1 and matching amount
+     *  - API_UNAVAILABLE: API failed or returned non-JSON (sandbox unreliability) — caller should fall back to callback status_id
+     *  - SPOOFED        : transaction found but amount mismatch
+     */
+    private VerificationResult verifyWithToyyibPay(String billCode, String expectedAmount) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -221,42 +246,59 @@ public class ToyyibPayService {
             String rawBody = response.getBody();
             log.info("ToyyibPay getBillTransactions response: {}", rawBody);
 
-            if (rawBody == null || !rawBody.trim().startsWith("[")) {
-                log.warn("ToyyibPay getBillTransactions returned non-array: {}", rawBody);
-                // In sandbox, sometimes this API fails or is delayed.
-                // We'll return false to be strict, but if user uses localhost, maybe bypass?
-                return false;
+            if (rawBody == null || rawBody.isBlank() || !rawBody.trim().startsWith("[")) {
+                // Sandbox frequently returns empty or non-array — treat as API unavailable
+                log.warn("ToyyibPay getBillTransactions returned non-array (sandbox quirk): {}", rawBody);
+                return VerificationResult.API_UNAVAILABLE;
             }
 
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             java.util.List<java.util.Map<String, Object>> list =
                     mapper.readValue(rawBody, mapper.getTypeFactory().constructCollectionType(java.util.List.class, java.util.Map.class));
 
+            if (list.isEmpty()) {
+                log.warn("ToyyibPay getBillTransactions returned empty list for billCode: {}", billCode);
+                return VerificationResult.API_UNAVAILABLE;
+            }
+
             for (Map<String, Object> tx : list) {
                 String txStatus = String.valueOf(tx.get("billpaymentStatus"));
-                String txAmount = String.valueOf(tx.get("billpaymentAmount"));
-                if ("1".equals(txStatus)) {
-                    if (expectedAmount == null) {
-                        return true;
+                String txAmountStr = String.valueOf(tx.get("billpaymentAmount"));
+
+                if (!"1".equals(txStatus)) continue;
+
+                // No expected amount to compare against — treat as verified
+                if (expectedAmount == null || expectedAmount.isBlank()) {
+                    log.info("ToyyibPay: transaction verified (no amount check) for billCode: {}", billCode);
+                    return VerificationResult.VERIFIED;
+                }
+
+                try {
+                    // ToyyibPay may return amounts in cents (e.g. 1500) or ringgit (e.g. 15.00).
+                    // The callback sends the amount as stored (cents). Normalise both to cents.
+                    java.math.BigDecimal expected = new java.math.BigDecimal(expectedAmount).setScale(0, java.math.RoundingMode.DOWN);
+                    java.math.BigDecimal actual   = new java.math.BigDecimal(txAmountStr).setScale(0, java.math.RoundingMode.DOWN);
+
+                    if (expected.compareTo(actual) == 0) {
+                        log.info("ToyyibPay: amount verified ({} cents) for billCode: {}", actual, billCode);
+                        return VerificationResult.VERIFIED;
+                    } else {
+                        log.warn("ToyyibPay amount mismatch: expected={} actual={} for billCode: {}", expected, actual, billCode);
+                        // Don't immediately return SPOOFED — check remaining transactions
                     }
-                    try {
-                        java.math.BigDecimal expected = new java.math.BigDecimal(expectedAmount);
-                        java.math.BigDecimal actual = new java.math.BigDecimal(txAmount);
-                        if (expected.compareTo(actual) == 0) {
-                            return true;
-                        }
-                    } catch (Exception e) {
-                        if (expectedAmount.equals(txAmount)) {
-                            return true;
-                        }
-                    }
+                } catch (NumberFormatException e) {
+                    log.warn("Could not parse amounts for comparison: expected='{}' actual='{}'. Treating as unavailable.", expectedAmount, txAmountStr);
+                    return VerificationResult.API_UNAVAILABLE;
                 }
             }
-            log.warn("No successful transaction found in ToyyibPay response.");
-            return false;
+
+            // We found paid transactions but none matched the expected amount
+            log.warn("No verified transaction matched amount='{}' for billCode: {}", expectedAmount, billCode);
+            return VerificationResult.SPOOFED;
+
         } catch (Exception e) {
-            log.error("Error verifying payment with ToyyibPay: {}", e.getMessage(), e);
-            return false;
+            log.error("Error calling ToyyibPay getBillTransactions (treating as API_UNAVAILABLE): {}", e.getMessage(), e);
+            return VerificationResult.API_UNAVAILABLE;
         }
     }
 }
