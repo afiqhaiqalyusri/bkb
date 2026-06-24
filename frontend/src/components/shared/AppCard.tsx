@@ -1,7 +1,7 @@
 import React, { HTMLAttributes } from 'react';
 
 interface AppCardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'elevated' | 'bordered';
+  variant?: 'default' | 'elevated' | 'bordered' | 'glass';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   noBackground?: boolean;
 }
@@ -18,14 +18,15 @@ export const AppCard = React.forwardRef<HTMLDivElement, AppCardProps>(
     },
     ref
   ) => {
-    const baseStyles = 'rounded-2xl transition-shadow duration-200';
+    const baseStyles = 'rounded-2xl transition-all duration-300';
     
-    const bgClass = noBackground ? 'bg-transparent' : 'bg-white';
+    const bgClass = noBackground ? 'bg-transparent' : 'bg-[var(--surface)]';
     
     const variants = {
-      default: 'shadow-sm border border-stone-100',
-      elevated: 'shadow-md border border-stone-100/50 hover:shadow-lg',
-      bordered: 'border-2 border-stone-200 shadow-none'
+      default: 'shadow-sm border border-[var(--border)] hover:border-[var(--primary)] hover:shadow-md',
+      elevated: 'shadow-md border border-[var(--border)] hover:shadow-lg hover:-translate-y-1',
+      bordered: 'border-2 border-[var(--border)] shadow-none hover:border-[var(--primary)]',
+      glass: 'glass shadow-lg border border-[rgba(255,255,255,0.3)]'
     };
 
     const paddings = {

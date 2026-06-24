@@ -26,14 +26,14 @@ export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
     },
     ref
   ) => {
-    const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center font-[Inter] font-semibold transition-all duration-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]';
     
     const variants = {
-      primary: 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500 shadow-sm',
-      secondary: 'bg-stone-100 text-stone-800 hover:bg-stone-200 focus:ring-stone-500',
-      danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500',
-      ghost: 'bg-transparent text-stone-600 hover:bg-stone-100 hover:text-stone-900',
-      outline: 'bg-transparent border-2 border-stone-200 text-stone-700 hover:border-amber-500 hover:text-amber-600 focus:ring-amber-500'
+      primary: 'bg-[var(--primary)] text-white hover:bg-[var(--red-dark)] focus:ring-[var(--primary)] shadow-md hover:shadow-lg hover:shadow-[rgba(255,107,0,0.25)]',
+      secondary: 'bg-[var(--secondary-bg)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--surface-hover)] focus:ring-[var(--border)]',
+      danger: 'bg-[var(--danger)] text-white hover:bg-red-600 focus:ring-red-500 shadow-sm hover:shadow-red-500/30',
+      ghost: 'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--primary)]',
+      outline: 'bg-transparent border-2 border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--primary)] hover:text-[var(--primary)] focus:ring-[var(--primary)]'
     };
 
     const sizes = {
