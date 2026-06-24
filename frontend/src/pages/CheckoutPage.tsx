@@ -12,6 +12,9 @@ import { useConfirmation } from '../components/ConfirmationProvider';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
 import { InlineError } from '../components/ui/InlineError';
 import { getFoodImage } from '../utils/foodImages';
+import { CheckoutCustomerDetails } from '../components/feature/checkout/CheckoutCustomerDetails';
+import { CheckoutOrderNotes } from '../components/feature/checkout/CheckoutOrderNotes';
+import { CheckoutPaymentMethods, CHANNELS } from '../components/feature/checkout/CheckoutPaymentMethods';
 import api from '../services/api';
 
 const PICKUP_SLOTS = (() => {
@@ -32,34 +35,6 @@ const getItemEmoji = (name: string) => {
   return '🍔';
 };
 
-const CHANNELS = [
-  {
-    id: 'TOYYIBPAY' as const,
-    name: 'ToyyibPay',
-    desc: 'Pay with Online Banking or E-wallet',
-    color: '#005fa9',
-    bg: 'rgba(0,95,169,0.06)',
-    logo: (
-      <div style={{ fontWeight: 800, color: '#005fa9', fontSize: '0.8rem', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e0f2fe', borderRadius: 8 }}>
-        TP
-      </div>
-    )
-  },
-  {
-    id: 'CASH' as const,
-    name: 'Cash at Counter',
-    desc: 'Pay cash when collecting order',
-    color: 'var(--text-primary)',
-    bg: 'var(--cream-dark)',
-    logo: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#4b5563" />
-        <path d="M8 12H24M8 16H24M8 20H20" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-        <circle cx="23" cy="20" r="2" fill="#22c55e" />
-      </svg>
-    )
-  }
-];
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -356,41 +331,14 @@ export const CheckoutPage: React.FC = () => {
           <div style={{ flex: isMobile ? '1 1 auto' : '1.6 1 450px', width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Customer Details Box (Only for Guest / Not Logged In) */}
             {(!isAuthenticated || user?.role === 'GUEST') && (
-              <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-lg)', padding: '20px', border: '1.5px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-                <h3 style={{ fontFamily: 'Poppins', fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', marginBottom: 14 }}>
-                  👤 Customer Details
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 12 : 16 }}>
-                  <div>
-                    <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>NAME</label>
-                    <input
-                      className="input-field"
-                      placeholder="e.g. John Doe"
-                      value={guestName}
-                      onChange={e => setGuestName(e.target.value)}
-                      style={{ width: '100%', boxSizing: 'border-box' }}
-                    />
-                    <InlineError message={formErrors.name} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>PHONE NUMBER</label>
-                    <input
-                      className="input-field"
-                      placeholder="e.g. 0123456789"
-                      value={guestPhone}
-                      onChange={e => setGuestPhone(e.target.value)}
-                      style={{ width: '100%', boxSizing: 'border-box' }}
-                    />
-                    {guestPhone && /^(?:\+?601|01)[0-46-9]\d{7,8}$/.test(guestPhone.trim()) ? (
-                      <div style={{ marginTop: 4, fontSize: '0.68rem', fontWeight: 700, color: 'var(--success)' }}>
-                        ✓ Valid Malaysian Phone
-                      </div>
-                    ) : (
-                      <InlineError message={formErrors.phone} />
-                    )}
-                  </div>
-                </div>
-              </div>
+              <CheckoutCustomerDetails
+                isMobile={isMobile}
+                guestName={guestName}
+                setGuestName={setGuestName}
+                guestPhone={guestPhone}
+                setGuestPhone={setGuestPhone}
+                formErrors={formErrors}
+              />
             )}
 
             {/* Shopee-like: Products Ordered Card */}
@@ -481,234 +429,22 @@ export const CheckoutPage: React.FC = () => {
             </div>
 
             {/* Shopee-like: Notes (Message for Sellers) & Collection Option */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 20,
-              background: 'var(--surface)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1.5px solid var(--border)',
-              padding: 20,
-              boxShadow: 'var(--shadow-sm)'
-            }}>
-              {/* Message for Seller */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <label style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  💬 Message for Seller (Remarks)
-                </label>
-                <textarea
-                  placeholder="e.g. Please pack sauces separately, no onions, etc."
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  style={{
-                    width: '100%',
-                    height: '80px',
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    border: '1.5px solid var(--border)',
-                    background: 'var(--cream-dark)',
-                    color: 'var(--text-dark)',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '0.82rem',
-                    outline: 'none',
-                    resize: 'none',
-                    transition: 'all 0.2s',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'var(--red)'}
-                  onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                />
-              </div>
-
-              {/* Pickup Type and Offset Selection */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <label style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  ⏰ Collection / Pickup Type
-                </label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => setOrderType('NOW')}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      borderRadius: 10,
-                      border: '1.5px solid',
-                      cursor: 'pointer',
-                      borderColor: orderType === 'NOW' ? 'var(--primary)' : 'var(--border)',
-                      background: orderType === 'NOW' ? 'rgba(255,107,0,0.06)' : 'transparent',
-                      color: orderType === 'NOW' ? 'var(--primary)' : 'var(--text-secondary)',
-                      fontFamily: 'Outfit',
-                      fontWeight: 700,
-                      fontSize: '0.8rem',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    ⚡ Order Now (ASAP)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOrderType('SCHEDULED')}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      borderRadius: 10,
-                      border: '1.5px solid',
-                      cursor: 'pointer',
-                      borderColor: orderType === 'SCHEDULED' ? 'var(--primary)' : 'var(--border)',
-                      background: orderType === 'SCHEDULED' ? 'rgba(255,107,0,0.06)' : 'transparent',
-                      color: orderType === 'SCHEDULED' ? 'var(--primary)' : 'var(--text-secondary)',
-                      fontFamily: 'Outfit',
-                      fontWeight: 700,
-                      fontSize: '0.8rem',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    🕐 Schedule Order
-                  </button>
-                </div>
-
-                {orderType === 'SCHEDULED' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, animation: 'fadeIn 0.2s' }}>
-                    <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                      SELECT PICKUP TIME
-                    </label>
-                    <input
-                      type="time"
-                      value={selectedTime}
-                      onChange={e => setSelectedTime(e.target.value)}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: 10,
-                        border: '1.5px solid var(--border)',
-                        background: 'var(--cream-dark)',
-                        color: 'var(--text-dark)',
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '0.9rem',
-                        fontWeight: 700,
-                        outline: 'none',
-                        width: 'fit-content'
-                      }}
-                    />
-                  </div>
-                )}
-
-                <div style={{ fontSize: '0.72rem', color: orderType === 'SCHEDULED' ? '#7C3AED' : 'var(--success)', fontWeight: 700, marginTop: 2 }}>
-                  {orderType === 'NOW'
-                    ? '⚡ ASAP — Your order will immediately enter the kitchen queue'
-                    : `🕐 Scheduled — Your order will enter the queue closer to the pickup time`
-                  }
-                </div>
-              </div>
-            </div>
+            <CheckoutOrderNotes
+              notes={notes}
+              setNotes={setNotes}
+              orderType={orderType}
+              setOrderType={setOrderType}
+              selectedTime={selectedTime}
+              setSelectedTime={setSelectedTime}
+            />
 
             {/* Codashop-like Payment Selection UI */}
-            <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-lg)', border: '1.5px solid var(--border)', padding: 20, boxShadow: 'var(--shadow-sm)' }}>
-              <h3 style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: 14 }}>
-                💳 Payment Method
-              </h3>
-              
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? 'repeat(auto-fill, minmax(130px, 1fr))' : 'repeat(auto-fill, minmax(200px, 1fr))',
-                gap: isMobile ? 10 : 16
-              }}>
-                {enabledChannels.map(chan => {
-                  const active = paymentChannel === chan.id;
-                  return (
-                    <button
-                      key={chan.id}
-                      type="button"
-                      onClick={() => setPaymentChannel(chan.id)}
-                      style={{
-                        padding: isMobile ? '10px 12px' : '16px',
-                        borderRadius: 12,
-                        border: '2px solid',
-                        borderColor: active ? chan.color : 'var(--border)',
-                        background: active ? chan.bg : 'transparent',
-                        boxShadow: active ? `0 4px 16px ${chan.color}18` : 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: isMobile ? 8 : 12,
-                        position: 'relative',
-                        transition: 'all 0.22s ease',
-                        transform: active ? 'scale(1.02)' : 'none',
-                        boxSizing: 'border-box',
-                        width: '100%',
-                      }}
-                      onMouseEnter={e => {
-                        if (!active) {
-                          e.currentTarget.style.borderColor = chan.color;
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        if (!active) {
-                          e.currentTarget.style.borderColor = 'var(--border)';
-                          e.currentTarget.style.transform = 'none';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }
-                      }}
-                    >
-                      {/* Selected corner checkmark badge */}
-                      {active && (
-                        <div style={{
-                          position: 'absolute',
-                          top: -6,
-                          right: -6,
-                          background: chan.color,
-                          color: 'white',
-                          borderRadius: '50%',
-                          width: 18,
-                          height: 18,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.62rem',
-                          fontWeight: 900,
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                          border: '2px solid var(--surface)'
-                        }}>
-                          ✓
-                        </div>
-                      )}
-                      
-                      {/* Logo Container */}
-                      <div style={{ flexShrink: 0 }}>
-                        {chan.logo}
-                      </div>
-                      
-                      {/* Text details */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{
-                          fontFamily: 'Poppins',
-                          fontWeight: 800,
-                          fontSize: isMobile ? '0.78rem' : '0.86rem',
-                          color: 'var(--text-primary)',
-                          marginBottom: 2
-                        }}>
-                          {chan.name}
-                        </div>
-                        {!isMobile && (
-                          <div style={{
-                            fontSize: '0.68rem',
-                            color: 'var(--text-secondary)',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
-                            {chan.desc}
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <CheckoutPaymentMethods
+              enabledChannels={enabledChannels}
+              paymentChannel={paymentChannel}
+              setPaymentChannel={setPaymentChannel}
+              isMobile={isMobile}
+            />
           </div>
 
           {/* Right Column: Sticky Summary & Action Area */}

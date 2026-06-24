@@ -9,6 +9,9 @@ import { orderService } from '../services/order.service';
 import { useConfirmation } from '../components/ConfirmationProvider';
 import { useUnsavedChangesBlocker } from '../hooks/useUnsavedChangesBlocker';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
+import { FAQModal } from '../components/feature/settings/FAQModal';
+import { EditProfileModal } from '../components/feature/settings/EditProfileModal';
+import { ChangePasswordModal } from '../components/feature/settings/ChangePasswordModal';
 
 /* ─── Icons ─── */
 const IcoUser     = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
@@ -784,186 +787,31 @@ export const SettingsPage: React.FC = () => {
       </div>
  
       {showEditProfile && (
-        <div className="premium-modal-backdrop" onClick={closeProfileModal}>
-          <form
-            onSubmit={handleUpdateProfile}
-            onClick={e => e.stopPropagation()}
-            className="premium-modal-card"
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: 'linear-gradient(135deg, rgba(255,107,0,0.1) 0%, rgba(255,138,61,0.15) 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--primary)', flexShrink: 0
-              }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontFamily: 'Outfit', fontWeight: 900, fontSize: '1.25rem', color: 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>
-                  Edit Profile
-                </h3>
-                <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
-                  Update your personal details below
-                </p>
-              </div>
-              <button type="button" onClick={closeProfileModal} className="premium-close-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-            
-            <div className="premium-input-group">
-              <label className="premium-input-label">Full Name</label>
-              <div className="premium-input-wrapper">
-                <span className="premium-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                </span>
-                <input
-                  type="text"
-                  value={profileName}
-                  onChange={e => setProfileName(e.target.value)}
-                  required
-                  placeholder="Enter your full name"
-                  className="premium-input"
-                />
-              </div>
-            </div>
-
-            <div className="premium-input-group">
-              <label className="premium-input-label">Email Address</label>
-              <div className="premium-input-wrapper">
-                <span className="premium-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                </span>
-                <input
-                  type="email"
-                  value={profileEmail}
-                  onChange={e => setProfileEmail(e.target.value)}
-                  required
-                  placeholder="name@example.com"
-                  className="premium-input"
-                />
-              </div>
-            </div>
-
-            <div className="premium-input-group">
-              <label className="premium-input-label">Phone Number</label>
-              <div className="premium-input-wrapper">
-                <span className="premium-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                </span>
-                <input
-                  type="text"
-                  value={profilePhone}
-                  onChange={e => setProfilePhone(e.target.value || '')}
-                  placeholder="e.g. +60123456789"
-                  className="premium-input"
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-              <button type="button" onClick={closeProfileModal} className="premium-btn-secondary">
-                Cancel
-              </button>
-              <button type="submit" disabled={submittingProfile} className="premium-btn-primary">
-                {submittingProfile ? 'Saving...' : 'Save Profile'}
-              </button>
-            </div>
-          </form>
-        </div>
+        <EditProfileModal
+          onClose={closeProfileModal}
+          onSubmit={handleUpdateProfile}
+          profileName={profileName}
+          setProfileName={setProfileName}
+          profileEmail={profileEmail}
+          setProfileEmail={setProfileEmail}
+          profilePhone={profilePhone}
+          setProfilePhone={setProfilePhone}
+          submittingProfile={submittingProfile}
+        />
       )}
 
       {showChangePassword && (
-        <div className="premium-modal-backdrop" onClick={closePasswordModal}>
-          <form
-            onSubmit={handleChangePassword}
-            onClick={e => e.stopPropagation()}
-            className="premium-modal-card"
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: 'linear-gradient(135deg, rgba(255,107,0,0.1) 0%, rgba(255,138,61,0.15) 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--primary)', flexShrink: 0
-              }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontFamily: 'Outfit', fontWeight: 900, fontSize: '1.25rem', color: 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>
-                  Change Password
-                </h3>
-                <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
-                  Update your security credentials
-                </p>
-              </div>
-              <button type="button" onClick={closePasswordModal} className="premium-close-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-            
-            <div className="premium-input-group">
-              <label className="premium-input-label">Current Password</label>
-              <div className="premium-input-wrapper">
-                <span className="premium-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                </span>
-                <input
-                  type="password"
-                  value={oldPassword}
-                  onChange={e => setOldPassword(e.target.value)}
-                  required
-                  placeholder="••••••••"
-                  className="premium-input"
-                />
-              </div>
-            </div>
-
-            <div className="premium-input-group">
-              <label className="premium-input-label">New Password</label>
-              <div className="premium-input-wrapper">
-                <span className="premium-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                </span>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  required
-                  placeholder="At least 6 characters"
-                  className="premium-input"
-                />
-              </div>
-            </div>
-
-            <div className="premium-input-group">
-              <label className="premium-input-label">Confirm New Password</label>
-              <div className="premium-input-wrapper">
-                <span className="premium-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                </span>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  required
-                  placeholder="Re-enter your new password"
-                  className="premium-input"
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-              <button type="button" onClick={closePasswordModal} className="premium-btn-secondary">
-                Cancel
-              </button>
-              <button type="submit" disabled={submittingPassword} className="premium-btn-primary">
-                {submittingPassword ? 'Updating...' : 'Change Password'}
-              </button>
-            </div>
-          </form>
-        </div>
+        <ChangePasswordModal
+          onClose={closePasswordModal}
+          onSubmit={handleChangePassword}
+          oldPassword={oldPassword}
+          setOldPassword={setOldPassword}
+          newPassword={newPassword}
+          setNewPassword={setNewPassword}
+          confirmPassword={confirmPassword}
+          setConfirmPassword={setConfirmPassword}
+          submittingPassword={submittingPassword}
+        />
       )}
 
       <style>{`
@@ -1168,73 +1016,7 @@ export const SettingsPage: React.FC = () => {
       `}</style>
 
       {/* ── FAQ Modal ── */}
-      {showFAQ && (
-        <div
-          onClick={() => setShowFAQ(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 2000,
-            background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 16,
-            animation: 'modal-backdrop-fade-in 0.2s ease'
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              width: '100%', maxWidth: 560,
-              background: 'var(--white)', borderRadius: 24,
-              boxShadow: '0 24px 80px rgba(0,0,0,0.28)',
-              maxHeight: '85vh', display: 'flex', flexDirection: 'column',
-              animation: 'modal-card-scale-up 0.25s cubic-bezier(0.34,1.56,0.64,1)',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Header */}
-            <div style={{
-              padding: '24px 24px 20px',
-              borderBottom: '1px solid var(--border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0
-            }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(255,107,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <IcoHelp />
-                  </div>
-                  <div>
-                    <h2 style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.15rem', color: 'var(--text-primary)', margin: 0 }}>Help Center & FAQ</h2>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, marginTop: 2 }}>Frequently asked questions</p>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowFAQ(false)}
-                style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'var(--cream-dark)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', transition: 'transform 0.2s ease' }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'rotate(90deg)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'rotate(0deg)'}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
-            </div>
-
-            {/* FAQ List */}
-            <div style={{ overflowY: 'auto', padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {([
-                { q: 'How do I place an order?', a: 'Browse the menu, customise your item, add it to your cart and proceed to checkout. You can pay via card or e-wallet.' },
-                { q: 'Can I customise my burger?', a: 'Yes! Tap on any menu item and use the customiser to adjust toppings and sauce levels to your taste.' },
-                { q: 'How do I track my order?', a: 'After placing an order, go to the Order Tracking page (accessible from Settings > Order History or the active order pop-up) to see real-time status.' },
-                { q: 'What are Loyalty Stars?', a: 'You earn 1 star for every RM1 spent. Stars can be redeemed for free items and exclusive vouchers via the Rewards page.' },
-                { q: 'How do I apply a voucher?', a: 'Vouchers can be applied during checkout. Enter your voucher code in the "Promo Code" field before proceeding to payment.' },
-                { q: 'Can I cancel my order?', a: 'Orders can only be cancelled before they are accepted by the kitchen. Contact our staff immediately if you need to cancel.' },
-                { q: 'Is my payment information secure?', a: 'Yes. All payments are processed via encrypted channels. We do not store your card details on our servers.' },
-                { q: 'How do I update my profile?', a: 'Go to Settings > Account > Edit Profile Details to update your name, email, or phone number.' },
-              ] as {q:string; a:string}[]).map((item, i) => (
-                <FAQItem key={i} q={item.q} a={item.a} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {showFAQ && <FAQModal onClose={() => setShowFAQ(false)} />}
     </PageShell>
   );
 };

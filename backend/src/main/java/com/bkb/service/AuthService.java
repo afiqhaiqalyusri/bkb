@@ -40,6 +40,7 @@ public class AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
     private final SecurityLogService securityLogService;
+    private final SecurityTokenService securityTokenService;
 
     @Value("${app.security.otp-expiry-minutes:10}")
     private int otpExpiryMinutes;
@@ -72,7 +73,7 @@ public class AuthService {
             throw new DuplicateResourceException("Email already registered: " + request.getEmail());
         }
 
-        String otp = generateOtp();
+        String otp = securityTokenService.generateOtp();
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail().toLowerCase())
@@ -81,7 +82,7 @@ public class AuthService {
                 .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .emailVerified(false)
-                .verificationCode(hashOtp(otp))
+                .verificationCode(securityTokenService.hashToken(otp))
                 .verificationExpiry(LocalDateTime.now().plusMinutes(otpExpiryMinutes))
                 .verificationAttempts(0)
                 .build();
@@ -123,7 +124,7 @@ public class AuthService {
 
         user.setVerificationAttempts(user.getVerificationAttempts() + 1);
 
-        if (!verifyOtpHash(request.getCode(), user.getVerificationCode())) {
+        if (!securityTokenService.verifyHash(request.getCode(), user.getVerificationCode())) {
             userRepository.save(user);
             int remaining = otpMaxAttempts - user.getVerificationAttempts();
             throw new UnauthorizedException("Invalid verification code. " + remaining + " attempts remaining.");
@@ -151,8 +152,8 @@ public class AuthService {
             throw new UnauthorizedException("Email is already verified");
         }
 
-        String otp = generateOtp();
-        user.setVerificationCode(hashOtp(otp));
+        String otp = securityTokenService.generateOtp();
+        user.setVerificationCode(securityTokenService.hashToken(otp));
         user.setVerificationExpiry(LocalDateTime.now().plusMinutes(otpExpiryMinutes));
         user.setVerificationAttempts(0);
         userRepository.save(user);
@@ -218,7 +219,7 @@ public class AuthService {
                 .name(request.getName())
                 .email(guestEmail)
                 .phone(request.getPhone())
-                .passwordHash(passwordEncoder.encode(generateSecureToken()))
+                .passwordHash(passwordEncoder.encode(securityTokenService.generateSecureToken()))
                 .role(UserRole.GUEST)
                 .isActive(true)
                 .emailVerified(true) // Guests bypass email verification
@@ -232,7 +233,7 @@ public class AuthService {
     @Transactional
     public AuthResponse refreshTokens(RefreshTokenRequest request) {
         String rawToken = request.getRefreshToken();
-        String tokenHash = hashToken(rawToken);
+        String tokenHash = securityTokenService.hashToken(rawToken);
 
         RefreshToken storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new UnauthorizedException("Invalid or expired refresh token"));
@@ -285,8 +286,8 @@ public class AuthService {
             passwordResetTokenRepository.invalidateAllByUserId(user.getId());
 
             // Generate a cryptographically secure token
-            String rawToken = generateSecureToken();
-            String tokenHash = hashToken(rawToken);
+            String rawToken = securityTokenService.generateSecureToken();
+            String tokenHash = securityTokenService.hashToken(rawToken);
 
             PasswordResetToken resetToken = PasswordResetToken.builder()
                     .user(user)
@@ -307,7 +308,7 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        String tokenHash = hashToken(request.getToken());
+        String tokenHash = securityTokenService.hashToken(request.getToken());
 
         PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new UnauthorizedException("Invalid or expired reset token"));
@@ -400,7 +401,7 @@ public class AuthService {
 
             // Revoke the refresh token if provided
             if (refreshToken != null && !refreshToken.isBlank()) {
-                String tokenHash = hashToken(refreshToken);
+                String tokenHash = securityTokenService.hashToken(refreshToken);
                 refreshTokenRepository.findByTokenHash(tokenHash).ifPresent(rt -> {
                     rt.setRevoked(true);
                     refreshTokenRepository.save(rt);
@@ -428,8 +429,8 @@ public class AuthService {
                 user.getEmail(), user.getRole().name(), user.getId());
 
         // Generate a new refresh token and persist it
-        String rawRefreshToken = generateSecureToken();
-        String tokenHash = hashToken(rawRefreshToken);
+        String rawRefreshToken = securityTokenService.generateSecureToken();
+        String tokenHash = securityTokenService.hashToken(rawRefreshToken);
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
@@ -458,39 +459,4 @@ public class AuthService {
                 .build();
     }
 
-    // ─── OTP / Token Utilities ────────────────────────────────
-
-    private String generateOtp() {
-        Random random = new Random(SECURE_RANDOM.nextLong());
-        return String.format("%06d", random.nextInt(1_000_000));
     }
-
-    private String hashOtp(String otp) {
-        return sha256(otp);
-    }
-
-    private boolean verifyOtpHash(String inputOtp, String storedHash) {
-        if (storedHash == null) return false;
-        return sha256(inputOtp).equals(storedHash);
-    }
-
-    private String generateSecureToken() {
-        byte[] bytes = new byte[32];
-        SECURE_RANDOM.nextBytes(bytes);
-        return HexFormat.of().formatHex(bytes);
-    }
-
-    private String hashToken(String token) {
-        return sha256(token);
-    }
-
-    private String sha256(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 not available", e);
-        }
-    }
-}
