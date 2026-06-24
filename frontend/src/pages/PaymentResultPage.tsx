@@ -25,7 +25,7 @@ export const PaymentResultPage: React.FC = () => {
       // Forward ALL query params so the backend has full context.
       if (billcode && statusId) {
         try {
-          await api.post('/payments/verify-redirect', {
+          await api.post('/api/payments/verify-redirect', {
             billcode,
             status_id: statusId,
             transaction_id: transactionId,

@@ -297,7 +297,7 @@ export const CheckoutPage: React.FC = () => {
 
       if (paymentChannel !== 'CASH') {
         toast.success('Order created. Proceeding to online payment...');
-        const payRes = await api.post(`/payments/toyyibpay/${res.data.id}`);
+        const payRes = await api.post(`/api/payments/toyyibpay/${res.data.id}`);
         window.location.href = payRes.data.data.paymentUrl;
       } else {
         toast.success('Order placed successfully! 🍔');
