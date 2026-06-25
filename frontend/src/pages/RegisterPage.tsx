@@ -16,7 +16,10 @@ import {
   X, 
   ArrowRight,
   Sun,
-  Moon
+  Moon,
+  Flame,
+  Award,
+  Percent
 } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
@@ -108,7 +111,6 @@ export const RegisterPage: React.FC = () => {
         password: form.password
       });
       toast.success('Account created! Verification code sent.');
-      // Redirect to the OTP screen, passing the email in state
       navigate('/verify-otp', { state: { email: form.email.toLowerCase() } });
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Registration failed.');
@@ -121,14 +123,14 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div
+      className="split-split animate-fade-in"
       style={{
         minHeight: '100vh',
         background: 'var(--background)',
+        transition: 'all 0.3s ease',
+        position: 'relative',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        position: 'relative'
+        flexDirection: 'row'
       }}
     >
       {loading && (
@@ -138,7 +140,7 @@ export const RegisterPage: React.FC = () => {
         />
       )}
 
-      {/* Theme Toggle */}
+      {/* Floating Theme Toggle */}
       <button
         type="button"
         onClick={toggleTheme}
@@ -165,16 +167,177 @@ export const RegisterPage: React.FC = () => {
         {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
       </button>
 
-      <div style={{ width: '100%', maxWidth: '400px' }} className="animate-fade-in-up">
-        {/* Logo */}
-        <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
-          <BkbLogo size={44} showText={true} />
+      {/* LEFT SIDE: Curved Hero banner */}
+      <div
+        className="split-split-hero animate-fade-in desktop-only"
+        style={{
+          flex: 1,
+          background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #FF6B00 100%)',
+          color: '#FFFFFF',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          position: 'relative',
+          overflow: 'hidden',
+          padding: '50px 60px 50px 70px',
+          zIndex: 2,
+          clipPath: 'polygon(0 0, 100% 0, 92% 100%, 0 100%)'
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: '-80px',
+            right: '120px',
+            width: '500px',
+            height: '500px',
+            background: 'radial-gradient(circle, rgba(255,107,0,0.2) 0%, transparent 70%)',
+            zIndex: 1,
+            pointerEvents: 'none'
+          }}
+        />
+
+        <div style={{ zIndex: 2, maxWidth: '340px', flexShrink: 0 }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'rgba(255,107,0,0.15)',
+              border: '1px solid rgba(255,107,0,0.4)',
+              padding: '6px 14px',
+              borderRadius: '99px',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+              marginBottom: '28px',
+              color: '#FFB347'
+            }}
+          >
+            <Flame size={13} fill="#FFB347" /> Premium Street Grills
+          </div>
+
+          <h2
+            style={{
+              fontSize: '2.5rem',
+              fontWeight: 800,
+              lineHeight: 1.15,
+              letterSpacing: '-1px',
+              color: '#FFFFFF',
+              marginBottom: '18px'
+            }}
+          >
+            Sleek Dashboard.
+            <br />
+            <span style={{ color: '#FF8C42' }}>Gourmet Flavors.</span>
+            <br />
+            Seamless Orders.
+          </h2>
+
+          <p
+            style={{
+              fontSize: '0.88rem',
+              opacity: 0.8,
+              lineHeight: 1.6,
+              marginBottom: '32px',
+              color: '#cbd5e1'
+            }}
+          >
+            Join BKB to earn star rewards, unlock exclusive vouchers, and enjoy a better burger experience.
+          </p>
+
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
+              paddingTop: '22px'
+            }}
+          >
+            {[
+              { icon: <Percent size={15} />, title: 'Exclusive Promos', desc: 'Direct discount codes on checkout.' },
+              { icon: <Award size={15} />, title: 'Earn Loyalty Stars', desc: 'Get free gourmet burgers over time.' }
+            ].map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ background: 'rgba(255,107,0,0.2)', border: '1px solid rgba(255,107,0,0.4)', padding: '8px', borderRadius: '10px', display: 'flex', flexShrink: 0, color: '#FFB347' }}>
+                  {item.icon}
+                </div>
+                <div>
+                  <h4 style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fff' }}>{item.title}</h4>
+                  <p style={{ fontSize: '0.74rem', opacity: 0.7, marginTop: '2px', color: '#cbd5e1' }}>{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="card" style={{ padding: '28px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        {/* Right side Showcase burger */}
+        <div style={{ zIndex: 2, position: 'relative', flexShrink: 0, marginRight: '40px' }}>
+          <div
+            style={{
+              position: 'absolute',
+              width: '280px',
+              height: '280px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255,107,0,0.4) 0%, transparent 70%)',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              filter: 'blur(20px)',
+              zIndex: 0
+            }}
+          />
+          <div
+            style={{
+              width: '240px',
+              height: '240px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              border: '2px solid rgba(255,140,66,0.4)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              position: 'relative',
+              zIndex: 1
+            }}
+          >
+            <img
+              src="/bkb_premium_hero_burger.png"
+              alt="BKB Premium Burger"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transform: 'scale(1.06)'
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE: Clean minimalist auth cards */}
+      <div
+        className="split-split-form"
+        style={{
+          flex: 1.1,
+          padding: '60px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          background: 'var(--background)'
+        }}
+      >
+        <div style={{ width: '100%', maxWidth: '360px' }} className="animate-fade-in-up">
+          {/* Logo */}
+          <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
+            <BkbLogo size={48} showText={true} />
+          </div>
+
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Create BKB Account</h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
               Join us to earn star rewards and unlock free vouchers.
             </p>
           </div>
@@ -183,7 +346,7 @@ export const RegisterPage: React.FC = () => {
             {/* Full Name */}
             <div>
               <label htmlFor="name-input" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                Full Name *
+                Full Name
               </label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', display: 'flex' }}>
@@ -209,7 +372,7 @@ export const RegisterPage: React.FC = () => {
             {/* Email Address */}
             <div>
               <label htmlFor="email-input" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                Email Address *
+                Email Address
               </label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', display: 'flex' }}>
@@ -273,7 +436,7 @@ export const RegisterPage: React.FC = () => {
             {/* Password */}
             <div>
               <label htmlFor="password-input" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                Password *
+                Password
               </label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', display: 'flex' }}>
@@ -339,7 +502,7 @@ export const RegisterPage: React.FC = () => {
             {/* Confirm Password */}
             <div>
               <label htmlFor="confirm-password-input" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                Confirm Password *
+                Confirm Password
               </label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', display: 'flex' }}>
@@ -380,13 +543,17 @@ export const RegisterPage: React.FC = () => {
             </button>
           </form>
 
-          <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-            <button
-              onClick={() => navigate('/login')}
-              style={{ display: 'block', margin: '0 auto', background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
-            >
-              ← Back to Login
-            </button>
+          <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', margin: '4px 0 0' }}>
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Sign In
+              </button>
+            </p>
           </div>
         </div>
       </div>
