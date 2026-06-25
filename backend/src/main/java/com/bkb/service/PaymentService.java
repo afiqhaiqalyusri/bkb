@@ -90,11 +90,12 @@ public class PaymentService {
         payment.setMethod(PaymentMethodEnum.FPX);
         payment.setPaidAt(LocalDateTime.now());
         payment.setTransactionRef("TXN-" + System.currentTimeMillis());
-        order.setPaymentStatus(PaymentStatus.PAID);
-
-        orderRepository.save(order);
+        
+        payment = paymentRepository.save(payment);
+        orderService.handlePaymentSuccess(order.getId());
         orderService.evaluateInventoryDeduction(order);
-        return paymentRepository.save(payment);
+        
+        return payment;
     }
 
     @Transactional
@@ -112,11 +113,12 @@ public class PaymentService {
         payment.setMethod(PaymentMethodEnum.FPX);
         payment.setPaidAt(LocalDateTime.now());
         payment.setTransactionRef("TXN-" + System.currentTimeMillis());
-        order.setPaymentStatus(PaymentStatus.PAID);
-
-        orderRepository.save(order);
+        
+        payment = paymentRepository.save(payment);
+        orderService.handlePaymentSuccess(order.getId());
         orderService.evaluateInventoryDeduction(order);
-        return paymentRepository.save(payment);
+        
+        return payment;
     }
 
     @Transactional

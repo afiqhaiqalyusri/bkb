@@ -83,7 +83,9 @@ public class OrderService {
         java.time.LocalDateTime scheduledTime = null;
         java.time.LocalDateTime queueEnteredAt = null;
 
-        if (request.getPickupTime() != null && request.getPickupTime().isAfter(java.time.LocalDateTime.now())) {
+        boolean isScheduled = request.getPickupTime() != null && request.getPickupTime().isAfter(java.time.LocalDateTime.now().plusMinutes(30));
+
+        if (isScheduled) {
             initialStatus = OrderStatus.ON_HOLD;
             scheduledTime = request.getPickupTime();
         } else {
@@ -95,9 +97,8 @@ public class OrderService {
         String paymentToken = null;
         if (paymentMethod == PaymentMethod.ONLINE) {
             paymentToken = PAYMENT_TOKEN_PREFIX + java.util.UUID.randomUUID().toString().replace("-", "");
-            if (initialStatus == OrderStatus.INCOMING_ORDER) {
-                initialStatus = OrderStatus.PENDING_PAYMENT;
-            }
+            // All online orders start as PENDING_PAYMENT until paid
+            initialStatus = OrderStatus.PENDING_PAYMENT;
         }
 
         // 5. Build and persist Order
@@ -481,7 +482,16 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
         order.setPaymentStatus(PaymentStatus.PAID);
-        order.setStatus(OrderStatus.ACCEPTED);
+        
+        if (order.getStatus() == OrderStatus.PENDING_PAYMENT || order.getStatus() == OrderStatus.PENDING) {
+            boolean isScheduled = order.getPickupTime() != null && order.getPickupTime().isAfter(java.time.LocalDateTime.now().plusMinutes(30));
+            if (isScheduled) {
+                order.setStatus(OrderStatus.ON_HOLD);
+            } else {
+                order.setStatus(OrderStatus.INCOMING_ORDER);
+            }
+        }
+        
         orderRepository.save(order);
 
         // Notify customer and generate receipt via Events
