@@ -220,10 +220,10 @@ public class OrderService {
                     if (status == OrderStatus.INCOMING_ORDER || status == OrderStatus.CANCELLED) validTransition = true;
                     break;
                 case ACCEPTED:
-                    if (status == OrderStatus.GRILLING || status == OrderStatus.CANCELLED) validTransition = true;
+                    if (status == OrderStatus.GRILLING || status == OrderStatus.ASSEMBLING || status == OrderStatus.READY || status == OrderStatus.CANCELLED) validTransition = true;
                     break;
                 case GRILLING:
-                    if (status == OrderStatus.ASSEMBLING || status == OrderStatus.CANCELLED) validTransition = true;
+                    if (status == OrderStatus.ASSEMBLING || status == OrderStatus.READY || status == OrderStatus.CANCELLED) validTransition = true;
                     break;
                 case ASSEMBLING:
                     if (status == OrderStatus.READY || status == OrderStatus.CANCELLED) validTransition = true;
