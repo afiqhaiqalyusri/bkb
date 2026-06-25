@@ -1,12 +1,8 @@
 package com.bkb.service;
 
-import com.bkb.entity.Inventory;
-import com.bkb.entity.InventoryTransaction;
-import com.bkb.entity.MenuItemInventory;
-import com.bkb.entity.Order;
-import com.bkb.entity.OrderItem;
-import com.bkb.entity.User;
+import com.bkb.entity.*;
 import com.bkb.entity.enums.InventoryStatus;
+import com.bkb.entity.enums.InventoryTrackingType;
 import com.bkb.entity.enums.InventoryTransactionType;
 import com.bkb.dto.request.InventoryAdjustRequest;
 import com.bkb.dto.request.InventoryRequest;
@@ -15,7 +11,13 @@ import com.bkb.exception.InsufficientStockException;
 import com.bkb.exception.ResourceNotFoundException;
 import com.bkb.repository.InventoryRepository;
 import com.bkb.repository.InventoryTransactionRepository;
-import com.bkb.repository.MenuItemInventoryRepository;
+import com.bkb.repository.RecipeRepository;
+import com.bkb.repository.CustomizationRuleRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.ApplicationEventPublisher;
+import com.bkb.event.InventoryDepletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,7 +37,10 @@ public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryTransactionRepository transactionRepository;
-    private final MenuItemInventoryRepository menuItemInventoryRepository;
+    private final RecipeRepository recipeRepository;
+    private final CustomizationRuleRepository customizationRuleRepository;
+    private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<InventoryResponse> getAllInventory() {
         return inventoryRepository.findAll().stream()
@@ -118,42 +124,101 @@ public class InventoryService {
 
     /**
      * Called by OrderService — deducts inventory for each order item.
-     * Must be called inside an existing @Transactional context.
+     * Parses customizations to adjust deduction quantities.
      */
     public void deductByOrderItem(OrderItem orderItem, Order order) {
-        List<MenuItemInventory> recipeLinks =
-                menuItemInventoryRepository.findByMenuItemIdWithInventory(orderItem.getMenuItem().getId());
+        Recipe recipe = recipeRepository.findByMenuItemIdWithIngredients(orderItem.getMenuItem().getId())
+                .orElse(null);
 
-        for (MenuItemInventory link : recipeLinks) {
-            Inventory inv = inventoryRepository.findByIdForUpdate(link.getInventory().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Inventory", link.getInventory().getId()));
-            BigDecimal needed = link.getQuantityUsed()
-                    .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+        if (recipe == null || recipe.getIngredients().isEmpty()) {
+            return; // No recipe found, skip deduction
+        }
 
-            // Lock row for concurrent safety (done via @Transactional + DB constraint)
-            if (inv.getCurrentStock().compareTo(needed) < 0) {
-                throw new InsufficientStockException(
-                        inv.getItemName(), needed.doubleValue(), inv.getCurrentStock().doubleValue());
+        // Parse customisations from JSON
+        List<Map<String, String>> customisations;
+        try {
+            customisations = objectMapper.readValue(orderItem.getCustomisations(), new TypeReference<List<Map<String, String>>>(){});
+        } catch (JsonProcessingException e) {
+            log.error("Failed to parse customisations JSON for order item {}: {}", orderItem.getId(), e.getMessage());
+            customisations = List.of();
+        }
+
+        for (RecipeIngredient recipeIngredient : recipe.getIngredients()) {
+            Inventory inv = recipeIngredient.getInventory();
+
+            // Only deduct automatically tracked items
+            if (inv.getTrackingType() == InventoryTrackingType.MANUAL) {
+                continue;
             }
 
-            inv.setCurrentStock(inv.getCurrentStock().subtract(needed));
+            // Lock row for concurrent safety
+            final Long inventoryId = inv.getId();
+            inv = inventoryRepository.findByIdForUpdate(inventoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventory", inventoryId));
+
+            final Long lockedInvId = inv.getId();
+            final int orderQty = orderItem.getQuantity();
+
+            // Base needed quantity
+            BigDecimal baseNeeded = recipeIngredient.getQuantity().multiply(BigDecimal.valueOf(orderQty));
+            BigDecimal[] finalNeeded = new BigDecimal[] { baseNeeded };
+
+            // Apply customization adjustments
+            for (Map<String, String> cust : customisations) {
+                String ingredientName = cust.get("ingredient");
+                String level = cust.get("level");
+                
+                customizationRuleRepository.findByIngredientNameAndLevel(ingredientName, level)
+                        .ifPresent(rule -> {
+                            if (rule.getInventory().getId().equals(lockedInvId)) {
+                                BigDecimal adjustment = rule.getAdjustmentQuantity().multiply(BigDecimal.valueOf(orderQty));
+                                finalNeeded[0] = finalNeeded[0].add(adjustment);
+                            }
+                        });
+            }
+
+            // Fallback for missing customisation rule but standard level logic mapping
+            for (Map<String, String> cust : customisations) {
+                String ingredientName = cust.get("ingredient");
+                String level = cust.get("level");
+                // basic string match for legacy support if rule not created
+                if (ingredientName != null && inv.getItemName().toLowerCase().contains(ingredientName.toLowerCase())) {
+                    if ("NONE".equalsIgnoreCase(level)) {
+                        finalNeeded[0] = BigDecimal.ZERO;
+                    }
+                }
+            }
+
+            if (finalNeeded[0].compareTo(BigDecimal.ZERO) <= 0) {
+                continue; // Skip if customization negated the requirement
+            }
+
+            if (inv.getCurrentStock().compareTo(finalNeeded[0]) < 0) {
+                throw new InsufficientStockException(
+                        inv.getItemName(), finalNeeded[0].doubleValue(), inv.getCurrentStock().doubleValue());
+            }
+
+            inv.setCurrentStock(inv.getCurrentStock().subtract(finalNeeded[0]));
             inventoryRepository.save(inv);
 
-            BigDecimal transactionCost = inv.getUnitCost() != null ? inv.getUnitCost().multiply(needed) : BigDecimal.ZERO;
+            BigDecimal transactionCost = inv.getUnitCost() != null ? inv.getUnitCost().multiply(finalNeeded[0]) : BigDecimal.ZERO;
 
             InventoryTransaction tx = InventoryTransaction.builder()
                     .inventory(inv)
                     .type(InventoryTransactionType.DEDUCT)
-                    .quantity(needed)
+                    .quantity(finalNeeded[0])
                     .transactionCost(transactionCost)
                     .reason("Order " + order.getOrderNumber())
                     .order(order)
                     .build();
             transactionRepository.save(tx);
 
-            // Alert if stock dropped to LOW or CRITICAL
             if (inv.getStatus() == InventoryStatus.LOW || inv.getStatus() == InventoryStatus.CRITICAL) {
                 log.warn("⚠️  Stock alert: {} is now {} ({})", inv.getItemName(), inv.getStatus(), inv.getCurrentStock());
+            }
+
+            if (inv.getCurrentStock().compareTo(BigDecimal.ZERO) == 0) {
+                eventPublisher.publishEvent(new InventoryDepletedEvent(this, inv));
             }
         }
     }
@@ -188,7 +253,6 @@ public class InventoryService {
     }
 
     public InventoryResponse toResponse(Inventory inv) {
-        // Calculate average daily usage over the last 30 days
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         BigDecimal totalDeducted = transactionRepository.sumQuantityByInventoryIdAndTypeAndDateRange(
                 inv.getId(), InventoryTransactionType.DEDUCT, thirtyDaysAgo, LocalDateTime.now());

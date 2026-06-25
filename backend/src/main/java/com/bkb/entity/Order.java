@@ -110,6 +110,10 @@ public class Order {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    @Column(name = "inventory_deducted", nullable = false)
+    private boolean inventoryDeducted = false;
+
     @Column(name = "payment_token", length = 100)
     private String paymentToken;
 

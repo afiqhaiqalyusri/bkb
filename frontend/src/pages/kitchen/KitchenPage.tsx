@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChefHat, Clock, History, X, Lock, CheckCircle } from 'lucide-react';
+import { ChefHat, Clock, History, X, Lock, CheckCircle, User, Flame, Wrench, Settings } from 'lucide-react';
 import { Order, MenuItem } from '../../types';
 import { orderService } from '../../services/order.service';
 import { paymentService } from '../../services/payment.service';
@@ -46,20 +46,20 @@ const STAFF_PIN = '1234'; // Change this to update the staff PIN
 const MANAGER_PIN = '5678'; // Change this to update the manager PIN
 
 const TABS = [
-  { key: 'FRONT', label: 'Front Counter', icon: '👤' },
-  { key: 'GRILL', label: 'Grill Station', icon: '🔥' },
-  { key: 'PREP', label: 'Prep Line', icon: '🛠️' },
-  { key: 'SETTINGS', label: 'Settings', icon: '⚙️' },
+  { key: 'FRONT', label: 'Front Counter', icon: <User size={18} /> },
+  { key: 'GRILL', label: 'Grill Station', icon: <Flame size={18} /> },
+  { key: 'PREP', label: 'Prep Line', icon: <Wrench size={18} /> },
+  { key: 'SETTINGS', label: 'Settings', icon: <Settings size={18} /> },
 ];
 
 /* ─── Helpers ───────────────────────────────────────────────────────── */
 const getItemEmoji = (name: string) => {
   const n = name.toLowerCase();
-  if (n.includes('milo') || n.includes('air') || n.includes('drink') || n.includes('teh') || n.includes('kopi')) return '🥤';
-  if (n.includes('oblong')) return '🥖';
-  if (n.includes('chicken')) return '🍗';
-  if (n.includes('beef') || n.includes('wagyu')) return '🥩';
-  return '🍔';
+  if (n.includes('milo') || n.includes('air') || n.includes('drink') || n.includes('teh') || n.includes('kopi')) return '';
+  if (n.includes('oblong')) return '';
+  if (n.includes('chicken')) return '';
+  if (n.includes('beef') || n.includes('wagyu')) return '';
+  return '';
 };
 
 /* ─── Grill item catalog ────────────────────────────────────────────── */
@@ -385,7 +385,7 @@ const EditOrderModal: React.FC<{
         display: 'flex', flexDirection: 'column', gap: 16
       }}>
         <h3 style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)', margin: 0 }}>
-          ✏️ Edit Order — {order.orderNumber}
+          Edit Order — {order.orderNumber}
         </h3>
         {[
           { label: 'Customer Name', value: name, set: setName, required: true },
@@ -484,7 +484,7 @@ const HistoryDrawer: React.FC<{ orders: Order[]; onClose: () => void }> = ({ ord
         <div style={{ padding: '16px 16px 32px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {history.length === 0 && (
             <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-              📭 No completed orders yet
+              No completed orders yet
             </div>
           )}
           {history.map(order => {
@@ -576,7 +576,7 @@ const OnHoldDrawer: React.FC<{ orders: Order[]; onClose: () => void }> = ({ orde
         <div style={{ padding: '16px 16px 32px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {onHold.length === 0 && (
             <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-              📭 No scheduled orders on hold
+              No scheduled orders on hold
             </div>
           )}
           {onHold.map(order => {
@@ -724,7 +724,7 @@ const FrontOrderCard: React.FC<FrontCardProps> = ({
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--cream-dark)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                  >✏️ Edit Order</button>
+                  >Edit Order</button>
                   <button
                     onClick={() => { onCancel(); setActiveMenuId(null); }}
                     style={{
@@ -734,7 +734,7 @@ const FrontOrderCard: React.FC<FrontCardProps> = ({
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,107,0,0.04)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                  >❌ Cancel Order</button>
+                  >Cancel Order</button>
                 </div>
               )}
             </div>
@@ -785,7 +785,7 @@ const FrontOrderCard: React.FC<FrontCardProps> = ({
       }}>
         <div>
           <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            {isCash ? '💵 Cash' : '💳 Online'}
+            {isCash ? 'Cash' : 'Online'}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--red)', fontWeight: 800 }}>{formatRM(order.total)}</div>
         </div>
@@ -826,7 +826,7 @@ const FrontOrderCard: React.FC<FrontCardProps> = ({
       {/* Notes */}
       {order.notes && (
         <div style={{ fontSize: '0.72rem', color: '#7C3AED', background: 'rgba(124,58,237,0.05)', borderRadius: 8, padding: '5px 8px', fontStyle: 'italic' }}>
-          📝 {order.notes}
+          {order.notes}
         </div>
       )}
 
@@ -842,7 +842,7 @@ const FrontOrderCard: React.FC<FrontCardProps> = ({
             opacity: updating ? 0.7 : 1, boxShadow: 'var(--shadow-red)'
           }}
         >
-          {updating ? 'Accepting...' : '✅ Accept Order'}
+          {updating ? 'Accepting...' : 'Accept Order'}
         </button>
       )}
       {mode === 'active' && (
@@ -855,7 +855,7 @@ const FrontOrderCard: React.FC<FrontCardProps> = ({
             fontSize: '0.82rem', cursor: updating ? 'not-allowed' : 'pointer', opacity: updating ? 0.7 : 1
           }}
         >
-          {updating ? 'Updating...' : '🚀 Mark Ready'}
+          {updating ? 'Updating...' : 'Mark Ready'}
         </button>
       )}
       {mode === 'ready' && (
@@ -877,7 +877,7 @@ const FrontOrderCard: React.FC<FrontCardProps> = ({
             boxShadow: isPaid ? '0 4px 12px rgba(22,163,74,0.2)' : 'none'
           }}
         >
-          {updating ? 'Completing...' : isPaid ? '✅ Complete Order' : '🔒 Unpaid (Cannot Complete)'}
+          {updating ? 'Completing...' : isPaid ? 'Complete Order' : 'Unpaid (Cannot Complete)'}
         </button>
       )}
     </div>
@@ -948,7 +948,7 @@ const GrillActiveCard: React.FC<{
         color: grillDone ? '#16A34A' : '#EA580C',
         alignSelf: 'flex-start'
       }}>
-        {grillDone ? 'Grill Done ✓' : 'Grilling'}
+        {grillDone ? 'Grill Done' : 'Grilling'}
       </span>
 
       {/* Items */}
@@ -965,7 +965,7 @@ const GrillActiveCard: React.FC<{
 
       {allRemarks.length > 0 && (
         <div style={{ background: 'rgba(124,58,237,0.05)', borderRadius: 8, padding: '5px 10px', fontSize: '0.72rem', color: '#7C3AED', fontStyle: 'italic' }}>
-          ⚠️ {allRemarks.join(' · ')}
+          {allRemarks.join(' · ')}
         </div>
       )}
 
@@ -980,7 +980,7 @@ const GrillActiveCard: React.FC<{
             opacity: updating ? 0.7 : 1, boxShadow: '0 4px 12px rgba(234,88,12,0.2)'
           }}
         >
-          {updating ? 'Updating...' : '🔥 Patties Done'}
+          {updating ? 'Updating...' : 'Patties Done'}
         </button>
       )}
     </div>
@@ -1051,8 +1051,8 @@ const PrepCard: React.FC<{
         borderRadius: 8, padding: '5px 10px'
       }}>
         {grillDone
-          ? <><CheckCircle size={13} color="#16A34A" /><span style={{ fontSize: '0.72rem', color: '#16A34A', fontWeight: 700 }}>Grill Done ✓</span></>
-          : <><span style={{ fontSize: '0.72rem', color: '#EA580C', fontWeight: 700 }}>🔥 Waiting for grill...</span></>
+          ? <><CheckCircle size={13} color="#16A34A" /><span style={{ fontSize: '0.72rem', color: '#16A34A', fontWeight: 700 }}>Grill Done</span></>
+          : <><span style={{ fontSize: '0.72rem', color: '#EA580C', fontWeight: 700 }}>Waiting for grill...</span></>
         }
       </div>
 
@@ -1080,7 +1080,7 @@ const PrepCard: React.FC<{
           fontSize: '0.82rem', cursor: updating ? 'not-allowed' : 'pointer', opacity: updating ? 0.7 : 1
         }}
       >
-        {updating ? 'Updating...' : '🚀 Mark Ready'}
+        {updating ? 'Updating...' : 'Mark Ready'}
       </button>
     </div>
   );
@@ -1437,7 +1437,7 @@ export const KitchenPage: React.FC = () => {
                 e.currentTarget.style.borderColor = 'var(--border)';
               }}
             >
-              🚪 Logout
+              Logout
             </button>
           </div>
         </div>
@@ -1451,7 +1451,7 @@ export const KitchenPage: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
           <div>
             <h1 style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '1.5rem', margin: 0, color: 'var(--text-dark)' }}>
-              {activeTab === 'FRONT' ? '👤 Front Counter' : activeTab === 'GRILL' ? '🔥 Grill Station' : activeTab === 'PREP' ? '🛠️ Prep Line' : '⚙️ Settings'}
+              {activeTab === 'FRONT' ? 'Front Counter' : activeTab === 'GRILL' ? 'Grill Station' : activeTab === 'PREP' ? 'Prep Line' : 'Settings'}
             </h1>
             <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#9B7B6B' }}>
               {activeTab === 'FRONT'
@@ -1522,7 +1522,7 @@ export const KitchenPage: React.FC = () => {
                     minHeight: '120px'
                   }}>
                     <div style={{ fontSize: '0.8rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      💰 Today's Total Sales
+                      Today's Total Sales
                     </div>
                     <div>
                       <div style={{ fontSize: '2.2rem', fontWeight: 900, fontFamily: 'Poppins', lineHeight: '1.2' }}>
@@ -1547,7 +1547,7 @@ export const KitchenPage: React.FC = () => {
                     minHeight: '120px'
                   }}>
                     <div style={{ fontSize: '0.8rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      🔥 Best Sold Items (Today)
+                      Best Sold Items (Today)
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
                       {bestSoldItems.length === 0 ? (
@@ -1573,7 +1573,7 @@ export const KitchenPage: React.FC = () => {
                 {/* Incoming */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <SectionHeader
-                    label="🔔 Incoming Orders"
+                    label="Incoming Orders"
                     count={incomingOrders.length}
                     color="#D97706"
                     bg="rgba(217,119,6,0.04)"
@@ -1597,7 +1597,7 @@ export const KitchenPage: React.FC = () => {
                     ))}
                     {incomingOrders.length === 0 && (
                       <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed #EAE2D8', borderRadius: 14, color: '#9B7B6B', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
-                        🎉 No incoming orders right now
+                        No incoming orders right now
                       </div>
                     )}
                   </div>
@@ -1606,7 +1606,7 @@ export const KitchenPage: React.FC = () => {
                 {/* Accepted */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <SectionHeader
-                    label="✅ Accepted Orders"
+                    label="Accepted Orders"
                     count={acceptedOrders.length}
                     color="var(--red)"
                     bg="rgba(255,107,0,0.04)"
@@ -1630,7 +1630,7 @@ export const KitchenPage: React.FC = () => {
                     ))}
                     {acceptedOrders.length === 0 && (
                       <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed #EAE2D8', borderRadius: 14, color: '#9B7B6B', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
-                        🍽️ No orders currently in progress
+                        No orders currently in progress
                       </div>
                     )}
                   </div>
@@ -1639,7 +1639,7 @@ export const KitchenPage: React.FC = () => {
                 {/* Ready */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <SectionHeader
-                    label="🟢 Ready for Pickup"
+                    label="Ready for Pickup"
                     count={readyOrders.length}
                     color="#16A34A"
                     bg="rgba(22,163,74,0.04)"
@@ -1663,7 +1663,7 @@ export const KitchenPage: React.FC = () => {
                     ))}
                     {readyOrders.length === 0 && (
                       <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed #EAE2D8', borderRadius: 14, color: '#9B7B6B', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
-                        📦 Nothing ready for pickup yet
+                        Nothing ready for pickup yet
                       </div>
                     )}
                   </div>
@@ -1697,7 +1697,7 @@ export const KitchenPage: React.FC = () => {
                             boxShadow: `0 6px 20px ${item.border}30`
                           }}
                         >
-                          <div style={{ position: 'absolute', top: 14, right: 14, opacity: 0.4, fontSize: '1.4rem', lineHeight: 1 }}>🔥</div>
+                          
                           <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', fontFamily: 'Poppins' }}>{item.label}</div>
                           <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#fff', fontFamily: 'Poppins', lineHeight: 1.1, marginTop: 4 }}>{count}</div>
                           <div style={{
@@ -1725,7 +1725,7 @@ export const KitchenPage: React.FC = () => {
                         color: '#9B7B6B', fontSize: '0.85rem',
                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10
                       }}>
-                        <span style={{ fontSize: '2rem', opacity: 0.35 }}>🔥</span>
+                        <Flame size={32} opacity={0.35} />
                         No burgers to cook right now
                       </div>
                     ) : (
@@ -1751,7 +1751,7 @@ export const KitchenPage: React.FC = () => {
               <div className="order-grid">
                 {prepOrders.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: 60, color: '#9B7B6B', fontSize: '0.85rem', gridColumn: '1 / -1' }}>
-                    🥗 No items to prep right now
+                    No items to prep right now
                   </div>
                 ) : (
                   prepOrders.map(order => (
@@ -1782,7 +1782,7 @@ export const KitchenPage: React.FC = () => {
                 }}>
                   <div>
                     <h3 style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '1.1rem', margin: 0, color: 'var(--text-primary)' }}>
-                      🎨 Appearance Settings
+                      Appearance Settings
                     </h3>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
                       Customise the console look and feel for your workspace.
@@ -1807,8 +1807,8 @@ export const KitchenPage: React.FC = () => {
                     
                     <div style={{ display: 'flex', background: 'var(--background)', borderRadius: 10, padding: 4, border: '1px solid var(--border)' }}>
                       {[
-                        { key: 'light', label: '☀️ Light' },
-                        { key: 'dark', label: '🌙 Dark' }
+                        { key: 'light', label: 'Light' },
+                        { key: 'dark', label: 'Dark' }
                       ].map(themeOpt => {
                         const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
                         const isSelected = currentTheme === themeOpt.key;
@@ -1864,7 +1864,7 @@ export const KitchenPage: React.FC = () => {
                   }}>
                     <div>
                       <h3 style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '1.1rem', margin: 0, color: 'var(--text-primary)' }}>
-                        🍔 Menu Items Availability
+                        Menu Items Availability
                       </h3>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
                         Toggle menu items to make them visible/hidden to customers. (Requires Manager PIN)
@@ -1955,7 +1955,7 @@ export const KitchenPage: React.FC = () => {
                   }}>
                     <div>
                       <h3 style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '1.1rem', margin: 0, color: 'var(--text-primary)' }}>
-                        🥗 Customisation Ingredients Availability
+                        Customisation Ingredients Availability
                       </h3>
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
                         Toggle customisation options. Out-of-stock options will be disabled for customers. (Requires Manager PIN)
@@ -1985,15 +1985,15 @@ export const KitchenPage: React.FC = () => {
                             >
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <span style={{ fontSize: '1.3rem' }}>
-                                  {ing.name.toLowerCase().includes('tomato') ? '🍅' :
-                                   ing.name.toLowerCase().includes('salad') ? '🥗' :
-                                   ing.name.toLowerCase().includes('cucumber') ? '🥒' :
-                                   ing.name.toLowerCase().includes('onion') ? '🧅' :
-                                   ing.name.toLowerCase().includes('cheese') ? '🧀' :
-                                   ing.name.toLowerCase().includes('black pepper') ? '🫙' :
-                                   ing.name.toLowerCase().includes('chilli') ? '🌶️' :
-                                   ing.name.toLowerCase().includes('mayo') ? '🫧' :
-                                   ing.name.toLowerCase().includes('egg') ? '🥚' : '🍔'}
+                                  {ing.name.toLowerCase().includes('tomato') ? '' :
+                                   ing.name.toLowerCase().includes('salad') ? '' :
+                                   ing.name.toLowerCase().includes('cucumber') ? '' :
+                                   ing.name.toLowerCase().includes('onion') ? '' :
+                                   ing.name.toLowerCase().includes('cheese') ? '' :
+                                   ing.name.toLowerCase().includes('black pepper') ? '' :
+                                   ing.name.toLowerCase().includes('chilli') ? '' :
+                                   ing.name.toLowerCase().includes('mayo') ? '' :
+                                   ing.name.toLowerCase().includes('egg') ? '' : ''}
                                 </span>
                                 <div>
                                   <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{ing.name}</div>

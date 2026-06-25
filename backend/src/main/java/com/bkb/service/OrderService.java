@@ -251,19 +251,16 @@ public class OrderService {
             order.setPaymentStatus(PaymentStatus.PAID);
         }
 
-        // Defer inventory processing until the order is COMPLETED
+        // Track who completed the order
         if (status == OrderStatus.COMPLETED) {
-            for (OrderItem oi : order.getItems()) {
-                inventoryService.deductByOrderItem(oi, order);
-            }
-
-            // Track who completed the order
             if (user != null) {
                 order.setCompletedById(user.getId());
                 order.setCompletedByName(user.getName());
             }
             order.setCompletedAt(java.time.LocalDateTime.now());
         }
+
+        evaluateInventoryDeduction(order);
 
         // Publish Status Changed Event
         eventPublisher.publishEvent(new com.bkb.event.OrderStatusChangedEvent(this, order, currentStatus, status));
@@ -497,8 +494,29 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
-        order.setPaymentStatus(PaymentStatus.UNPAID); // Or FAILED based on PaymentStatusEnum
-        order.setStatus(OrderStatus.PENDING_PAYMENT); // Ensure PENDING_PAYMENT exists in OrderStatus
+        order.setPaymentStatus(PaymentStatus.UNPAID);
+        order.setStatus(OrderStatus.PENDING_PAYMENT);
         orderRepository.save(order);
+    }
+
+    @Transactional
+    public void evaluateInventoryDeduction(Order order) {
+        if (order.isInventoryDeducted()) {
+            return;
+        }
+
+        boolean isPaid = order.getPaymentStatus() == PaymentStatus.PAID;
+        boolean isAcceptedOrBeyond = order.getStatus() != OrderStatus.PENDING 
+                && order.getStatus() != OrderStatus.CANCELLED 
+                && order.getStatus() != OrderStatus.ON_HOLD;
+
+        if (isPaid && isAcceptedOrBeyond) {
+            for (OrderItem oi : order.getItems()) {
+                inventoryService.deductByOrderItem(oi, order);
+            }
+            order.setInventoryDeducted(true);
+            orderRepository.save(order);
+            log.info("Inventory successfully deducted for Order {}", order.getOrderNumber());
+        }
     }
 }

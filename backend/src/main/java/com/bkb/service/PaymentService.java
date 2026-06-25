@@ -25,6 +25,8 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    @org.springframework.context.annotation.Lazy
+    private final OrderService orderService;
 
     /**
      * TODO: ToyyibPay integration — to be implemented in Phase 2.
@@ -61,6 +63,7 @@ public class PaymentService {
         order.setPaymentStatus(PaymentStatus.PAID);
 
         orderRepository.save(order);
+        orderService.evaluateInventoryDeduction(order);
         return paymentRepository.save(payment);
     }
 
@@ -90,6 +93,7 @@ public class PaymentService {
         order.setPaymentStatus(PaymentStatus.PAID);
 
         orderRepository.save(order);
+        orderService.evaluateInventoryDeduction(order);
         return paymentRepository.save(payment);
     }
 
@@ -111,6 +115,7 @@ public class PaymentService {
         order.setPaymentStatus(PaymentStatus.PAID);
 
         orderRepository.save(order);
+        orderService.evaluateInventoryDeduction(order);
         return paymentRepository.save(payment);
     }
 

@@ -4,9 +4,7 @@ import com.bkb.dto.request.MenuItemRequest;
 import com.bkb.dto.response.MenuItemResponse;
 import com.bkb.dto.response.PromotionResponse;
 import com.bkb.entity.MenuItem;
-import com.bkb.entity.MenuItemIngredient;
 import com.bkb.entity.Promotion;
-import com.bkb.entity.enums.IngredientLevel;
 import com.bkb.exception.ResourceNotFoundException;
 import com.bkb.repository.MenuItemRepository;
 import com.bkb.repository.PromotionRepository;
@@ -66,7 +64,6 @@ public class MenuService {
     public MenuItemResponse updateItem(Long id, MenuItemRequest request) {
         MenuItem item = menuItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MenuItem", id));
-        item.getIngredients().clear();
         item = buildFromRequest(item, request);
         item = menuItemRepository.save(item);
         return toResponse(item);
@@ -99,37 +96,11 @@ public class MenuService {
         item.setImageUrl(request.getImageUrl());
         item.setIsAvailable(request.getIsAvailable() != null ? request.getIsAvailable() : true);
 
-        if (item.getIngredients() == null) {
-            item.setIngredients(new ArrayList<>());
-        }
-
-        if (request.getIngredients() != null) {
-            request.getIngredients().forEach(ir -> {
-                MenuItemIngredient ing = new MenuItemIngredient();
-                ing.setMenuItem(item);
-                ing.setIngredientName(ir.getIngredientName());
-                try {
-                    ing.setDefaultLevel(IngredientLevel.valueOf(
-                            ir.getDefaultLevel() != null ? ir.getDefaultLevel() : "MEDIUM"));
-                } catch (IllegalArgumentException e) {
-                    ing.setDefaultLevel(IngredientLevel.MEDIUM);
-                }
-                item.getIngredients().add(ing);
-            });
-        }
         return item;
     }
 
     public MenuItemResponse toResponse(MenuItem item) {
-        List<MenuItemResponse.IngredientResponse> ingredients = item.getIngredients() == null
-                ? List.of()
-                : item.getIngredients().stream()
-                    .map(i -> MenuItemResponse.IngredientResponse.builder()
-                            .id(i.getId())
-                            .ingredientName(i.getIngredientName())
-                            .defaultLevel(i.getDefaultLevel() != null ? i.getDefaultLevel().name() : "MEDIUM")
-                            .build())
-                    .collect(Collectors.toList());
+        List<MenuItemResponse.IngredientResponse> ingredients = List.of();
 
         return MenuItemResponse.builder()
                 .id(item.getId())

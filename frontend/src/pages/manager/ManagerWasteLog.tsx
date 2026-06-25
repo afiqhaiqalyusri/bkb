@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Calendar, Search } from 'lucide-react';
+import { Trash2, Calendar, Search, AlertCircle, PackageX, DollarSign } from 'lucide-react';
 import { ManagerLayout } from './ManagerDashboard';
 import { wasteService } from '../../services/manager.service';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { EmptyState } from '../../components/ui/EmptyState';
 import toast from 'react-hot-toast';
+import { formatRM } from '../../utils/formatCurrency';
+
+// UI Components
+import { AppCard } from '../../components/ui/AppCard';
+import { AppStatCard } from '../../components/ui/AppStatCard';
+import { AppTable, Column } from '../../components/ui/AppTable';
+import { AppEmptyState } from '../../components/ui/AppEmptyState';
+import { AppPageHeader } from '../../components/ui/AppPageHeader';
+import { AppButton } from '../../components/ui/AppButton';
 
 interface WasteEntry {
   id: number;
@@ -17,13 +25,19 @@ interface WasteEntry {
   transactionCost?: number;
 }
 
-import { formatRM } from '../../utils/formatCurrency';
-
 export const WasteContent: React.FC = () => {
   const [entries, setEntries] = useState<WasteEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [from, setFrom] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
-  const [to, setTo] = useState(new Date().toISOString().split('T')[0]);
+  
+  const [from, setFrom] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+  });
+  
+  const [to, setTo] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  
   const [search, setSearch] = useState('');
 
   const load = () => {
@@ -44,98 +58,86 @@ export const WasteContent: React.FC = () => {
   const totalQty = filtered.reduce((sum, e) => sum + Number(e.quantity), 0);
   const totalCost = filtered.reduce((sum, e) => sum + Number(e.transactionCost || 0), 0);
 
+  const cols: Column<WasteEntry>[] = [
+    { 
+      header: 'Date', 
+      render: (e) => <span className="text-sm text-[var(--text-secondary)]">{new Date(e.createdAt).toLocaleDateString('en-MY', { day: '2-digit', month: 'short', year: 'numeric' })}</span> 
+    },
+    { 
+      header: 'Ingredient', 
+      accessor: 'inventoryName',
+      render: (e) => <span className="font-semibold">{e.inventoryName}</span>
+    },
+    { 
+      header: 'Quantity', 
+      render: (e) => <span className="font-bold text-[var(--danger)]">{e.quantity} <span className="font-normal text-xs text-[var(--text-secondary)]">{e.unit}</span></span> 
+    },
+    { 
+      header: 'Cost', 
+      render: (e) => <span className="font-bold text-[var(--danger)]">{e.transactionCost ? formatRM(e.transactionCost) : '-'}</span> 
+    },
+    { 
+      header: 'Reason', 
+      render: (e) => <span className="text-sm text-[var(--text-secondary)]">{e.reason || '—'}</span> 
+    },
+    { 
+      header: 'Logged By', 
+      accessor: 'loggedBy',
+      render: (e) => <span className="text-sm">{e.loggedBy}</span>
+    },
+  ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Filters */}
-      <div style={{
-        background: 'var(--bkb-card-bg)', border: '1px solid var(--bkb-border)',
-        borderRadius: 16, padding: '16px 20px', marginBottom: 24,
-        display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center'
-      }}>
-        <Calendar size={18} style={{ color: 'var(--bkb-orange)' }} />
-        <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-          style={{ padding: '8px 12px', background: 'var(--bkb-dark)', border: '1px solid var(--bkb-border)', borderRadius: 8, color: 'var(--bkb-text)', fontSize: '0.85rem' }} />
-        <span style={{ color: 'var(--bkb-gray-400)' }}>to</span>
-        <input type="date" value={to} onChange={e => setTo(e.target.value)}
-          style={{ padding: '8px 12px', background: 'var(--bkb-dark)', border: '1px solid var(--bkb-border)', borderRadius: 8, color: 'var(--bkb-text)', fontSize: '0.85rem' }} />
-        <button className="bkb-btn-primary" onClick={load} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>Apply</button>
-        <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bkb-dark)', border: '1px solid var(--bkb-border)', borderRadius: 8, padding: '8px 12px' }}>
-          <Search size={14} style={{ color: 'var(--bkb-gray-400)' }} />
-          <input
-            type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search ingredient or reason..."
-            style={{ background: 'none', border: 'none', color: 'var(--bkb-text)', fontSize: '0.85rem', flex: 1, outline: 'none' }}
-          />
+    <div className="flex flex-col gap-6">
+      <AppPageHeader 
+        title="Waste Log" 
+        subtitle="Track discarded inventory items, monitor waste costs, and identify patterns."
+      />
+
+      <AppCard noPadding>
+        <div className="px-6 py-4 flex flex-col md:flex-row flex-wrap gap-4 items-end md:items-center">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <Calendar size={18} className="text-[var(--primary)] shrink-0" />
+            <input type="date" value={from} onChange={e => setFrom(e.target.value)}
+              className="px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] w-full md:w-auto" />
+            <span className="text-sm text-[var(--text-secondary)] shrink-0">to</span>
+            <input type="date" value={to} onChange={e => setTo(e.target.value)}
+              className="px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] w-full md:w-auto" />
+            <AppButton onClick={load} variant="primary" className="shrink-0">Apply</AppButton>
+          </div>
+          
+          <div className="relative w-full md:w-64 md:ml-auto">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
+            <input
+              type="text" value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search ingredient or reason..."
+              className="w-full pl-9 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]"
+            />
+          </div>
         </div>
+      </AppCard>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <AppStatCard title="Total Entries" value={filtered.length} icon={AlertCircle} colorClass="text-[var(--danger)]" />
+        <AppStatCard title="Total Items Wasted" value={totalQty.toFixed(1)} icon={PackageX} colorClass="text-[var(--warning)]" />
+        <AppStatCard title="Total Wasted Cost" value={formatRM(totalCost)} icon={DollarSign} colorClass="text-[var(--danger)]" />
       </div>
 
-      {/* Summary */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14, marginBottom: 24
-      }}>
-        {[
-          { label: 'Total Entries', value: filtered.length, icon: <Trash2 size={20} />, color: '#EF4444' },
-          { label: 'Total Items Wasted', value: totalQty.toFixed(1), icon: <Trash2 size={20} />, color: '#F59E0B' },
-          { label: 'Total Wasted Cost', value: formatRM(totalCost), icon: <Trash2 size={20} />, color: '#EF4444' },
-        ].map((kpi, i) => (
-          <div key={i} style={{
-            background: 'var(--bkb-card-bg)', border: '1px solid var(--bkb-border)',
-            borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14
-          }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: `${kpi.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: kpi.color }}>
-              {kpi.icon}
-            </div>
-            <div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--bkb-gray-400)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{kpi.label}</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--bkb-text)' }}>{kpi.value}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Table */}
-      <div style={{ background: 'var(--bkb-card-bg)', border: '1px solid var(--bkb-border)', borderRadius: 16, overflow: 'hidden' }}>
+      <AppCard noPadding>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 60 }}><LoadingSpinner size="lg" /></div>
+          <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState
-            title="No waste entries found"
-            description="There are no waste logs for the selected period."
-            icon={Trash2}
-          />
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-                  {['Date', 'Ingredient', 'Quantity', 'Cost', 'Reason', 'Logged By'].map(h => (
-                    <th key={h} style={{ padding: '14px 18px', fontSize: '0.8rem', color: 'var(--bkb-gray-400)', fontWeight: 600 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(entry => (
-                  <tr key={entry.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '14px 18px', fontSize: '0.85rem', color: 'var(--bkb-gray-400)' }}>
-                      {new Date(entry.createdAt).toLocaleDateString('en-MY', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </td>
-                    <td style={{ padding: '14px 18px', fontWeight: 600 }}>{entry.inventoryName}</td>
-                    <td style={{ padding: '14px 18px' }}>
-                      <span style={{ color: '#EF4444', fontWeight: 700 }}>{entry.quantity}</span>{' '}
-                      <span style={{ color: 'var(--bkb-gray-400)', fontSize: '0.8rem' }}>{entry.unit}</span>
-                    </td>
-                    <td style={{ padding: '14px 18px', color: '#EF4444', fontWeight: 600 }}>
-                      {entry.transactionCost ? formatRM(entry.transactionCost) : '-'}
-                    </td>
-                    <td style={{ padding: '14px 18px', color: 'var(--bkb-gray-400)', fontSize: '0.85rem' }}>{entry.reason || '—'}</td>
-                    <td style={{ padding: '14px 18px', fontSize: '0.85rem' }}>{entry.loggedBy}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="py-8">
+            <AppEmptyState
+              title="No waste entries found"
+              description="There are no waste logs matching your current filters."
+              icon={Trash2}
+            />
           </div>
+        ) : (
+          <AppTable columns={cols} data={filtered} keyExtractor={(e) => e.id} />
         )}
-      </div>
+      </AppCard>
     </div>
   );
 };

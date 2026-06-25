@@ -3,21 +3,28 @@ import {
   LayoutDashboard, Users, TrendingUp, ShoppingBag,
   AlertTriangle, ArrowUp, Flame, Download, Calendar, DollarSign, FileText,
   Menu, Database, Trash2, Award, BarChart3, Package, Settings, AlertCircle, 
-  CreditCard, ChevronRight, MessageSquare
+  CreditCard, ChevronRight, MessageSquare, ShieldCheck, CheckCircle2, Inbox
 } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { reportService } from '../../services/report.service';
 import { inventoryService } from '../../services/inventory.service';
-import { reportService as managerReportService } from '../../services/manager.service';
+import { reportService as managerReportService, staffService } from '../../services/manager.service';
 import { formatRM } from '../../utils/formatCurrency';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { KPISkeleton, ChartSkeleton, TableSkeleton } from '../../components/ui/SkeletonLoader';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
-import { staffService } from '../../services/manager.service';
 import { BkbLogo } from '../../components/ui/BkbLogo';
-import { EmptyState } from '../../components/ui/EmptyState';
+
+// UI Components
+import { AppCard } from '../../components/ui/AppCard';
+import { AppStatCard } from '../../components/ui/AppStatCard';
+import { AppTable, Column } from '../../components/ui/AppTable';
+import { AppBadge } from '../../components/ui/AppBadge';
+import { AppButton } from '../../components/ui/AppButton';
+import { AppPageHeader } from '../../components/ui/AppPageHeader';
+import { AppEmptyState } from '../../components/ui/AppEmptyState';
 
 // ─── Minimalist Side Navigation ──────────────────────────────
 const NAV_ITEMS = [
@@ -42,27 +49,27 @@ export const ManagerSidebar: React.FC<{ collapsed?: boolean; onClose?: () => voi
 
   return (
     <aside style={{
-      width: collapsed ? 0 : 90,
+      width: collapsed ? 0 : 240,
       minHeight: '100vh',
-      background: '#27201E',
+      background: 'var(--bkb-sidebar-bg)',
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
       transition: 'width 0.3s ease',
       overflow: 'hidden',
       flexShrink: 0,
-      borderRight: '1px solid rgba(255,255,255,0.06)',
+      borderRight: '1px solid var(--bkb-border)',
       position: 'sticky',
       top: 0,
     }}>
-      {/* Mini Logo */}
-      <div style={{ padding: '24px 0 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+      <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <BkbLogo size={28} showText={false} color="var(--primary)" />
-        <span style={{ fontSize: '0.55rem', color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Console</span>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 800, letterSpacing: '-0.5px' }}>BKB</span>
+          <span style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Manager Console</span>
+        </div>
       </div>
 
-      {/* Nav List */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, width: '100%' }}>
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 16px', gap: 8, marginTop: 12 }}>
         {filteredNavItems.map(item => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path ||
@@ -74,61 +81,32 @@ export const ManagerSidebar: React.FC<{ collapsed?: boolean; onClose?: () => voi
               onClick={onClose}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                gap: 5,
+                gap: 12,
                 textDecoration: 'none',
-                width: '100%',
-                padding: '6px 0',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                background: isActive ? 'rgba(255,107,0,0.1)' : 'transparent',
+                color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 700 : 500,
                 transition: 'all 0.2s',
               }}
             >
-              <div style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: isActive ? '#FFF' : 'transparent',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: isActive ? 'var(--red)' : 'rgba(255,255,255,0.5)',
-                boxShadow: isActive ? '0 8px 24px rgba(0,0,0,0.15)' : 'none',
-                transition: 'all 0.2s',
-              }}>
-                <Icon size={18} />
-              </div>
-              <span style={{
-                fontSize: '0.58rem',
-                fontWeight: isActive ? 800 : 500,
-                color: isActive ? '#FFF' : 'rgba(255,255,255,0.4)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>
-                {item.label}
-              </span>
+              <Icon size={18} />
+              <span style={{ fontSize: '0.85rem' }}>{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Bottom Profile */}
-      <div style={{ padding: '16px 0 24px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ padding: '24px 16px', borderTop: '1px solid var(--bkb-border)' }}>
         <Link to="/manager/settings" style={{
-          width: 38,
-          height: 38,
-          borderRadius: '50%',
-          background: 'var(--cream-dark)',
-          border: '1.5px solid rgba(255,255,255,0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '0.8rem',
-          fontWeight: 800,
-          color: 'var(--text-primary)',
-          textDecoration: 'none',
-          overflow: 'hidden'
+          display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none',
+          padding: '12px 16px', borderRadius: '8px',
+          color: 'var(--text-secondary)', fontWeight: 500, transition: 'all 0.2s'
         }}>
-          {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+          <Settings size={18} />
+          <span style={{ fontSize: '0.85rem' }}>Settings</span>
         </Link>
       </div>
     </aside>
@@ -151,7 +129,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children, title, s
     window.history.pushState(null, '', window.location.href);
     const preventBack = () => {
       window.history.pushState(null, '', window.location.href);
-      toast('Navigation disabled for security', { icon: '🔒', id: 'nav-lock-manager' });
+      toast('Navigation disabled for security', { id: 'nav-lock-manager', icon: '🛡️' }); // Kept one shield for system alert
     };
     window.addEventListener('popstate', preventBack);
     return () => window.removeEventListener('popstate', preventBack);
@@ -160,18 +138,16 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children, title, s
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#27201E',
+      background: 'var(--background)',
       display: 'flex',
       flexDirection: 'row',
       color: 'var(--text-primary)',
       overflow: 'hidden',
     }}>
-      {/* Desktop sidebar */}
       <div style={{ display: 'block' }} className="manager-sidebar-desktop-layout">
         <ManagerSidebar />
       </div>
 
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex' }}
@@ -183,113 +159,67 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children, title, s
         </div>
       )}
 
-      {/* Main Container */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        minWidth: 0,
-        height: '100vh',
-      }}>
-        {/* Top Header Navigation */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh' }}>
         <header style={{
-          height: 70,
-          padding: '0 24px',
-          display: 'flex',
-          alignItems: 'center',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          background: 'transparent',
-          flexShrink: 0,
+          height: 70, padding: '0 24px', display: 'flex', alignItems: 'center',
+          borderBottom: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0,
         }}>
           <button
             className="manager-menu-btn-layout"
             onClick={() => setSidebarOpen(true)}
-            style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', marginRight: 16, display: 'none', alignItems: 'center' }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', marginRight: 16, display: 'none', alignItems: 'center' }}
           >
             <Menu size={22} />
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <h1 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#FFF', textTransform: 'uppercase', fontFamily: 'Poppins', letterSpacing: '0.5px' }}>
+            <h1 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               {title}
             </h1>
           </div>
 
-          {/* Sub Navigation Tabs */}
           {tabs && tabs.length > 0 && (
-            <div style={{ display: 'flex', gap: 20, marginLeft: 30 }} className="manager-tabs-scroller">
+            <div style={{ display: 'flex', gap: 24, marginLeft: 40 }} className="manager-tabs-scroller">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={tab.onClick}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: tab.active ? '#FFF' : 'rgba(255,255,255,0.5)',
-                    fontWeight: tab.active ? 700 : 500,
-                    fontSize: '0.78rem',
-                    cursor: 'pointer',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    position: 'relative',
-                    padding: '8px 0',
+                    background: 'none', border: 'none',
+                    color: tab.active ? 'var(--primary)' : 'var(--text-secondary)',
+                    fontWeight: tab.active ? 600 : 500, fontSize: '0.85rem',
+                    cursor: 'pointer', position: 'relative', padding: '24px 0',
                     transition: 'color 0.2s',
                   }}
                 >
                   {tab.label}
                   {tab.active && (
-                    <span style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: 2.5,
-                      background: 'var(--red)',
-                      borderRadius: 99
-                    }} />
+                    <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'var(--primary)', borderRadius: '3px 3px 0 0' }} />
                   )}
                 </button>
               ))}
             </div>
           )}
 
-          {/* Role Label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-            <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', fontWeight: 700 }} className="mode-text-layout">
-              {user?.role === 'ADMIN' ? 'Admin Console' : 'Manager Console'}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{user?.name || 'Manager'}</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user?.role === 'ADMIN' ? 'Administrator' : 'Store Manager'}</span>
+            </div>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--primary)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'M'}
+            </div>
           </div>
         </header>
 
-        {/* Content Body Rounded Card */}
-        <div style={{
-          flex: 1,
-          background: 'var(--surface)',
-          borderRadius: '24px 24px 0 0',
-          margin: '0 16px 0 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          borderTop: '1px solid var(--border)',
-          borderLeft: '1px solid var(--border)',
-          borderRight: '1px solid var(--border)',
-          position: 'relative',
-        }}>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
-            {children}
-          </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '32px 24px', background: 'var(--background)' }}>
+          {children}
         </div>
       </div>
 
       <style>{`
-        .manager-tabs-scroller {
-          overflow-x: auto;
-          white-space: nowrap;
-          -scrollbar-width: none;
-        }
-        .manager-tabs-scroller::-webkit-scrollbar {
-          display: none;
-        }
+        .manager-tabs-scroller { overflow-x: auto; white-space: nowrap; -scrollbar-width: none; }
+        .manager-tabs-scroller::-webkit-scrollbar { display: none; }
         @media (min-width: 900px) {
           .manager-sidebar-desktop-layout { display: block !important; }
           .manager-menu-btn-layout { display: none !important; }
@@ -297,15 +227,11 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children, title, s
         @media (max-width: 899px) {
           .manager-sidebar-desktop-layout { display: none !important; }
           .manager-menu-btn-layout { display: flex !important; }
-          .avatar-stack-layout { display: none !important; }
-          .mode-text-layout { font-size: 0.65rem; }
         }
       `}</style>
     </div>
   );
 };
-
-// ─── Consolidated Dashboard View Components ─────────────────
 
 // 1. Overview Tab Content
 const OverviewContent: React.FC<{
@@ -314,228 +240,83 @@ const OverviewContent: React.FC<{
   onRefresh: () => void;
   loading: boolean;
   onNavigate: (tab: string) => void;
-}> = ({ report, lowStock, onRefresh, loading, onNavigate }) => {
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <KPISkeleton count={5} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 24 }}>
-          <ChartSkeleton />
-          <div style={{
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)', padding: 24, boxShadow: 'var(--shadow-sm)',
-            display: 'flex', flexDirection: 'column', gap: 14
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div className="shimmer-wave" style={{ height: 14, width: '40%', borderRadius: 4 }} />
-                <div className="shimmer-wave" style={{ height: 8, width: '60%', borderRadius: 4 }} />
-              </div>
-            </div>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: i === 3 ? 'none' : '1px solid var(--border)' }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div className="shimmer-wave" style={{ height: 12, width: '50%', borderRadius: 4 }} />
-                  <div className="shimmer-wave" style={{ height: 8, width: '30%', borderRadius: 4 }} />
-                </div>
-                <div className="shimmer-wave" style={{ width: 80, height: 20, borderRadius: 4 }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+}> = ({ report, lowStock, loading, onNavigate }) => {
+  if (loading) return <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}><KPISkeleton count={4} /></div>;
 
-  const todayStr = new Date().toLocaleDateString('sv-SE');
-  const execData = report; // This is now ExecutiveDashboardResponse
-
-  const kpis = [
-    {
-      icon: <DollarSign size={22} />,
-      label: "Revenue",
-      value: formatRM(execData?.revenue?.value ?? 0),
-      sub: execData?.revenue?.percentChange ? `${execData.revenue.percentChange > 0 ? '+' : ''}${parseFloat(execData.revenue.percentChange).toFixed(1)}% vs last period` : 'No prev data',
-      isPositive: execData?.revenue?.isPositive
-    },
-    {
-      icon: <TrendingUp size={22} />,
-      label: "Estimated Profit",
-      value: formatRM(execData?.profit?.value ?? 0),
-      sub: execData?.profit?.percentChange ? `${execData.profit.percentChange > 0 ? '+' : ''}${parseFloat(execData.profit.percentChange).toFixed(1)}% vs last period` : 'No prev data',
-      isPositive: execData?.profit?.isPositive
-    },
-    {
-      icon: <ShoppingBag size={22} />,
-      label: 'Total Orders',
-      value: execData?.orders?.value ?? 0,
-      sub: execData?.orders?.percentChange ? `${execData.orders.percentChange > 0 ? '+' : ''}${parseFloat(execData.orders.percentChange).toFixed(1)}% vs last period` : 'No prev data',
-      isPositive: execData?.orders?.isPositive
-    },
-    {
-      icon: <Users size={22} />,
-      label: 'Unique Customers',
-      value: execData?.customers?.value ?? 0,
-      sub: execData?.customers?.percentChange ? `${execData.customers.percentChange > 0 ? '+' : ''}${parseFloat(execData.customers.percentChange).toFixed(1)}% vs last period` : 'No prev data',
-      isPositive: execData?.customers?.isPositive
-    },
-  ];
-
-  const chartData = execData?.peakHours?.map((d: any) => ({
-    name: d.hour,
-    Orders: d.orderCount,
-  })) || [];
+  const execData = report;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* KPI Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-        {kpis.map((kpi, i) => (
-          <div key={i} style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            boxShadow: 'var(--shadow-sm)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {kpi.label}
-              </span>
-              <div style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                {kpi.icon}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins', letterSpacing: '-0.5px' }}>
-                {kpi.value}
-              </div>
-              <div style={{ fontSize: '0.74rem', color: kpi.isPositive ? '#22C55E' : '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                {kpi.sub}
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <AppStatCard title="Revenue" value={formatRM(execData?.revenue?.value ?? 0)} icon={DollarSign} trend={parseFloat(execData?.revenue?.percentChange || '0')} />
+        <AppStatCard title="Estimated Profit" value={formatRM(execData?.profit?.value ?? 0)} icon={TrendingUp} trend={parseFloat(execData?.profit?.percentChange || '0')} colorClass="text-green-500" />
+        <AppStatCard title="Total Orders" value={execData?.orders?.value ?? 0} icon={ShoppingBag} trend={parseFloat(execData?.orders?.percentChange || '0')} colorClass="text-blue-500" />
+        <AppStatCard title="Unique Customers" value={execData?.customers?.value ?? 0} icon={Users} trend={parseFloat(execData?.customers?.percentChange || '0')} colorClass="text-purple-500" />
       </div>
 
-      {/* Chart and Stock Alert Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 24 }}>
-        {/* Area Chart */}
-        <div style={{
-          background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)', padding: 24, boxShadow: 'var(--shadow-sm)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>Peak Hours</h3>
-              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Busiest time of day (orders)</p>
-            </div>
-            <ArrowUp size={16} style={{ color: '#22C55E' }} />
-          </div>
-          <div style={{ height: 220 }}>
-            {chartData.length === 0 ? (
-              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>No data yet</div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AppCard title="Peak Hours" subtitle="Busiest time of day (orders)">
+          <div style={{ height: 260 }}>
+            {(!execData?.peakHours || execData.peakHours.length === 0) ? (
+              <AppEmptyState title="No data available" icon={BarChart3} />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
+                <AreaChart data={execData.peakHours.map((d:any) => ({ name: d.hour, Orders: d.orderCount }))}>
                   <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--red)" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="var(--red)" stopOpacity={0} />
+                    <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={10} tickLine={false} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 11 }} />
-                  <Area type="monotone" dataKey="Orders" stroke="var(--bkb-orange)" strokeWidth={1.5} fill="url(#revGrad)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} tickLine={false} />
+                  <YAxis stroke="var(--text-secondary)" fontSize={12} tickLine={false} />
+                  <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px' }} />
+                  <Area type="monotone" dataKey="Orders" stroke="var(--primary)" fillOpacity={1} fill="url(#colorOrders)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </AppCard>
 
-        {/* Low Stock Alerts */}
-        <div style={{
-          background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)', padding: 24, boxShadow: 'var(--shadow-sm)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>Inventory Alerts</h3>
-              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Ingredient levels requiring restock attention</p>
-            </div>
-            <Link to="/manager/inventory" style={{ fontSize: '0.75rem', color: 'var(--red)', textDecoration: 'none', fontWeight: 700 }}>
-              Manage →
-            </Link>
-          </div>
+        <AppCard title="Inventory Alerts" subtitle="Items requiring restock" headerAction={
+          <AppButton variant="ghost" size="sm" onClick={() => window.location.href = '/manager/inventory'}>Manage</AppButton>
+        }>
           {lowStock.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 180, color: 'var(--text-secondary)' }}>
-              <div style={{ fontSize: '2.2rem', marginBottom: 6, color: '#22C55E' }}>✓</div>
-              <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600 }}>All stock levels are healthy</p>
-            </div>
+            <AppEmptyState title="All stock levels healthy" icon={CheckCircle2} />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, maxHeight: 220, overflowY: 'auto' }}>
-              {lowStock.map((item: any, idx: number) => (
-                <div key={item.id} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '12px 0',
-                  borderBottom: idx === lowStock.length - 1 ? 'none' : '1px solid var(--border)',
-                }}>
+            <div className="flex flex-col gap-3">
+              {lowStock.slice(0, 5).map((item) => (
+                <div key={item.id} className="flex justify-between items-center py-2 border-b border-[var(--border)] last:border-0">
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.82rem', color: 'var(--text-primary)' }}>{item.itemName}</div>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: 2 }}>{item.category}</div>
+                    <div className="font-semibold text-[var(--text-primary)] text-sm">{item.itemName}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">{item.category}</div>
                   </div>
-                  <span style={{
-                    fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4,
-                    background: item.status === 'CRITICAL' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
-                    color: item.status === 'CRITICAL' ? '#EF4444' : '#F59E0B',
-                    border: item.status === 'CRITICAL' ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(245,158,11,0.2)'
-                  }}>
-                    {item.currentStock}/{item.minStock} {item.unit}
-                  </span>
+                  <AppBadge variant={item.status === 'CRITICAL' ? 'danger' : 'warning'} text={`${item.currentStock}/${item.minStock} ${item.unit}`} />
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </AppCard>
       </div>
 
-      {/* Top Performers Row */}
       {report?.topItems && report.topItems.length > 0 && (
-        <div style={{
-          background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)', padding: 24, boxShadow: 'var(--shadow-sm)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>Top Selling Items</h3>
-              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Best performing food items this month</p>
-            </div>
-            <button onClick={() => onNavigate('reports')} style={{ background: 'none', border: 'none', fontSize: '0.75rem', color: 'var(--red)', cursor: 'pointer', fontWeight: 700 }}>
-              Full Report →
-            </button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
+        <AppCard title="Top Selling Items" subtitle="Best performing food items" headerAction={
+          <AppButton variant="ghost" size="sm" onClick={() => onNavigate('reports')}>Full Report</AppButton>
+        }>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {report.topItems.slice(0, 6).map((item: any, idx: number) => (
-              <div key={idx} style={{
-                background: 'var(--secondary-bg)', borderRadius: 'var(--radius-sm)', padding: '14px 16px',
-                border: '1px solid var(--border)',
-              }}>
-                <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins', opacity: 0.8 }}>#{idx + 1}</div>
-                <div style={{ fontWeight: 600, fontSize: '0.82rem', marginTop: 4, color: 'var(--text-primary)' }}>{item.itemName}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 6, fontWeight: 500 }}>
-                  {item.totalQuantity} sold · {formatRM(item.totalRevenue)}
+              <div key={idx} className="bg-[var(--background)] border border-[var(--border)] rounded-lg p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[rgba(0,0,0,0.03)] flex items-center justify-center font-bold text-[var(--text-secondary)]">#{idx + 1}</div>
+                <div>
+                  <div className="font-semibold text-sm">{item.itemName}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">{item.totalQuantity} sold · {formatRM(item.totalRevenue)}</div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </AppCard>
       )}
-
     </div>
   );
 };
@@ -558,341 +339,134 @@ const ReportsContent: React.FC = () => {
     Promise.all([
       reportService.getDailySales(from, to),
       reportService.getStaffPerformance(from, to)
-    ])
-      .then(([salesRes, staffRes]) => {
-        setReport(salesRes.data);
-        setStaffPerformance(staffRes.data || []);
-      })
-      .catch(() => toast.error('Failed to load reports'))
-      .finally(() => setLoading(false));
+    ]).then(([salesRes, staffRes]) => {
+      setReport(salesRes.data);
+      setStaffPerformance(staffRes.data || []);
+    }).catch(() => toast.error('Failed to load reports')).finally(() => setLoading(false));
   };
 
   const handleExport = () => {
-    reportService.exportCsv(from, to)
-      .then(res => {
-        const blob = new Blob([res.data], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `bkb-sales-report-${from}-to-${to}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        toast.success('Report exported');
-      })
-      .catch(() => toast.error('Failed to export CSV'));
+    reportService.exportCsv(from, to).then(res => {
+      const blob = new Blob([res.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `bkb-sales-report.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    });
   };
 
-  const kpis = [
-    { icon: <DollarSign size={20} />, label: 'Total Revenue', value: formatRM(report?.totalRevenue ?? 0), color: '#E8450A' },
-    { icon: <FileText size={20} />, label: 'Total Orders', value: String(report?.totalOrders ?? 0), color: 'var(--bkb-orange)' },
-    { icon: <TrendingUp size={20} />, label: 'Avg Order Value', value: formatRM(report?.avgOrderValue ?? 0), color: '#8B5CF6' },
+  const salesCols: Column<any>[] = [
+    { header: 'Rank', render: (item: any) => report?.topItems ? `#${report.topItems.indexOf(item) + 1}` : '', width: '60px' },
+    { header: 'Item', accessor: 'itemName' },
+    { header: 'Units Sold', accessor: 'totalQuantity', align: 'center' },
+    { header: 'Revenue', render: (item) => formatRM(item.totalRevenue), align: 'right' },
   ];
 
-  const revenueChartData = report?.dailyRevenue?.map((d: any) => ({
-    date: d.date.substring(5, 10),
-    Revenue: d.revenue,
-    Orders: d.orders,
-  })) || [];
+  const staffCols: Column<any>[] = [
+    { header: 'Staff Member', accessor: 'staffName' },
+    { header: 'Orders Completed', accessor: 'ordersCompleted', align: 'right' },
+  ];
+
+  if (loading) return <TableSkeleton rows={5} />;
 
   return (
-    <div>
-      {/* Date Filter */}
-      <div style={{
-        background: 'var(--cream-dark)', border: '1px solid var(--border)',
-        borderRadius: 16, padding: '16px 20px', marginBottom: 24,
-        display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-          <Calendar size={18} style={{ color: 'var(--red)' }} />
-          <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-            style={{ padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: '0.85rem' }} />
-          <span style={{ color: 'var(--text-secondary)' }}>to</span>
-          <input type="date" value={to} onChange={e => setTo(e.target.value)}
-            style={{ padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: '0.85rem' }} />
-          <button className="bkb-btn-primary" onClick={loadReport} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>Apply</button>
+    <div className="flex flex-col gap-6">
+      <AppCard>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Calendar size={18} className="text-[var(--primary)]" />
+            <input type="date" value={from} onChange={e => setFrom(e.target.value)} className="border border-[var(--border)] rounded px-3 py-1.5 text-sm bg-[var(--background)]" />
+            <span className="text-sm text-[var(--text-secondary)]">to</span>
+            <input type="date" value={to} onChange={e => setTo(e.target.value)} className="border border-[var(--border)] rounded px-3 py-1.5 text-sm bg-[var(--background)]" />
+            <AppButton onClick={loadReport} size="sm">Apply</AppButton>
+          </div>
+          <AppButton variant="outline" size="sm" icon={Download} onClick={handleExport}>Export CSV</AppButton>
         </div>
-        <button className="bkb-btn-ghost" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}>
-          <Download size={16} /> Export CSV
-        </button>
+      </AppCard>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <AppStatCard title="Total Revenue" value={formatRM(report?.totalRevenue ?? 0)} icon={DollarSign} colorClass="text-[var(--primary)]" />
+        <AppStatCard title="Total Orders" value={report?.totalOrders ?? 0} icon={FileText} colorClass="text-blue-500" />
+        <AppStatCard title="Avg Order Value" value={formatRM(report?.avgOrderValue ?? 0)} icon={TrendingUp} colorClass="text-purple-500" />
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <KPISkeleton count={3} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20 }}>
-            <ChartSkeleton />
-            <TableSkeleton rows={5} />
-          </div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* KPI Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-            {kpis.map((kpi, i) => (
-              <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px', display: 'flex', alignItems: 'center', gap: 16, boxShadow: 'var(--shadow-sm)' }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, background: `${kpi.color}18`, color: kpi.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{kpi.icon}</div>
-                <div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{kpi.label}</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>{kpi.value}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AppCard title="Top Selling Items">
+          {(!report?.topItems || report.topItems.length === 0) ? (
+            <AppEmptyState title="No sales data" icon={BarChart3} />
+          ) : (
+            <AppTable columns={salesCols} data={report.topItems} keyExtractor={(item) => item.itemName} />
+          )}
+        </AppCard>
 
-          {/* Charts */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20 }}>
-            {/* Revenue Trend */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, boxShadow: 'var(--shadow-sm)' }}>
-              <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>Revenue Trend</h3>
-              <div style={{ height: 300 }}>
-                {revenueChartData.length === 0 ? (
-                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>No trend data</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revenueChartData}>
-                      <defs>
-                        <linearGradient id="colorRevenue2" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="var(--red)" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="var(--red)" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                      <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={11} />
-                      <YAxis stroke="var(--text-secondary)" fontSize={11} />
-                      <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 12 }} />
-                      <Area type="monotone" dataKey="Revenue" stroke="var(--red)" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue2)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            {/* Top Selling Items */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-sm)' }}>
-              <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>🏆 Top Selling Items</h3>
-              {!report?.topItems || report.topItems.length === 0 ? (
-                <EmptyState title="No sales data" description="There are no top selling items for this period." icon={TrendingUp} />
-              ) : (
-                <div style={{ flex: 1, overflowY: 'auto', maxHeight: 300 }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
-                        {['Item', 'Units', 'Revenue'].map(h => (
-                          <th key={h} style={{ padding: '8px 12px 12px', textAlign: h === 'Revenue' ? 'right' : 'left' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {report.topItems.map((item: any, idx: number) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td style={{ padding: '12px', fontWeight: 600, fontSize: '0.88rem' }}>
-                            <span style={{ color: 'var(--red)', fontWeight: 800, marginRight: 8 }}>#{idx + 1}</span>{item.itemName}
-                          </td>
-                          <td style={{ padding: '12px', textAlign: 'left', fontSize: '0.88rem' }}>{item.totalQuantity}</td>
-                          <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, fontSize: '0.88rem' }}>{formatRM(item.totalRevenue)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Staff Performance Table */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20 }}>
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-sm)' }}>
-              <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>👩‍🍳 Staff Performance</h3>
-              {!staffPerformance || staffPerformance.length === 0 ? (
-                <EmptyState title="No staff data" description="No staff performance data is available for this period." icon={Users} />
-              ) : (
-                <div style={{ flex: 1, overflowY: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
-                        <th style={{ padding: '8px 12px 12px' }}>Staff Name</th>
-                        <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Orders Completed</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {staffPerformance.map((staff: any, idx: number) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td style={{ padding: '12px', fontWeight: 600, fontSize: '0.88rem' }}>
-                            {staff.staffName}
-                          </td>
-                          <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, fontSize: '0.88rem', color: 'var(--bkb-orange)' }}>{staff.ordersCompleted}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+        <AppCard title="Staff Performance">
+          {(!staffPerformance || staffPerformance.length === 0) ? (
+            <AppEmptyState title="No staff data" icon={Users} />
+          ) : (
+            <AppTable columns={staffCols} data={staffPerformance} keyExtractor={(item) => item.staffName} />
+          )}
+        </AppCard>
+      </div>
     </div>
   );
 };
 
-// 3. Audit Logs Tab Content (ADMIN only)
+// 3. Audit Logs Tab Content
 const AuditLogsContent: React.FC = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    staffService.getSecurityLogs(0, 100)
-      .then(res => {
-        if (res.data && res.data.content) {
-          setLogs(res.data.content);
-        }
-      })
-      .catch(() => toast.error('Failed to load system audit logs'))
-      .finally(() => setLoading(false));
+    staffService.getSecurityLogs(0, 100).then(res => {
+      if (res.data?.content) setLogs(res.data.content);
+    }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return <TableSkeleton rows={8} />;
-  }
+  const cols: Column<any>[] = [
+    { header: 'Timestamp', render: (l: any) => new Date(l.createdAt).toLocaleString('en-MY') },
+    { header: 'User', render: (l: any) => l.userEmail || 'System' },
+    { header: 'Role', render: (l: any) => <AppBadge variant={l.userRole === 'ADMIN' ? 'danger' : 'info'} text={l.userRole || 'SYSTEM'} /> },
+    { header: 'Event', accessor: 'action' },
+    { header: 'Details', accessor: 'details' },
+    { header: 'IP', render: (l: any) => l.ipAddress || '-' },
+  ];
+
+  if (loading) return <TableSkeleton rows={8} />;
 
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 650 }}>
-          <thead>
-            <tr style={{ background: 'var(--cream-dark)', borderBottom: '1px solid var(--border)' }}>
-              {['Timestamp', 'User', 'Role', 'Event', 'Details', 'IP Address'].map(h => (
-                <th key={h} style={{ padding: '14px 18px', fontSize: '0.76rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {logs.length === 0 ? (
-              <tr>
-                <td colSpan={6}>
-                  <div style={{ padding: 40 }}>
-                    <EmptyState title="No audit logs" description="No audit logs have been recorded yet." icon={FileText} />
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              logs.map((log, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid var(--border)', fontSize: '0.84rem' }}>
-                  <td style={{ padding: '14px 18px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                    {new Date(log.createdAt).toLocaleString('en-MY')}
-                  </td>
-                  <td style={{ padding: '14px 18px', fontWeight: 600, color: 'var(--text-primary)' }}>{log.userEmail || 'System'}</td>
-                  <td style={{ padding: '14px 18px' }}>
-                    <span style={{
-                      fontSize: '0.68rem', fontWeight: 800, padding: '2px 6px', borderRadius: 4,
-                      background: log.userRole === 'ADMIN' ? 'rgba(255,107,0,0.08)' : (log.userRole === 'SYSTEM' || !log.userRole ? 'rgba(59,130,246,0.08)' : 'var(--cream-dark)'),
-                      color: log.userRole === 'ADMIN' ? 'var(--red)' : (log.userRole === 'SYSTEM' || !log.userRole ? '#2563eb' : 'var(--text-secondary)')
-                    }}>{log.userRole || 'SYSTEM'}</span>
-                  </td>
-                  <td style={{ padding: '14px 18px', fontWeight: 700, color: 'var(--text-primary)' }}>{log.action}</td>
-                  <td style={{ padding: '14px 18px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{log.details}</td>
-                  <td style={{ padding: '14px 18px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{log.ipAddress || '-'}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <AppCard noPadding>
+      <AppTable columns={cols} data={logs} keyExtractor={(l: any) => l.id || String(Math.random())} emptyMessage={<AppEmptyState title="No audit logs" icon={ShieldCheck} />} />
+    </AppCard>
   );
 };
 
 // 4. Menu Analytics Tab Content
 const MenuAnalyticsContent: React.FC = () => {
-  const getTodayStr = () => new Date().toISOString().split('T')[0];
-  const getMonthStartStr = () => new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-
-  const [from, setFrom] = useState(getMonthStartStr());
-  const [to, setTo] = useState(getTodayStr());
   const [analytics, setAnalytics] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadAnalytics(); }, []);
+  useEffect(() => {
+    const from = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    const to = new Date().toISOString().split('T')[0];
+    reportService.getMenuAnalytics(from, to).then(res => setAnalytics(res.data)).finally(() => setLoading(false));
+  }, []);
 
-  const loadAnalytics = () => {
-    setLoading(true);
-    reportService.getMenuAnalytics(from, to)
-      .then(res => setAnalytics(res.data))
-      .catch(() => toast.error('Failed to load menu analytics'))
-      .finally(() => setLoading(false));
-  };
+  const cols: Column<any>[] = [
+    { header: 'Item', accessor: 'itemName' },
+    { header: 'Units', accessor: 'totalSold' },
+    { header: 'Revenue', render: (i) => formatRM(i.totalRevenue), align: 'right' },
+    { header: 'Profit', render: (i) => <span className="text-[var(--bkb-success)] font-bold">{formatRM(i.estimatedProfit)}</span>, align: 'right' },
+  ];
 
   if (loading) return <TableSkeleton rows={8} />;
 
   return (
-    <div>
-      {/* Date Filter */}
-      <div style={{
-        background: 'var(--cream-dark)', border: '1px solid var(--border)',
-        borderRadius: 16, padding: '16px 20px', marginBottom: 24,
-        display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center'
-      }}>
-        <Calendar size={18} style={{ color: 'var(--red)' }} />
-        <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-          style={{ padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: '0.85rem' }} />
-        <span style={{ color: 'var(--text-secondary)' }}>to</span>
-        <input type="date" value={to} onChange={e => setTo(e.target.value)}
-          style={{ padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: '0.85rem' }} />
-        <button className="bkb-btn-primary" onClick={loadAnalytics} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>Analyze</button>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20 }}>
-        {/* Top Sellers */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700, color: '#22C55E' }}>🌟 Best Performers</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
-                <th style={{ padding: '8px 12px 12px' }}>Item</th>
-                <th style={{ padding: '8px 12px 12px' }}>Units</th>
-                <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Revenue</th>
-                <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Profit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics?.topSellers?.map((item: any, idx: number) => (
-                <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, fontSize: '0.88rem' }}>{item.itemName}</td>
-                  <td style={{ padding: '12px', fontSize: '0.88rem' }}>{item.totalSold}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', fontSize: '0.88rem' }}>{formatRM(item.totalRevenue)}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: '#22C55E', fontSize: '0.88rem' }}>{formatRM(item.estimatedProfit)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Worst Sellers */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700, color: '#EF4444' }}>⚠️ Needs Attention</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
-                <th style={{ padding: '8px 12px 12px' }}>Item</th>
-                <th style={{ padding: '8px 12px 12px' }}>Units</th>
-                <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Revenue</th>
-                <th style={{ padding: '8px 12px 12px', textAlign: 'right' }}>Profit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analytics?.worstSellers?.map((item: any, idx: number) => (
-                <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, fontSize: '0.88rem' }}>{item.itemName}</td>
-                  <td style={{ padding: '12px', fontSize: '0.88rem' }}>{item.totalSold}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', fontSize: '0.88rem' }}>{formatRM(item.totalRevenue)}</td>
-                  <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: '#EF4444', fontSize: '0.88rem' }}>{formatRM(item.estimatedProfit)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <AppCard title="Best Performers">
+        <AppTable columns={cols} data={analytics?.topSellers || []} keyExtractor={(i) => i.itemName} emptyMessage={<AppEmptyState title="No data" />} />
+      </AppCard>
+      <AppCard title="Needs Attention">
+        <AppTable columns={cols} data={analytics?.worstSellers || []} keyExtractor={(i) => i.itemName} emptyMessage={<AppEmptyState title="No data" />} />
+      </AppCard>
     </div>
   );
 };
@@ -903,84 +477,61 @@ const CustomerInsightsContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    managerReportService.getCustomerInsights()
-      .then(res => setInsights(res.data))
-      .catch(() => toast.error('Failed to load customer insights'))
-      .finally(() => setLoading(false));
+    managerReportService.getCustomerInsights().then(res => setInsights(res.data)).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <TableSkeleton rows={8} />;
 
-  const kpis = [
-    { label: 'Total Unique Customers', value: insights?.totalUniqueCustomers || 0, icon: <Users size={22} />, color: '#3B82F6' },
-    { label: 'Repeat Customers', value: insights?.repeatCustomers || 0, icon: <TrendingUp size={22} />, color: '#10B981' },
-    { label: 'Avg Customer LTV', value: formatRM(insights?.averageCustomerLtv || 0), icon: <DollarSign size={22} />, color: '#F59E0B' },
-    { label: 'Avg Rating', value: `${insights?.averageRating || 0} / 5.0`, icon: <Award size={22} />, color: '#8B5CF6' },
-  ];
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-        {kpis.map((kpi, i) => (
-          <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px', display: 'flex', alignItems: 'center', gap: 16, boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: `${kpi.color}18`, color: kpi.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{kpi.icon}</div>
-            <div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{kpi.label}</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>{kpi.value}</div>
-            </div>
-          </div>
-        ))}
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <AppStatCard title="Total Customers" value={insights?.totalUniqueCustomers || 0} icon={Users} colorClass="text-blue-500" />
+        <AppStatCard title="Repeat Customers" value={insights?.repeatCustomers || 0} icon={TrendingUp} colorClass="text-green-500" />
+        <AppStatCard title="Avg Customer LTV" value={formatRM(insights?.averageCustomerLtv || 0)} icon={DollarSign} colorClass="text-purple-500" />
+        <AppStatCard title="Avg Rating" value={`${insights?.averageRating || 0} / 5`} icon={Award} colorClass="text-orange-500" />
       </div>
 
-      {/* Recent Feedback */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, boxShadow: 'var(--shadow-sm)' }}>
-        <h3 style={{ margin: '0 0 20px', fontSize: '0.95rem', fontWeight: 700 }}>Recent Customer Feedback</h3>
-        {!insights?.recentFeedback || insights.recentFeedback.length === 0 ? (
-          <EmptyState title="No feedback yet" description="There is no customer feedback available at this time." icon={MessageSquare} />
+      <AppCard title="Recent Customer Feedback">
+        {(!insights?.recentFeedback || insights.recentFeedback.length === 0) ? (
+          <AppEmptyState title="No feedback yet" icon={MessageSquare} />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="flex flex-col gap-4">
             {insights.recentFeedback.map((fb: any, idx: number) => (
-              <div key={idx} style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: 12, background: 'var(--background)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{fb.customerName}</div>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'var(--surface)', padding: '2px 8px', borderRadius: 4 }}>Order #{fb.orderNumber}</span>
+              <div key={idx} className="p-4 border border-[var(--border)] rounded-lg bg-[var(--background)]">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold">{fb.customerName}</span>
+                    <span className="text-xs bg-[var(--surface)] px-2 py-1 rounded text-[var(--text-secondary)]">Order #{fb.orderNumber}</span>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{fb.date}</div>
+                  <span className="text-xs text-[var(--text-secondary)]">{fb.date}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <span key={star} style={{ color: star <= fb.rating ? '#F59E0B' : 'var(--border)', fontSize: '1.1rem' }}>★</span>
+                <div className="flex items-center gap-1 mb-2 text-yellow-400">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} className={i < fb.rating ? 'text-yellow-400' : 'text-[var(--border)]'}>★</span>
                   ))}
                 </div>
-                {fb.feedback && <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>"{fb.feedback}"</div>}
+                {fb.feedback && <p className="text-sm text-[var(--text-primary)] m-0">{fb.feedback}</p>}
               </div>
             ))}
           </div>
         )}
-      </div>
+      </AppCard>
     </div>
   );
 };
 
-// ─── Unified Dashboard Main Component ────────────────────────
 export const ManagerDashboard: React.FC = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
   const { user } = useAuthStore();
-
   const [report, setReport] = useState<any>(null);
   const [lowStock, setLowStock] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Sync tab state from query parameter ?tab=
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
-    if (tabParam) {
-      setActiveTab(tabParam.toLowerCase());
-    }
+    if (tabParam) setActiveTab(tabParam.toLowerCase());
   }, [location]);
 
   const loadData = () => {
@@ -992,14 +543,11 @@ export const ManagerDashboard: React.FC = () => {
     ]).then(([repRes, lowRes]) => {
       setReport(repRes.data);
       setLowStock(lowRes.data);
-    }).catch(console.error).finally(() => setLoading(false));
+    }).finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
-  // Filter tabs by role — ADMIN sees Audit Logs, MANAGER sees Overview + Reports only
   const rawTabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'reports', label: 'Sales Reports' },
@@ -1007,28 +555,16 @@ export const ManagerDashboard: React.FC = () => {
     { id: 'insights', label: 'Customer Insights' },
     { id: 'logs', label: 'Audit Logs', adminOnly: true },
   ];
-
   const dashboardTabs = rawTabs.filter(t => !t.adminOnly || user?.role === 'ADMIN');
 
   return (
     <ManagerLayout
       title="Dashboard"
       tabs={dashboardTabs.map(t => ({
-        id: t.id,
-        label: t.label,
-        active: activeTab === t.id,
-        onClick: () => setActiveTab(t.id)
+        id: t.id, label: t.label, active: activeTab === t.id, onClick: () => setActiveTab(t.id)
       }))}
     >
-      {activeTab === 'overview' && (
-        <OverviewContent
-          report={report}
-          lowStock={lowStock}
-          onRefresh={loadData}
-          loading={loading}
-          onNavigate={(tab) => setActiveTab(tab)}
-        />
-      )}
+      {activeTab === 'overview' && <OverviewContent report={report} lowStock={lowStock} onRefresh={loadData} loading={loading} onNavigate={setActiveTab} />}
       {activeTab === 'reports' && <ReportsContent />}
       {activeTab === 'menu' && <MenuAnalyticsContent />}
       {activeTab === 'insights' && <CustomerInsightsContent />}

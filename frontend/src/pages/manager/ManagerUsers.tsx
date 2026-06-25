@@ -3,19 +3,25 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Plus, Edit2, Trash2, X, Search, ShoppingBag,
   Calendar, MessageSquare, Shield, Mail, Phone, FileText,
-  UserCheck, UserX, ChevronDown, ChevronUp, Clock, Users
+  UserCheck, UserX, ChevronDown, ChevronUp, Users, AlertCircle
 } from 'lucide-react';
 import { ManagerLayout } from './ManagerDashboard';
 import { staffService } from '../../services/manager.service';
 import { orderService } from '../../services/order.service';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorState } from '../../components/ui/ErrorState';
-import { EmptyState } from '../../components/ui/EmptyState';
 import { formatRM } from '../../utils/formatCurrency';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 import { useConfirmation } from '../../components/ConfirmationProvider';
 import { useUnsavedChangesBlocker } from '../../hooks/useUnsavedChangesBlocker';
+
+// UI Components
+import { AppCard } from '../../components/ui/AppCard';
+import { AppButton } from '../../components/ui/AppButton';
+import { AppBadge } from '../../components/ui/AppBadge';
+import { AppEmptyState } from '../../components/ui/AppEmptyState';
+import { AppPageHeader } from '../../components/ui/AppPageHeader';
 
 interface StaffUser {
   id: number;
@@ -33,10 +39,6 @@ interface StaffUser {
   notes?: string;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   MODALS
-   ───────────────────────────────────────────────────────────── */
-
 // 1. Staff Documents Modal
 const DocModal: React.FC<{ staff: StaffUser; onClose: () => void; onSave: () => void }> = ({ staff, onClose, onSave }) => {
   const { confirm } = useConfirmation();
@@ -49,26 +51,12 @@ const DocModal: React.FC<{ staff: StaffUser; onClose: () => void; onSave: () => 
     notes: staff.notes || '',
   });
 
-  const hasChanges = () => {
-    return form.icNumber !== (staff.icNumber || '') ||
-           form.typhoidExpiry !== (staff.typhoidExpiry || '') ||
-           form.foodHandlerExpiry !== (staff.foodHandlerExpiry || '') ||
-           form.emergencyContactName !== (staff.emergencyContactName || '') ||
-           form.emergencyContactPhone !== (staff.emergencyContactPhone || '') ||
-           form.notes !== (staff.notes || '');
-  };
-
+  const hasChanges = () => Object.entries(form).some(([k, v]) => v !== ((staff as any)[k] || ''));
   useUnsavedChangesBlocker(hasChanges());
 
   const handleClose = async () => {
     if (hasChanges()) {
-      const discard = await confirm({
-        title: 'Unsaved Changes',
-        message: 'Are you sure you want to discard your changes?',
-        confirmLabel: 'Discard',
-        cancelLabel: 'Stay',
-        type: 'warning'
-      });
+      const discard = await confirm({ title: 'Unsaved Changes', message: 'Discard changes?', confirmLabel: 'Discard', cancelLabel: 'Stay', type: 'warning' });
       if (!discard) return;
     }
     onClose();
@@ -78,45 +66,41 @@ const DocModal: React.FC<{ staff: StaffUser; onClose: () => void; onSave: () => 
     e.preventDefault();
     try {
       await staffService.updateDocuments(staff.id, form);
-      toast.success('Documents saved successfully');
-      onSave();
-      onClose();
-    } catch {
-      toast.error('Failed to save documents');
-    }
+      toast.success('Documents saved successfully'); onSave(); onClose();
+    } catch { toast.error('Failed to save documents'); }
   };
 
   const field = (label: string, key: keyof typeof form, type = 'text') => (
     <div>
-      <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>{label}</label>
+      <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-        style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', fontSize: '0.88rem', boxSizing: 'border-box', outline: 'none' }} />
+        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
     </div>
   );
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-sheet" onClick={e => e.stopPropagation()} style={{ maxWidth: 520, background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 24, padding: '24px 28px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>Documents — {staff.name}</h3>
-          <button type="button" onClick={handleClose} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={18} /></button>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={handleClose}>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
+          <h3 className="font-bold text-lg m-0 flex items-center gap-2"><FileText size={18} className="text-[var(--primary)]" /> Documents — {staff.name}</h3>
+          <button onClick={handleClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
         </div>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
           {field('IC Number', 'icNumber')}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="grid grid-cols-2 gap-4">
             {field('Typhoid Cert Expiry', 'typhoidExpiry', 'date')}
-            {field('Food Handler Cert Expiry', 'foodHandlerExpiry', 'date')}
+            {field('Food Handler Expiry', 'foodHandlerExpiry', 'date')}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            {field('Emergency Contact Name', 'emergencyContactName')}
-            {field('Emergency Contact Phone', 'emergencyContactPhone')}
+          <div className="grid grid-cols-2 gap-4">
+            {field('Emergency Contact', 'emergencyContactName')}
+            {field('Emergency Phone', 'emergencyContactPhone')}
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Notes / Remarks</label>
-            <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
-              rows={3} style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box', outline: 'none' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Notes / Remarks</label>
+            <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={3}
+              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] resize-y" />
           </div>
-          <button type="submit" style={{ marginTop: 12, padding: '14px', background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 20, fontWeight: 700, cursor: 'pointer', fontSize: '0.92rem', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 4px 12px rgba(230, 51, 41, 0.2)' }}>Save Documents</button>
+          <AppButton type="submit" variant="primary" className="w-full mt-2" size="lg">Save Documents</AppButton>
         </form>
       </div>
     </div>
@@ -126,82 +110,56 @@ const DocModal: React.FC<{ staff: StaffUser; onClose: () => void; onSave: () => 
 // 2. Add User Modal
 const AddUserModal: React.FC<{ defaultRole: 'CUSTOMER' | 'STAFF'; onClose: () => void; onSave: () => void }> = ({ defaultRole, onClose, onSave }) => {
   const { confirm } = useConfirmation();
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    role: defaultRole as string,
-  });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', role: defaultRole as string });
   const [saving, setSaving] = useState(false);
 
-  const hasChanges = () => {
-    return form.name !== '' || form.email !== '' || form.phone !== '' || form.password !== '' || form.role !== defaultRole;
-  };
-
+  const hasChanges = () => form.name !== '' || form.email !== '' || form.phone !== '' || form.password !== '' || form.role !== defaultRole;
   useUnsavedChangesBlocker(hasChanges());
 
   const handleClose = async () => {
     if (hasChanges()) {
-      const discard = await confirm({
-        title: 'Unsaved Changes',
-        message: 'Are you sure you want to discard your input?',
-        confirmLabel: 'Discard',
-        cancelLabel: 'Stay',
-        type: 'warning'
-      });
+      const discard = await confirm({ title: 'Unsaved Changes', message: 'Discard input?', confirmLabel: 'Discard', cancelLabel: 'Stay', type: 'warning' });
       if (!discard) return;
     }
     onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+    e.preventDefault(); setSaving(true);
     try {
       await staffService.add(form);
-      toast.success('User account registered successfully');
-      onSave();
-      onClose();
-    } catch {
-      toast.error('Failed to register user');
-    } finally {
-      setSaving(false);
-    }
+      toast.success('User registered successfully'); onSave(); onClose();
+    } catch { toast.error('Failed to register user'); } 
+    finally { setSaving(false); }
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-sheet" onClick={e => e.stopPropagation()} style={{ maxWidth: 440, background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 24, padding: '24px 28px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>Add User Account</h3>
-          <button type="button" onClick={handleClose} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={18} /></button>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={handleClose}>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
+          <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Plus size={18} className="text-[var(--primary)]" /> Add User Account</h3>
+          <button onClick={handleClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
         </div>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Name</label>
-            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Name</label>
+            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Email</label>
-            <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Email</label>
+            <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Phone Number</label>
-            <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Phone</label>
+            <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Password</label>
-            <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Password</label>
+            <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Role</label>
-            <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }}>
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Role</label>
+            <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]">
               <option value="CUSTOMER">Customer</option>
               <option value="GUEST">Guest</option>
               <option value="STAFF">Staff (Kitchen / Front Counter)</option>
@@ -209,107 +167,68 @@ const AddUserModal: React.FC<{ defaultRole: 'CUSTOMER' | 'STAFF'; onClose: () =>
               <option value="ADMIN">Admin</option>
             </select>
           </div>
-          <button type="submit" disabled={saving} style={{ marginTop: 12, padding: '14px', background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 20, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', fontSize: '0.92rem', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 4px 12px rgba(230, 51, 41, 0.2)', opacity: saving ? 0.7 : 1 }}>
-            {saving ? 'Registering...' : 'Add Account'}
-          </button>
+          <AppButton type="submit" variant="primary" disabled={saving} className="w-full mt-2" size="lg">{saving ? 'Registering...' : 'Add Account'}</AppButton>
         </form>
       </div>
     </div>
   );
 };
 
-// 3. Edit User Details Modal
+// 3. Edit User Modal
 const EditUserModal: React.FC<{ user: StaffUser; onClose: () => void; onSave: () => void }> = ({ user, onClose, onSave }) => {
   const { confirm } = useConfirmation();
-  const [form, setForm] = useState({
-    name: user.name,
-    email: user.email,
-    phone: user.phone || '',
-    password: '',
-    role: user.role,
-  });
+  const [form, setForm] = useState({ name: user.name, email: user.email, phone: user.phone || '', password: '', role: user.role });
   const [saving, setSaving] = useState(false);
 
-  const hasChanges = () => {
-    return form.name !== user.name ||
-           form.email !== user.email ||
-           form.phone !== (user.phone || '') ||
-           form.password !== '' ||
-           form.role !== user.role;
-  };
-
+  const hasChanges = () => form.name !== user.name || form.email !== user.email || form.phone !== (user.phone || '') || form.password !== '' || form.role !== user.role;
   useUnsavedChangesBlocker(hasChanges());
 
   const handleClose = async () => {
     if (hasChanges()) {
-      const discard = await confirm({
-        title: 'Unsaved Changes',
-        message: 'Are you sure you want to discard your edits?',
-        confirmLabel: 'Discard',
-        cancelLabel: 'Stay',
-        type: 'warning'
-      });
+      const discard = await confirm({ title: 'Unsaved Changes', message: 'Discard edits?', confirmLabel: 'Discard', cancelLabel: 'Stay', type: 'warning' });
       if (!discard) return;
     }
     onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+    e.preventDefault(); setSaving(true);
     try {
-      const data: Record<string, string> = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        role: form.role,
-      };
-      if (form.password.trim()) {
-        data.password = form.password;
-      }
+      const data: Record<string, string> = { name: form.name, email: form.email, phone: form.phone, role: form.role };
+      if (form.password.trim()) data.password = form.password;
       await staffService.update(user.id, data);
-      toast.success('User details updated successfully');
-      onSave();
-      onClose();
-    } catch {
-      toast.error('Failed to update user details');
-    } finally {
-      setSaving(false);
-    }
+      toast.success('User details updated'); onSave(); onClose();
+    } catch { toast.error('Failed to update user details'); } 
+    finally { setSaving(false); }
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-sheet" onClick={e => e.stopPropagation()} style={{ maxWidth: 440, background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 24, padding: '24px 28px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>Edit User Details</h3>
-          <button type="button" onClick={handleClose} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={18} /></button>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={handleClose}>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
+          <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Edit2 size={18} className="text-[var(--primary)]" /> Edit User</h3>
+          <button onClick={handleClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
         </div>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Name</label>
-            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Name</label>
+            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Email</label>
-            <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Email</label>
+            <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Phone Number</label>
-            <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Phone</label>
+            <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>New Password (leave blank to keep unchanged)</label>
-            <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }} />
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">New Password (optional)</label>
+            <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Role</label>
-            <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value as any }))}
-              style={{ width: '100%', padding: '12px 16px', background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', fontSize: '0.88rem' }}>
+            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Role</label>
+            <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value as any }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]">
               <option value="CUSTOMER">Customer</option>
               <option value="GUEST">Guest</option>
               <option value="STAFF">Staff (Kitchen / Front Counter)</option>
@@ -317,55 +236,13 @@ const EditUserModal: React.FC<{ user: StaffUser; onClose: () => void; onSave: ()
               <option value="ADMIN">Admin</option>
             </select>
           </div>
-          <button type="submit" disabled={saving} style={{ marginTop: 12, padding: '14px', background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 20, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', fontSize: '0.92rem', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 4px 12px rgba(230, 51, 41, 0.2)', opacity: saving ? 0.7 : 1 }}>
-            {saving ? 'Saving...' : 'Save Details'}
-          </button>
+          <AppButton type="submit" variant="primary" disabled={saving} className="w-full mt-2" size="lg">{saving ? 'Saving...' : 'Save Details'}</AppButton>
         </form>
       </div>
     </div>
   );
 };
 
-
-/* ─────────────────────────────────────────────────────────────
-   SCHEDULED ORDER CARD
-   ───────────────────────────────────────────────────────────── */
-const getItemEmoji = (name: string) => {
-  const n = name.toLowerCase();
-  if (n.includes('milo') || n.includes('air') || n.includes('drink') || n.includes('teh') || n.includes('kopi')) return '🥤';
-  if (n.includes('oblong')) return '🥖';
-  if (n.includes('chicken')) return '🍗';
-  if (n.includes('beef') || n.includes('wagyu')) return '🥩';
-  return '🍔';
-};
-
-const formatCustomisationsForStaff = (raw?: string) => {
-  if (!raw) return '';
-  try {
-    const list = JSON.parse(raw) as { ingredient: string; level: string }[];
-    return list
-      .filter(c => {
-        const name = c.ingredient.toLowerCase();
-        if (name === 'remarks') return true;
-        if (name === 'cheese') return c.level.toUpperCase() === 'EXTRA';
-        return c.level.toUpperCase() !== 'MEDIUM';
-      })
-      .map(c => {
-        if (c.ingredient.toLowerCase() === 'remarks') return `Remarks: "${c.level}"`;
-        if (c.ingredient.toLowerCase() === 'cheese') return 'Extra Cheese';
-        return `${c.ingredient} (${c.level.toLowerCase()})`;
-      })
-      .join(', ');
-  } catch {
-    return '';
-  }
-};
-
-
-
-/* ─────────────────────────────────────────────────────────────
-   MAIN COMPONENT
-   ───────────────────────────────────────────────────────────── */
 export const ManagerUsers: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -379,129 +256,69 @@ export const ManagerUsers: React.FC = () => {
   const [users, setUsers] = useState<StaffUser[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
 
-
-
-  // Search & Filters
   const [search, setSearch] = useState('');
   const [sortByCustomers, setSortByCustomers] = useState<'name-asc' | 'name-desc' | 'created-desc'>('name-asc');
   const [sortByStaff, setSortByStaff] = useState<'name-asc' | 'name-desc' | 'email' | 'role' | 'status'>('name-asc');
-
-  // Expanded row state for Staff Directory
   const [expandedStaff, setExpandedStaff] = useState<number | null>(null);
 
-  // Modals visibility triggers
   const [showAddUser, setShowAddUser] = useState(false);
   const [addUserDefaultRole, setAddUserDefaultRole] = useState<'CUSTOMER' | 'STAFF'>('CUSTOMER');
   const [editUser, setEditUser] = useState<StaffUser | null>(null);
   const [docUser, setDocUser] = useState<StaffUser | null>(null);
 
-  // Customer Orders Modal State
   const [selectedCustomer, setSelectedCustomer] = useState<StaffUser | null>(null);
   const [customerOrders, setCustomerOrders] = useState<any[]>([]);
 
-  // Sync tab state from query parameter ?tab=
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
     if (tabParam) {
       const clean = tabParam.toLowerCase();
-      if (clean === 'staff' && user?.role !== 'ADMIN') {
-        setActiveTab('customers');
-      } else {
-        setActiveTab(clean);
-      }
+      if (clean === 'staff' && user?.role !== 'ADMIN') setActiveTab('customers');
+      else setActiveTab(clean);
     }
   }, [location, user]);
 
   const loadAll = () => {
-    setLoading(true);
-    setError(false);
-    Promise.all([
-      staffService.getAll(),
-      orderService.getAll()
-    ]).then(([sRes, ordersRes]) => {
-      setUsers(sRes.data);
-      setAllOrders(ordersRes.data || []);
-      setError(false);
-    }).catch(err => {
-      setError(true);
-      toast.error('Failed to load user directory data');
-      console.error(err);
-    }).finally(() => setLoading(false));
+    setLoading(true); setError(false);
+    Promise.all([staffService.getAll(), orderService.getAll()])
+      .then(([sRes, ordersRes]) => { setUsers(sRes.data); setAllOrders(ordersRes.data || []); })
+      .catch(() => { setError(true); toast.error('Failed to load user data'); })
+      .finally(() => setLoading(false));
   };
 
-
-
-  useEffect(() => {
-    loadAll();
-  }, []);
+  useEffect(() => { loadAll(); }, []);
 
   const handleToggleUserStatus = async (u: StaffUser) => {
-    const actionStr = u.isActive ? 'suspend' : 'activate';
-    const confirmed = await confirm({
-      title: u.isActive ? 'Suspend User Account' : 'Activate User Account',
-      message: `Are you sure you want to ${actionStr} the user account for "${u.name}"?`,
-      confirmLabel: u.isActive ? 'Suspend' : 'Activate',
-      cancelLabel: 'Cancel',
-      type: 'warning'
-    });
+    const confirmed = await confirm({ title: u.isActive ? 'Suspend User' : 'Activate User', message: `${u.isActive ? 'Suspend' : 'Activate'} account for "${u.name}"?`, confirmLabel: u.isActive ? 'Suspend' : 'Activate', cancelLabel: 'Cancel', type: 'warning' });
     if (!confirmed) return;
-    try {
-      await staffService.toggleStatus(u.id);
-      toast.success(`User "${u.name}" status updated successfully`);
-      loadAll();
-    } catch {
-      toast.error('Failed to update status');
-    }
+    try { await staffService.toggleStatus(u.id); toast.success(`User status updated`); loadAll(); } 
+    catch { toast.error('Failed to update status'); }
   };
 
   const handleDeleteUser = async (u: StaffUser) => {
-    const confirmed = await confirm({
-      title: 'Delete User Account',
-      message: `Are you sure you want to permanently delete the user account for "${u.name}"?`,
-      details: 'This action is destructive and cannot be undone.',
-      confirmLabel: 'Delete Permanently',
-      cancelLabel: 'Cancel',
-      type: 'danger'
-    });
+    const confirmed = await confirm({ title: 'Delete User', message: `Permanently delete account for "${u.name}"?`, confirmLabel: 'Delete Permanently', cancelLabel: 'Cancel', type: 'danger' });
     if (!confirmed) return;
-    try {
-      await staffService.delete(u.id);
-      toast.success(`User "${u.name}" deleted successfully`);
-      loadAll();
-    } catch {
-      toast.error('Failed to delete user');
-    }
+    try { await staffService.delete(u.id); toast.success(`User deleted`); loadAll(); } 
+    catch { toast.error('Failed to delete user'); }
   };
 
   const handleOpenOrderHistory = (u: StaffUser) => {
     setSelectedCustomer(u);
-    const filtered = allOrders.filter(o =>
-      (o.user && o.user.email?.toLowerCase() === u.email?.toLowerCase()) ||
-      (o.guestPhone && o.guestPhone === u.phone) ||
-      (o.user && o.user.name === u.name)
-    );
-    setCustomerOrders(filtered);
+    setCustomerOrders(allOrders.filter(o => (o.user && o.user.email?.toLowerCase() === u.email?.toLowerCase()) || (o.guestPhone && o.guestPhone === u.phone) || (o.user && o.user.name === u.name)));
   };
 
   const certStatus = (dateStr?: string) => {
-    if (!dateStr) return { label: 'Not uploaded', color: 'var(--text-secondary)' };
+    if (!dateStr) return { label: 'Not uploaded', color: 'text-[var(--text-secondary)]' };
     const d = new Date(dateStr);
-    const now = new Date();
-    const diff = (d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    if (diff < 0) return { label: 'EXPIRED', color: '#EF4444' };
-    if (diff < 30) return { label: `Expires in ${Math.ceil(diff)}d`, color: '#F59E0B' };
-    return { label: d.toLocaleDateString('en-MY'), color: '#22C55E' };
+    const diff = (d.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+    if (diff < 0) return { label: 'EXPIRED', color: 'text-[var(--danger)]' };
+    if (diff < 30) return { label: `Expires in ${Math.ceil(diff)}d`, color: 'text-[var(--warning)]' };
+    return { label: d.toLocaleDateString('en-MY'), color: 'text-[var(--success)]' };
   };
 
-  const customersList = users
-    .filter(u => u.role === 'CUSTOMER' || u.role === 'GUEST')
-    .filter(u => {
-      const q = search.toLowerCase();
-      return u.name.toLowerCase().includes(q) ||
-             u.email.toLowerCase().includes(q) ||
-             (u.phone && u.phone.includes(q));
-    })
+  const customersList = users.filter(u => u.role === 'CUSTOMER' || u.role === 'GUEST')
+    .filter(u => { const q = search.toLowerCase(); return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone && u.phone.includes(q)); })
     .sort((a, b) => {
       if (sortByCustomers === 'name-asc') return a.name.localeCompare(b.name);
       if (sortByCustomers === 'name-desc') return b.name.localeCompare(a.name);
@@ -509,400 +326,255 @@ export const ManagerUsers: React.FC = () => {
       return 0;
     });
 
-  const staffList = users
-    .filter(u => u.role === 'STAFF' || u.role === 'MANAGER' || u.role === 'ADMIN')
-    .filter(u => {
-      const q = search.toLowerCase();
-      return u.name.toLowerCase().includes(q) ||
-             u.email.toLowerCase().includes(q) ||
-             (u.phone && u.phone.includes(q)) ||
-             u.role.toLowerCase().includes(q);
-    })
+  const staffList = users.filter(u => u.role === 'STAFF' || u.role === 'MANAGER' || u.role === 'ADMIN')
+    .filter(u => { const q = search.toLowerCase(); return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone && u.phone.includes(q)) || u.role.toLowerCase().includes(q); })
     .sort((a, b) => {
       if (sortByStaff === 'name-asc') return a.name.localeCompare(b.name);
       if (sortByStaff === 'name-desc') return b.name.localeCompare(a.name);
       if (sortByStaff === 'email') return a.email.localeCompare(b.email);
       if (sortByStaff === 'role') return a.role.localeCompare(b.role);
-      if (sortByStaff === 'status') {
-        if (a.isActive === b.isActive) return a.name.localeCompare(b.name);
-        return a.isActive ? -1 : 1;
-      }
+      if (sortByStaff === 'status') { if (a.isActive === b.isActive) return a.name.localeCompare(b.name); return a.isActive ? -1 : 1; }
       return 0;
     });
 
-  if (error) {
-    return (
-      <ManagerLayout title="Users Directory">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 280px)', width: '100%' }}>
-          <ErrorState onRetry={loadAll} retrying={loading} />
-        </div>
-      </ManagerLayout>
-    );
-  }
+  if (error) return <ManagerLayout title="Users Directory"><div className="flex items-center justify-center min-h-[50vh]"><ErrorState onRetry={loadAll} retrying={loading} /></div></ManagerLayout>;
 
-  const tabItems = [
-    { id: 'customers', label: 'Customers Directory' },
-    ...(user?.role === 'ADMIN' ? [{ id: 'staff', label: 'Staff & Admin Directory' }] : [])
-  ];
+  const tabItems = [{ id: 'customers', label: 'Customers Directory' }, ...(user?.role === 'ADMIN' ? [{ id: 'staff', label: 'Staff & Admin Directory' }] : [])];
 
   return (
     <ManagerLayout
       title="Users Directory"
       subtitle="Manage registered customer accounts and configure staff roles"
-      tabs={tabItems.map(t => ({
-        id: t.id,
-        label: t.label,
-        active: activeTab === t.id,
-        onClick: () => { setActiveTab(t.id); setSearch(''); navigate(`/manager/users?tab=${t.id}`); }
-      }))}
+      tabs={tabItems.map(t => ({ id: t.id, label: t.label, active: activeTab === t.id, onClick: () => { setActiveTab(t.id); setSearch(''); navigate(`/manager/users?tab=${t.id}`); } }))}
     >
-      {/* 1. Modals mount */}
       {docUser && <DocModal staff={docUser} onClose={() => setDocUser(null)} onSave={loadAll} />}
       {showAddUser && <AddUserModal defaultRole={addUserDefaultRole} onClose={() => setShowAddUser(false)} onSave={loadAll} />}
       {editUser && <EditUserModal user={editUser} onClose={() => setEditUser(null)} onSave={loadAll} />}
 
-      {/* 2. CUSTOMERS TAB */}
-      {activeTab === 'customers' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Filters controls */}
-          <div style={{
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            borderRadius: 16, padding: '16px 20px',
-            display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', boxShadow: 'var(--shadow-sm)'
-          }}>
-            <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, padding: '10px 14px' }}>
-              <Search size={18} style={{ color: 'var(--text-secondary)' }} />
-              <input
-                type="text"
-                placeholder="Search customers by name, email or phone..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', flex: 1, outline: 'none' }}
-              />
+      <div className="flex flex-col gap-6">
+        <AppCard className="!p-4" noPadding>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-6 py-4">
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
+              <input type="text" placeholder={`Search ${activeTab}...`} value={search} onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Sort By</span>
-              <select
-                value={sortByCustomers}
-                onChange={e => setSortByCustomers(e.target.value as any)}
-                style={{ padding: '10px 14px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', outline: 'none', fontSize: '0.85rem', cursor: 'pointer' }}
-              >
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
-                <option value="created-desc">Registration Date</option>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider shrink-0">Sort</span>
+              <select value={activeTab === 'customers' ? sortByCustomers : sortByStaff} onChange={e => activeTab === 'customers' ? setSortByCustomers(e.target.value as any) : setSortByStaff(e.target.value as any)}
+                className="px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] w-full md:w-auto">
+                {activeTab === 'customers' ? (
+                  <>
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="created-desc">Registration Date</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="email">Email</option>
+                    <option value="role">Role</option>
+                    <option value="status">Status</option>
+                  </>
+                )}
               </select>
+              <AppButton variant="primary" icon={Plus} className="shrink-0" onClick={() => { setAddUserDefaultRole(activeTab === 'customers' ? 'CUSTOMER' : 'STAFF'); setShowAddUser(true); }}>
+                Add {activeTab === 'customers' ? 'Customer' : 'Staff'}
+              </AppButton>
             </div>
-            <button
-              onClick={() => { setAddUserDefaultRole('CUSTOMER'); setShowAddUser(true); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', fontSize: '0.8rem', border: 'none', cursor: 'pointer', borderRadius: 12, background: 'var(--primary)', color: '#fff', fontWeight: 700 }}
-            >
-              <Plus size={14} /> Add Customer
-            </button>
           </div>
+        </AppCard>
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: 60 }}><LoadingSpinner size="lg" /></div>
-          ) : (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 800 }}>
+        {activeTab === 'customers' && (
+          <AppCard noPadding>
+            {loading ? (
+              <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>
+            ) : customersList.length === 0 ? (
+              <div className="py-12"><AppEmptyState title="No customers found" description="No customer profiles match your search criteria." icon={Users} /></div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr style={{ background: 'var(--cream-dark)', borderBottom: '1px solid var(--border)' }}>
-                      {['Customer Name', 'Email Address', 'Phone', 'Role', 'Registration Date', 'Status', 'Actions'].map(h => (
-                        <th key={h} style={{ padding: '14px 18px', fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{h}</th>
-                      ))}
+                    <tr className="bg-[var(--background)] border-b border-[var(--border)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-wider">
+                      <th className="px-6 py-4 font-bold">Customer Name</th>
+                      <th className="px-6 py-4 font-bold">Email</th>
+                      <th className="px-6 py-4 font-bold">Phone</th>
+                      <th className="px-6 py-4 font-bold">Role</th>
+                      <th className="px-6 py-4 font-bold">Registration Date</th>
+                      <th className="px-6 py-4 font-bold">Status</th>
+                      <th className="px-6 py-4 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {customersList.length === 0 ? (
-                      <tr>
-                        <td colSpan={7}>
-                          <div style={{ padding: 40 }}>
-                            <EmptyState title="No customers found" description="No customer profiles match your search criteria." icon={Users} />
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      customersList.map(c => {
-                        const totalOrdersCount = allOrders.filter(o =>
-                          (o.user && o.user.email?.toLowerCase() === c.email?.toLowerCase()) ||
-                          (o.user && o.user.name === c.name)
-                        ).length;
-
-                        return (
-                          <tr key={c.id} style={{ borderBottom: '1px solid var(--border)', fontSize: '0.86rem', opacity: c.isActive ? 1 : 0.6 }}>
-                            <td style={{ padding: '14px 18px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(232,69,10,0.15), rgba(232,69,10,0.05))', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.75rem' }}>
-                                  {c.name?.charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                  <div>{c.name}</div>
-                                </div>
+                    {customersList.map(c => {
+                      const totalOrdersCount = allOrders.filter(o => (o.user && o.user.email?.toLowerCase() === c.email?.toLowerCase()) || (o.user && o.user.name === c.name)).length;
+                      return (
+                        <tr key={c.id} className={`border-b border-[var(--border)] last:border-0 hover:bg-[rgba(0,0,0,0.01)] transition-colors ${c.isActive ? '' : 'opacity-60'}`}>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold text-xs shrink-0">
+                                {c.name.charAt(0).toUpperCase()}
                               </div>
-                            </td>
-                            <td style={{ padding: '14px 18px', color: 'var(--text-secondary)' }}>{c.email}</td>
-                            <td style={{ padding: '14px 18px', color: 'var(--text-secondary)' }}>{c.phone || '—'}</td>
-                            <td style={{ padding: '14px 18px' }}>
-                              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>{c.role}</span>
-                            </td>
-                            <td style={{ padding: '14px 18px', color: 'var(--text-secondary)' }}>{new Date(c.createdAt).toLocaleDateString('en-MY')}</td>
-                            <td style={{ padding: '14px 18px' }}>
-                              <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6, background: c.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: c.isActive ? '#22C55E' : '#EF4444' }}>
-                                {c.isActive ? 'ACTIVE' : 'SUSPENDED'}
-                              </span>
-                            </td>
-                            <td style={{ padding: '14px 18px' }}>
-                              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                <button
-                                  onClick={() => handleOpenOrderHistory(c)}
-                                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', border: '1px solid var(--border)', background: 'var(--cream-dark)', color: 'var(--text-primary)', borderRadius: 8, fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
-                                >
-                                  <ShoppingBag size={12} />
-                                  Orders ({totalOrdersCount})
-                                </button>
-                                <button onClick={() => setEditUser(c)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 4 }} title="Edit Details">
-                                  <Edit2 size={13} />
-                                </button>
-                                <button onClick={() => handleToggleUserStatus(c)} style={{ background: 'none', border: 'none', color: c.isActive ? '#EF4444' : '#22C55E', cursor: 'pointer', padding: 4 }} title={c.isActive ? 'Suspend' : 'Activate'}>
-                                  {c.isActive ? <UserX size={13} /> : <UserCheck size={13} />}
-                                </button>
-                                <button onClick={() => handleDeleteUser(c)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: 4 }} title="Delete Profile">
-                                  <Trash2 size={13} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
+                              <span className="font-semibold text-[var(--text-primary)]">{c.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{c.email}</td>
+                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{c.phone || '—'}</td>
+                          <td className="px-6 py-4"><span className="text-xs font-bold text-[var(--text-primary)] uppercase bg-[var(--background)] px-2 py-1 rounded">{c.role}</span></td>
+                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{new Date(c.createdAt).toLocaleDateString('en-MY')}</td>
+                          <td className="px-6 py-4"><AppBadge variant={c.isActive ? 'success' : 'danger'} text={c.isActive ? 'ACTIVE' : 'SUSPENDED'} /></td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-1">
+                              <AppButton variant="outline" size="sm" icon={ShoppingBag} onClick={() => handleOpenOrderHistory(c)}>Orders ({totalOrdersCount})</AppButton>
+                              <AppButton variant="ghost" size="icon" onClick={() => setEditUser(c)}><Edit2 size={16} /></AppButton>
+                              <AppButton variant="ghost" size="icon" onClick={() => handleToggleUserStatus(c)} className={c.isActive ? 'text-[var(--danger)] hover:text-red-700' : 'text-[var(--success)] hover:text-green-700'}>{c.isActive ? <UserX size={16} /> : <UserCheck size={16} />}</AppButton>
+                              <AppButton variant="ghost" size="icon" onClick={() => handleDeleteUser(c)} className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50"><Trash2 size={16} /></AppButton>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </AppCard>
+        )}
 
-      {/* 3. STAFF TAB (ADMIN ONLY) */}
-      {activeTab === 'staff' && user?.role === 'ADMIN' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Filters controls */}
-          <div style={{
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            borderRadius: 16, padding: '16px 20px',
-            display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', boxShadow: 'var(--shadow-sm)'
-          }}>
-            <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--background)', border: '1.5px solid var(--border)', borderRadius: 12, padding: '10px 14px' }}>
-              <Search size={18} style={{ color: 'var(--text-secondary)' }} />
-              <input
-                type="text"
-                placeholder="Search staff, managers or admins..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', flex: 1, outline: 'none' }}
-              />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Sort By</span>
-              <select
-                value={sortByStaff}
-                onChange={e => setSortByStaff(e.target.value as any)}
-                style={{ padding: '10px 14px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 12, color: 'var(--text-primary)', outline: 'none', fontSize: '0.85rem', cursor: 'pointer' }}
-              >
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
-                <option value="email">Email</option>
-                <option value="role">Role</option>
-                <option value="status">Status (Active First)</option>
-              </select>
-            </div>
-            <button
-              onClick={() => { setAddUserDefaultRole('STAFF'); setShowAddUser(true); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', fontSize: '0.8rem', border: 'none', cursor: 'pointer', borderRadius: 12, background: 'var(--primary)', color: '#fff', fontWeight: 700 }}
-            >
-              <Plus size={14} /> Add Staff
-            </button>
-          </div>
+        {activeTab === 'staff' && user?.role === 'ADMIN' && (
+          <div className="flex flex-col gap-4">
+            {loading ? (
+              <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>
+            ) : staffList.length === 0 ? (
+              <AppEmptyState title="No staff members found" description="No staff profiles match your search criteria." icon={Shield} />
+            ) : (
+              staffList.map(s => {
+                const isExpanded = expandedStaff === s.id;
+                const typhoidStat = certStatus(s.typhoidExpiry);
+                const foodStat = certStatus(s.foodHandlerExpiry);
+                const isStaffOrManager = s.role === 'STAFF' || s.role === 'MANAGER';
+                const hasExpiredDoc = isStaffOrManager && (typhoidStat.color.includes('danger') || foodStat.color.includes('danger'));
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: 60 }}><LoadingSpinner size="lg" /></div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {staffList.length === 0 ? (
-                <EmptyState title="No staff members found" description="No staff profiles match your search criteria." icon={Shield} />
-              ) : (
-                staffList.map(s => {
-                  const isExpanded = expandedStaff === s.id;
-                  const typhoidStat = certStatus(s.typhoidExpiry);
-                  const foodStat = certStatus(s.foodHandlerExpiry);
-                  const isStaffOrManager = s.role === 'STAFF' || s.role === 'MANAGER';
-                  const hasExpiredDoc = isStaffOrManager && (typhoidStat.color === '#EF4444' || foodStat.color === '#EF4444');
-
-                  return (
-                    <div key={s.id} style={{
-                      background: 'var(--surface)',
-                      border: `1.5px solid ${hasExpiredDoc ? 'rgba(239,68,68,0.25)' : 'var(--border)'}`,
-                      borderRadius: 16, overflow: 'hidden', opacity: s.isActive ? 1 : 0.6,
-                      boxShadow: 'var(--shadow-sm)'
-                    }}>
-                      {/* main row */}
-                      <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--cream-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.82rem', border: '1px solid var(--border)' }}>
+                return (
+                  <div key={s.id} className={`bg-[var(--surface)] border rounded-xl overflow-hidden shadow-sm transition-all duration-200 ${hasExpiredDoc ? 'border-[var(--danger)]/50' : 'border-[var(--border)]'} ${s.isActive ? '' : 'opacity-60'}`}>
+                    <div className="p-4 md:px-6 md:py-5 flex flex-col md:flex-row items-start md:items-center gap-4">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="w-10 h-10 rounded-full bg-[var(--background)] border border-[var(--border)] flex items-center justify-center font-bold text-[var(--text-primary)] text-sm shrink-0">
                           {s.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>{s.name}</div>
-                          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 3, fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Mail size={11} />{s.email}</span>
-                            {s.phone && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Phone size={11} />{s.phone}</span>}
+                        <div>
+                          <div className="font-bold text-[var(--text-primary)] mb-1">{s.name}</div>
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-secondary)]">
+                            <span className="flex items-center gap-1.5"><Mail size={12} /> {s.email}</span>
+                            {s.phone && <span className="flex items-center gap-1.5"><Phone size={12} /> {s.phone}</span>}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6, background: s.role === 'MANAGER' ? 'rgba(255,107,0,0.1)' : (s.role === 'ADMIN' ? 'rgba(239,68,68,0.1)' : 'var(--cream-dark)'), color: s.role === 'MANAGER' ? 'var(--primary)' : (s.role === 'ADMIN' ? 'var(--red)' : 'var(--text-primary)') }}>
-                            <Shield size={10} style={{ display: 'inline', marginRight: 3, verticalAlign: 'middle' }} /> {s.role}
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5 ${s.role === 'MANAGER' ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : s.role === 'ADMIN' ? 'bg-red-500/10 text-red-500' : 'bg-[var(--background)] text-[var(--text-primary)]'}`}>
+                          <Shield size={12} /> {s.role}
+                        </span>
+
+                        {hasExpiredDoc && (
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-red-500/10 text-red-500 flex items-center gap-1.5">
+                            <AlertCircle size={12} /> Expired Docs
                           </span>
+                        )}
 
-                          {hasExpiredDoc && <span style={{ fontSize: '0.7rem', background: 'rgba(239,68,68,0.1)', color: '#EF4444', padding: '3px 8px', borderRadius: 6, fontWeight: 800 }}>⚠️ Expired Docs</span>}
+                        <AppButton variant="outline" size="sm" icon={Edit2} onClick={() => setEditUser(s)}>Edit</AppButton>
+                        {isStaffOrManager && <AppButton variant="outline" size="sm" icon={FileText} onClick={() => setDocUser(s)}>Docs</AppButton>}
 
-                          <button onClick={() => setEditUser(s)} style={{ padding: '6px 10px', fontSize: '0.78rem', background: 'var(--cream-dark)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
-                            <Edit2 size={12} /> Edit
-                          </button>
-
-                          {isStaffOrManager && (
-                            <button onClick={() => setDocUser(s)} style={{ padding: '6px 10px', fontSize: '0.78rem', background: 'var(--cream-dark)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
-                              <FileText size={12} /> Docs
-                            </button>
-                          )}
-
-                          <button onClick={() => handleToggleUserStatus(s)} style={{ background: 'none', border: 'none', color: s.isActive ? '#EF4444' : '#22C55E', cursor: 'pointer', padding: 6 }}>
-                            {s.isActive ? <UserX size={15} /> : <UserCheck size={15} />}
-                          </button>
-                          <button onClick={() => handleDeleteUser(s)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: 6 }}><Trash2 size={15} /></button>
-
-                          {isStaffOrManager && (
-                            <button onClick={() => setExpandedStaff(isExpanded ? null : s.id)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 4 }}>
-                              {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </button>
-                          )}
+                        <div className="flex gap-1 ml-auto md:ml-2">
+                          <AppButton variant="ghost" size="icon" onClick={() => handleToggleUserStatus(s)} className={s.isActive ? 'text-[var(--danger)] hover:text-red-700' : 'text-[var(--success)] hover:text-green-700'}>{s.isActive ? <UserX size={16} /> : <UserCheck size={16} />}</AppButton>
+                          <AppButton variant="ghost" size="icon" onClick={() => handleDeleteUser(s)} className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50"><Trash2 size={16} /></AppButton>
+                          {isStaffOrManager && <AppButton variant="ghost" size="icon" onClick={() => setExpandedStaff(isExpanded ? null : s.id)}>{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</AppButton>}
                         </div>
                       </div>
-
-                      {/* Expanded docs drawer */}
-                      {isExpanded && isStaffOrManager && (
-                        <div style={{ borderTop: '1px solid var(--border)', padding: '14px 20px', background: 'var(--cream-dark)', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
-                          {[
-                            { label: 'IC Number', value: s.icNumber || '—', color: 'var(--text-primary)' },
-                            { label: 'Typhoid Cert', value: typhoidStat.label, color: typhoidStat.color },
-                            { label: 'Food Handler Cert', value: foodStat.label, color: foodStat.color },
-                            { label: 'Emergency Contact', value: s.emergencyContactName ? `${s.emergencyContactName} (${s.emergencyContactPhone || '—'})` : '—', color: 'var(--text-primary)' },
-                          ].map((d, i) => (
-                            <div key={i}>
-                              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{d.label}</div>
-                              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: d.color }}>{d.value}</div>
-                            </div>
-                          ))}
-                          {s.notes && (
-                            <div style={{ gridColumn: '1 / -1' }}>
-                              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Admin Notes</div>
-                              <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{s.notes}</div>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
-                  );
-                })
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
+                    {isExpanded && isStaffOrManager && (
+                      <div className="border-t border-[var(--border)] p-4 md:px-6 bg-[var(--background)] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">IC Number</div>
+                          <div className="text-sm font-semibold">{s.icNumber || '—'}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Typhoid Cert</div>
+                          <div className={`text-sm font-semibold ${typhoidStat.color}`}>{typhoidStat.label}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Food Handler Cert</div>
+                          <div className={`text-sm font-semibold ${foodStat.color}`}>{foodStat.label}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Emergency Contact</div>
+                          <div className="text-sm font-semibold">{s.emergencyContactName ? `${s.emergencyContactName} (${s.emergencyContactPhone || '—'})` : '—'}</div>
+                        </div>
+                        {s.notes && (
+                          <div className="col-span-full">
+                            <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Admin Notes</div>
+                            <div className="text-sm text-[var(--text-secondary)]">{s.notes}</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
 
-
-      {/* Customer Orders History Modal */}
+      {/* Customer Orders Modal */}
       {selectedCustomer && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, backdropFilter: 'blur(4px)'
-        }} onClick={() => setSelectedCustomer(null)}>
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              width: '100%', maxWidth: 640, maxHeight: '80vh',
-              background: 'var(--surface)', border: '1.5px solid var(--border)',
-              borderRadius: 'var(--radius-xl)', padding: '24px 28px', display: 'flex',
-              flexDirection: 'column', gap: 16, overflowY: 'auto'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedCustomer(null)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)] shrink-0">
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Poppins' }}>
-                  🛍️ Customer Purchase History
-                </h3>
-                <p style={{ margin: '3px 0 0', fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-                  Purchase history for <strong>{selectedCustomer.name}</strong> ({selectedCustomer.email})
-                </p>
+                <h3 className="font-bold text-lg m-0 flex items-center gap-2"><ShoppingBag size={18} className="text-[var(--primary)]" /> Customer Purchase History</h3>
+                <p className="text-xs text-[var(--text-secondary)] mt-1 mb-0">Purchases for <span className="font-bold text-[var(--text-primary)]">{selectedCustomer.name}</span> ({selectedCustomer.email})</p>
               </div>
-              <button type="button" onClick={() => setSelectedCustomer(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                <X size={18} />
-              </button>
+              <button onClick={() => setSelectedCustomer(null)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+            
+            <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4 bg-[var(--background)]">
               {customerOrders.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>No orders placed by this customer yet.</div>
+                <div className="flex justify-center py-12"><AppEmptyState title="No orders found" description="This customer hasn't placed any orders yet." icon={ShoppingBag} /></div>
               ) : (
                 customerOrders.map(order => (
-                  <div key={order.id} style={{
-                    background: 'var(--cream-dark)', border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)', padding: 16, display: 'flex', flexDirection: 'column', gap: 8
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-                      <span style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '0.84rem', color: 'var(--text-primary)' }}>
-                        #{order.orderNumber}
-                      </span>
-                      <span style={{
-                        fontSize: '0.7rem', fontWeight: 800, padding: '3px 8px', borderRadius: 'var(--radius-sm)',
-                        background: order.status === 'READY' || order.status === 'COMPLETED' ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)',
-                        color: order.status === 'READY' || order.status === 'COMPLETED' ? '#22C55E' : '#F59E0B'
-                      }}>
-                        {order.status}
-                      </span>
+                  <div key={order.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-3 shadow-sm">
+                    <div className="flex justify-between items-center flex-wrap gap-2">
+                      <span className="font-bold text-sm">#{order.orderNumber}</span>
+                      <AppBadge variant={order.status === 'READY' || order.status === 'COMPLETED' ? 'success' : 'warning'} text={order.status} />
                     </div>
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Calendar size={11} /> {new Date(order.createdAt).toLocaleString()}
-                      </span>
-                      {order.pickupTime && (
-                        <span>⏰ Pickup Slot: {new Date(order.pickupTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      )}
+                    
+                    <div className="flex flex-wrap gap-3 text-xs text-[var(--text-secondary)]">
+                      <span className="flex items-center gap-1.5"><Calendar size={12} /> {new Date(order.createdAt).toLocaleString('en-MY')}</span>
                     </div>
 
                     {order.notes && (
-                      <div style={{ fontSize: '0.74rem', background: 'var(--background)', padding: '6px 10px', borderRadius: 'var(--radius-sm)', color: 'var(--red)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <MessageSquare size={10} /> Note: "{order.notes}"
+                      <div className="text-xs bg-[var(--danger)]/10 text-[var(--danger)] px-3 py-2 rounded-lg italic flex items-center gap-2">
+                        <MessageSquare size={12} /> Note: "{order.notes}"
                       </div>
                     )}
 
-                    <div style={{ borderTop: '1px dashed var(--border)', margin: '4px 0' }} />
+                    <div className="border-t border-dashed border-[var(--border)] my-1" />
 
-                    {/* Order items */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div className="flex flex-col gap-2">
                       {order.items?.map((item: any, i: number) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', color: 'var(--text-primary)' }}>
-                          <span>{item.quantity}x {item.menuItem?.name || 'Item'}</span>
-                          <span style={{ fontWeight: 600 }}>{item.isFree ? 'FREE' : formatRM(item.unitPrice * item.quantity)}</span>
+                        <div key={i} className="flex justify-between text-sm">
+                          <span className="text-[var(--text-primary)]">{item.quantity}x {item.menuItem?.name || 'Item'}</span>
+                          <span className="font-bold">{item.isFree ? 'FREE' : formatRM(item.unitPrice * item.quantity)}</span>
                         </div>
                       ))}
                     </div>
 
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Total Paid ({order.paymentMethod}):</span>
-                      <span style={{ fontFamily: 'Poppins', fontWeight: 900, color: 'var(--red)', fontSize: '0.95rem' }}>{formatRM(order.total)}</span>
+                    <div className="border-t border-[var(--border)] pt-3 mt-1 flex justify-between items-center">
+                      <span className="text-xs font-bold text-[var(--text-secondary)]">Total Paid ({order.paymentMethod}):</span>
+                      <span className="font-black text-lg text-[var(--primary)]">{formatRM(order.total)}</span>
                     </div>
                   </div>
                 ))

@@ -53,6 +53,12 @@ public class Inventory {
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
     private InventoryStatus status = InventoryStatus.GOOD;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tracking_type", columnDefinition = "inventory_tracking_type")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
+    private com.bkb.entity.enums.InventoryTrackingType trackingType = com.bkb.entity.enums.InventoryTrackingType.AUTO;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

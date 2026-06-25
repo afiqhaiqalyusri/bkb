@@ -29,10 +29,10 @@ public class OrderCalculationService {
             subtotal = subtotal.add(oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity())));
 
             BigDecimal itemCost = BigDecimal.ZERO;
-            if (oi.getMenuItem().getInventoryLinks() != null) {
-                for (com.bkb.entity.MenuItemInventory link : oi.getMenuItem().getInventoryLinks()) {
-                    if (link.getInventory() != null && link.getInventory().getUnitCost() != null && link.getQuantityUsed() != null) {
-                        itemCost = itemCost.add(link.getInventory().getUnitCost().multiply(link.getQuantityUsed()));
+            if (oi.getMenuItem().getRecipe() != null && oi.getMenuItem().getRecipe().getIngredients() != null) {
+                for (com.bkb.entity.RecipeIngredient link : oi.getMenuItem().getRecipe().getIngredients()) {
+                    if (link.getInventory() != null && link.getInventory().getUnitCost() != null && link.getQuantity() != null) {
+                        itemCost = itemCost.add(link.getInventory().getUnitCost().multiply(link.getQuantity()));
                     }
                 }
             }
