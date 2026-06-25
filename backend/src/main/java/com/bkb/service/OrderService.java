@@ -209,6 +209,7 @@ public class OrderService {
         if (currentStatus != status && currentStatus != OrderStatus.CANCELLED) {
             boolean validTransition = false;
             switch (currentStatus) {
+                case PENDING:
                 case INCOMING_ORDER:
                     if (status == OrderStatus.ACCEPTED || status == OrderStatus.CANCELLED) validTransition = true;
                     break;
