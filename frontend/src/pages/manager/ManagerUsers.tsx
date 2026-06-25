@@ -274,8 +274,7 @@ export const ManagerUsers: React.FC = () => {
     const tabParam = params.get('tab');
     if (tabParam) {
       const clean = tabParam.toLowerCase();
-      if (clean === 'staff' && user?.role !== 'ADMIN') setActiveTab('customers');
-      else setActiveTab(clean);
+      if (clean === 'staff' || clean === 'customers') setActiveTab(clean);
     }
   }, [location, user]);
 
@@ -339,7 +338,7 @@ export const ManagerUsers: React.FC = () => {
 
   if (error) return <ManagerLayout title="Users Directory"><div className="flex items-center justify-center min-h-[50vh]"><ErrorState onRetry={loadAll} retrying={loading} /></div></ManagerLayout>;
 
-  const tabItems = [{ id: 'customers', label: 'Customers Directory' }, ...(user?.role === 'ADMIN' ? [{ id: 'staff', label: 'Staff & Admin Directory' }] : [])];
+  const tabItems = [{ id: 'customers', label: 'Customers Directory' }, { id: 'staff', label: 'Staff & Admin Directory' }];
 
   return (
     <ManagerLayout
@@ -442,7 +441,7 @@ export const ManagerUsers: React.FC = () => {
           </AppCard>
         )}
 
-        {activeTab === 'staff' && user?.role === 'ADMIN' && (
+        {activeTab === 'staff' && (
           <div className="flex flex-col gap-4">
             {loading ? (
               <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>

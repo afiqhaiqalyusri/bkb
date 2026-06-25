@@ -92,7 +92,7 @@ const router = createBrowserRouter([
       { path: 'manager/menu', element: <ManagerGuard><ManagerMenu /></ManagerGuard> },
       { path: 'manager/inventory', element: <ManagerGuard><ManagerInventory /></ManagerGuard> },
       { path: 'manager/waste', element: <ManagerGuard><ManagerWasteLog /></ManagerGuard> },
-      { path: 'manager/staff', element: <AdminGuard><Navigate to="/manager/users?tab=staff" replace /></AdminGuard> },
+      { path: 'manager/staff', element: <ManagerGuard><Navigate to="/manager/users?tab=staff" replace /></ManagerGuard> },
       { path: 'manager/loyalty', element: <ManagerGuard><ManagerLoyalty /></ManagerGuard> },
       { path: 'manager/users', element: <ManagerGuard><ManagerUsers /></ManagerGuard> },
       { path: 'manager/settings', element: <ManagerGuard><ManagerSettings /></ManagerGuard> },

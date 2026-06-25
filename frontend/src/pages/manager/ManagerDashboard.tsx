@@ -553,9 +553,9 @@ export const ManagerDashboard: React.FC = () => {
     { id: 'reports', label: 'Sales Reports' },
     { id: 'menu', label: 'Menu Analytics' },
     { id: 'insights', label: 'Customer Insights' },
-    { id: 'logs', label: 'Audit Logs', adminOnly: true },
+    { id: 'logs', label: 'Audit Logs' },
   ];
-  const dashboardTabs = rawTabs.filter(t => !t.adminOnly || user?.role === 'ADMIN');
+  const dashboardTabs = rawTabs;
 
   return (
     <ManagerLayout

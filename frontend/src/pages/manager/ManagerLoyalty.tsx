@@ -138,7 +138,7 @@ export const ManagerLoyalty: React.FC = () => {
   const handleAdjustPoints = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adjustAccount) return;
-    if (adjustType === 'DEDUCT' && user?.role !== 'ADMIN') { toast.error('Only Admins are permitted to deduct points'); return; }
+    // Removed admin restriction for deduct
 
     const amount = adjustType === 'DEDUCT' ? -Math.abs(adjustPoints) : Math.abs(adjustPoints);
     const confirmed = await confirm({
@@ -455,11 +455,9 @@ export const ManagerLoyalty: React.FC = () => {
                     <button type="button" onClick={() => setAdjustType('ADD')} className={`flex-1 py-2.5 px-4 rounded-lg border flex items-center justify-center gap-2 text-sm font-bold transition-colors ${adjustType === 'ADD' ? 'bg-[var(--success)]/10 border-[var(--success)] text-[var(--success)]' : 'bg-[var(--background)] border-[var(--border)] text-[var(--text-secondary)]'}`}>
                       <TrendingUp size={16} /> Add Points
                     </button>
-                    {user?.role === 'ADMIN' && (
-                      <button type="button" onClick={() => setAdjustType('DEDUCT')} className={`flex-1 py-2.5 px-4 rounded-lg border flex items-center justify-center gap-2 text-sm font-bold transition-colors ${adjustType === 'DEDUCT' ? 'bg-[var(--danger)]/10 border-[var(--danger)] text-[var(--danger)]' : 'bg-[var(--background)] border-[var(--border)] text-[var(--text-secondary)]'}`}>
-                        <TrendingDown size={16} /> Deduct Points
-                      </button>
-                    )}
+                    <button type="button" onClick={() => setAdjustType('DEDUCT')} className={`flex-1 py-2.5 px-4 rounded-lg border flex items-center justify-center gap-2 text-sm font-bold transition-colors ${adjustType === 'DEDUCT' ? 'bg-[var(--danger)]/10 border-[var(--danger)] text-[var(--danger)]' : 'bg-[var(--background)] border-[var(--border)] text-[var(--text-secondary)]'}`}>
+                      <TrendingDown size={16} /> Deduct Points
+                    </button>
                   </div>
                 </div>
                 <div>

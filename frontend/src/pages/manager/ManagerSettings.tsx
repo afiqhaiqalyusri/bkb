@@ -224,7 +224,7 @@ export const ManagerSettings: React.FC = () => {
           </AppCard>
         )}
 
-        {isAuthenticated && user && user.role === 'ADMIN' && (
+        {isAuthenticated && user && (user.role === 'MANAGER' || user.role === 'ADMIN') && (
           <>
             <AppCard title="Payment Gateway & QR Settings" subtitle="Configure active payment methods and simulated scan behavior." icon={CreditCard}>
               <div className="flex flex-col">
