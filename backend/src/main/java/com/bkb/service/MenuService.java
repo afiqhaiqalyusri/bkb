@@ -38,7 +38,7 @@ public class MenuService {
     }
 
     public MenuItemResponse getItemById(Long id) {
-        MenuItem item = menuItemRepository.findByIdWithIngredients(id)
+        MenuItem item = menuItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MenuItem", id));
         return toResponse(item);
     }

@@ -14,6 +14,5 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     @Query("SELECT DISTINCT m.category FROM MenuItem m WHERE m.deleted = false ORDER BY m.category")
     List<String> findDistinctCategories();
 
-    @Query("SELECT m FROM MenuItem m LEFT JOIN FETCH m.ingredients WHERE m.id = :id")
-    java.util.Optional<MenuItem> findByIdWithIngredients(Long id);
+
 }
