@@ -29,27 +29,27 @@ export interface AdvertisementRequest {
 
 export const advertisementService = {
   getAll: (activeOnly = true, targetPage?: string) => {
-    let url = `/advertisements?activeOnly=${activeOnly}`;
+    let url = `/api/advertisements?activeOnly=${activeOnly}`;
     if (targetPage) url += `&targetPage=${targetPage}`;
     return api.get<Advertisement[]>(url);
   },
 
   create: (data: AdvertisementRequest) => {
-    return api.post<Advertisement>('/advertisements', data);
+    return api.post<Advertisement>('/api/advertisements', data);
   },
 
   update: (id: string, data: AdvertisementRequest) => {
-    return api.put<Advertisement>(`/advertisements/${id}`, data);
+    return api.put<Advertisement>(`/api/advertisements/${id}`, data);
   },
 
   delete: (id: string) => {
-    return api.delete(`/advertisements/${id}`);
+    return api.delete(`/api/advertisements/${id}`);
   },
 
   uploadImage: (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post<{ url: string }>('/upload', formData, {
+    return api.post<{ url: string }>('/api/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
