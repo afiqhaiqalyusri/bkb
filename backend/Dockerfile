@@ -22,6 +22,7 @@ RUN addgroup -g 1001 -S bkb && \
     adduser -u 1001 -S bkb -G bkb
 
 WORKDIR /app
+RUN mkdir -p /app/uploads && chown -R bkb:bkb /app
 
 # Copy jar with correct ownership — never run as root
 COPY --from=build --chown=bkb:bkb /app/target/bkb-backend-1.0.0.jar app.jar
