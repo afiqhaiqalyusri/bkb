@@ -4,6 +4,7 @@ import { authService } from '../services/auth.service';
 import { BkbLogo } from '../components/ui/BkbLogo';
 import toast from 'react-hot-toast';
 import { Lock, Eye, EyeOff, Check, ArrowRight } from 'lucide-react';
+import { AuthLayout } from '../components/layout/AuthLayout';
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -59,7 +60,7 @@ export const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <AuthLayout>
       <div style={{ width: '100%', maxWidth: 400 }} className="animate-fade-in-up">
         {/* Logo */}
         <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'center' }}>
@@ -215,6 +216,6 @@ export const ResetPasswordPage: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

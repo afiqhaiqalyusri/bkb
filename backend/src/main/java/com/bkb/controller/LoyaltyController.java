@@ -52,13 +52,13 @@ public class LoyaltyController {
     // ─── Manager endpoints ───────────────────────────────────────
 
     @GetMapping("/rewards/all")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<LoyaltyRewardResponse>>> getAllRewards() {
         return ResponseEntity.ok(ApiResponse.success(loyaltyService.getAllRewards()));
     }
 
     @PostMapping("/rewards")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<LoyaltyRewardResponse>> createReward(@RequestBody Map<String, Object> body) {
         String name = (String) body.get("name");
         int pointsCost = Integer.parseInt(body.get("pointsCost").toString());
@@ -71,21 +71,21 @@ public class LoyaltyController {
     }
 
     @PutMapping("/rewards/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<LoyaltyRewardResponse>> updateReward(
             @PathVariable Long id, @RequestBody Map<String, Object> body) {
         return ResponseEntity.ok(ApiResponse.success(loyaltyService.updateReward(id, body)));
     }
 
     @DeleteMapping("/rewards/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteReward(@PathVariable Long id) {
         loyaltyService.deleteReward(id);
         return ResponseEntity.ok(ApiResponse.success("Reward deleted", null));
     }
 
     @GetMapping("/accounts")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<com.bkb.dto.response.LoyaltyAccountManagerResponse>>> getAllAccounts() {
         return ResponseEntity.ok(ApiResponse.success(loyaltyService.getAllAccountsForManager()));
     }

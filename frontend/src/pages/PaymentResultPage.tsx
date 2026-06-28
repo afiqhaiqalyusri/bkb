@@ -53,6 +53,15 @@ export const PaymentResultPage: React.FC = () => {
   const isPending = statusId === '2';
   const isFail = statusId === '3';
 
+  useEffect(() => {
+    if (isSuccess && orderIdStr) {
+      const timer = setTimeout(() => {
+        navigate(`/order/${orderIdStr}/tracking`, { replace: true });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, orderIdStr, navigate]);
+
   if (loading) {
     return <FullScreenLoader message="Verifying your payment..." />;
   }
@@ -78,9 +87,11 @@ export const PaymentResultPage: React.FC = () => {
               <h2 style={{ fontFamily: 'Poppins', fontWeight: 800, color: 'var(--success)', marginBottom: 8 }}>Payment Successful!</h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 24, lineHeight: 1.5 }}>
                 Your order <strong>#{orderIdStr}</strong> has been paid successfully. We are preparing it now!
+                <br /><br />
+                <em>Redirecting to tracking page...</em>
               </p>
               <button 
-                onClick={() => navigate('/history', { replace: true })}
+                onClick={() => navigate(`/order/${orderIdStr}/tracking`, { replace: true })}
                 style={{
                   background: 'var(--primary)',
                   color: 'white',
@@ -93,7 +104,7 @@ export const PaymentResultPage: React.FC = () => {
                   width: '100%'
                 }}
               >
-                View My Orders
+                Track My Order
               </button>
             </>
           )}

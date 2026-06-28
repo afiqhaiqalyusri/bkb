@@ -20,7 +20,7 @@ public class KitchenController {
     private final OrderService orderService;
 
     @GetMapping("/incoming")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getIncomingKitchenQueue() {
         return ResponseEntity.ok(ApiResponse.success(orderService.getIncomingKitchenQueue()));
     }

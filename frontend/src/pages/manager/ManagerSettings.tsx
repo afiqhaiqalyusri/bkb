@@ -1,5 +1,5 @@
 import React from 'react';
-import { ManagerLayout } from './ManagerDashboard';
+import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { orderService } from '../../services/order.service';

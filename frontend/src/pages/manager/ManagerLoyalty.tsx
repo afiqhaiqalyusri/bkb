@@ -4,7 +4,7 @@ import {
   Star, Plus, Edit2, Trash2, X, Search, ShoppingBag,
   Calendar, MessageSquare, Award, AlertCircle, TrendingUp, TrendingDown, Clock
 } from 'lucide-react';
-import { ManagerLayout } from './ManagerDashboard';
+import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { staffService, loyaltyManagerService } from '../../services/manager.service';
 import { menuService } from '../../services/menu.service';
 import { orderService } from '../../services/order.service';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, Calendar, Search, AlertCircle, PackageX, DollarSign } from 'lucide-react';
-import { ManagerLayout } from './ManagerDashboard';
+import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { wasteService } from '../../services/manager.service';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';

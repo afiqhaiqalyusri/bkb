@@ -17,6 +17,7 @@ import { BurgerLoader } from '../components/ui/BurgerLoader';
 import { getFoodImage } from '../utils/foodImages';
 import { useAuthStore } from '../store/authStore';
 import { BurgerStackGame } from '../components/game/BurgerStackGame';
+import { FeedbackModal } from '../components/FeedbackModal';
 
 export const OrderTrackingPage: React.FC = () => {
   const { id, token } = useParams<{ id?: string, token?: string }>();
@@ -24,6 +25,7 @@ export const OrderTrackingPage: React.FC = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   const handleCancelOrder = async () => {
     if (!order) return;
@@ -89,10 +91,16 @@ export const OrderTrackingPage: React.FC = () => {
 
   useEffect(() => {
     fetchOrder();
+    
+    // Stop polling if we reached a terminal state
+    if (order?.status === 'COMPLETED' || order?.status === 'CANCELLED') {
+      return;
+    }
+    
     // Poll every 8 seconds
     const interval = setInterval(fetchOrder, 8000);
     return () => clearInterval(interval);
-  }, [id, token]);
+  }, [id, token, order?.status]);
 
   if (loading) return (
     <PageShell>
@@ -224,12 +232,14 @@ export const OrderTrackingPage: React.FC = () => {
                   </h3>
 
                   <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                    {ORDER_STATUS_STEPS.filter(s => s !== 'CANCELLED').map((step, idx) => {
+                    {ORDER_STATUS_STEPS.filter(s => s !== 'CANCELLED').map((step, idx, arr) => {
                       const done = idx < currentStepIndex;
                       const active = idx === currentStepIndex;
+                      const isLast = idx === arr.length - 1;
+                      
                       return (
-                        <div key={step} style={{ display: 'flex', gap: 16, position: 'relative', paddingBottom: idx === 5 ? 0 : 28 }}>
-                          {idx < 5 && (
+                        <div key={step} style={{ display: 'flex', gap: 16, position: 'relative', paddingBottom: isLast ? 0 : 28 }}>
+                          {!isLast && (
                             <div style={{
                               position: 'absolute',
                               left: 15, top: 32, width: 2, height: 'calc(100% - 10px)',
@@ -386,6 +396,34 @@ export const OrderTrackingPage: React.FC = () => {
                       {cancelling ? 'Cancelling...' : '❌ Cancel Order'}
                     </button>
                   )}
+                  {isCompleted && !order.rating && (
+                    <button
+                      onClick={() => setIsFeedbackOpen(true)}
+                      style={{
+                        marginTop: 14,
+                        width: '100%',
+                        background: 'var(--primary)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 10,
+                        padding: '10px',
+                        fontFamily: 'Outfit',
+                        fontWeight: 700,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 4px 12px rgba(255,107,0,0.2)'
+                      }}
+                    >
+                      ⭐ Leave Feedback
+                    </button>
+                  )}
+                  {order.rating && (
+                    <div style={{ marginTop: 14, padding: '12px', background: 'rgba(255,107,0,0.1)', borderRadius: '8px', color: 'var(--primary)', textAlign: 'center' }}>
+                      <strong>Thanks for your feedback!</strong><br/>
+                      You rated us {order.rating} stars.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -396,6 +434,16 @@ export const OrderTrackingPage: React.FC = () => {
           <BurgerStackGame
             orderId={order.id}
             orderStatus={order.status}
+          />
+          
+          <FeedbackModal
+            isOpen={isFeedbackOpen}
+            onClose={() => setIsFeedbackOpen(false)}
+            orderId={order.id}
+            onSuccess={() => {
+              setIsFeedbackOpen(false);
+              fetchOrder();
+            }}
           />
 
         </div>

@@ -107,7 +107,7 @@ public class OrderController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllOrders(
             @RequestParam(required = false) String status) {
         List<OrderResponse> orders = status != null
@@ -201,5 +201,11 @@ public class OrderController {
         Integer rating = body.get("rating") != null ? Integer.valueOf(body.get("rating").toString()) : null;
         String feedback = body.get("feedback") != null ? body.get("feedback").toString() : null;
         return ResponseEntity.ok(ApiResponse.success(orderService.submitFeedback(id, user, rating, feedback)));
+    }
+
+    @GetMapping("/feedback")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getFeedbackHistory() {
+        return ResponseEntity.ok(ApiResponse.success(orderService.getFeedbackHistory()));
     }
 }

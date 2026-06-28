@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { BkbLogo } from '../components/ui/BkbLogo';
 import { ArrowRight, Flame, Star, Award, ShieldCheck, Moon, Sun, ShoppingBag } from 'lucide-react';
+import { advertisementService, Advertisement } from '../services/advertisement.service';
+import { getImageUrl } from '../utils/imageUtils';
+import { IngredientOutageBanner } from '../components/IngredientOutageBanner';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,9 +20,26 @@ export const LandingPage: React.FC = () => {
     localStorage.setItem('bkb-theme', newTheme);
   };
 
+  const [ads, setAds] = useState<Advertisement[]>([]);
+  const [loadingAds, setLoadingAds] = useState(true);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const res = await advertisementService.getAll(true, 'LANDING');
+        setAds(res.data);
+      } catch (err) {
+        console.error('Failed to load ads', err);
+      } finally {
+        setLoadingAds(false);
+      }
+    };
+    fetchAds();
+  }, []);
 
   const handleOrderNow = () => {
     if (isAuthenticated) {
@@ -28,33 +48,6 @@ export const LandingPage: React.FC = () => {
       navigate('/login');
     }
   };
-
-  const signatureItems = [
-    { 
-      name: 'BKB Double Beef Burger', 
-      desc: 'Double flame-grilled beef patties with melted cheddar cheese and signature special sauce.', 
-      price: 'RM16.90', 
-      image: '/bkb_double_beef_burger.png', 
-      rating: '4.9',
-      tag: 'BESTSELLER'
-    },
-    { 
-      name: 'BKB Special Oblong', 
-      desc: 'Oblong beef patty wrapped in egg, grilled with local onions and black pepper sauce.', 
-      price: 'RM12.50', 
-      image: '/bkb_special_oblong.png', 
-      rating: '4.8',
-      tag: 'LOCAL FAVOURITE'
-    },
-    { 
-      name: 'Crispy Chicken Zesty', 
-      desc: 'Crispy deep-fried chicken thigh topped with fresh lettuce and zesty mayonnaise.', 
-      price: 'RM14.20', 
-      image: '/bkb_crispy_chicken_burger.png', 
-      rating: '4.7',
-      tag: 'NEW RELEASE'
-    }
-  ];
 
   return (
     <div
@@ -66,6 +59,7 @@ export const LandingPage: React.FC = () => {
         overflowX: 'hidden'
       }}
     >
+      <IngredientOutageBanner />
       {/* Premium Header */}
       <header
         style={{
@@ -390,9 +384,14 @@ export const LandingPage: React.FC = () => {
               gap: '24px'
             }}
           >
-            {signatureItems.map((item, idx) => (
+            {loadingAds ? (
+              Array.from({ length: 3 }).map((_, idx) => (
+                <div key={idx} style={{ background: 'var(--background)', height: 320, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }} className="animate-pulse" />
+              ))
+            ) : ads.length > 0 ? (
+              ads.map((ad) => (
               <div
-                key={idx}
+                key={ad.id}
                 className="card card-hover"
                 style={{
                   background: 'var(--background)',
@@ -414,12 +413,12 @@ export const LandingPage: React.FC = () => {
                   }}
                 >
                   <img 
-                    src={item.image} 
-                    alt={item.name} 
+                    src={getImageUrl(ad.imageUrl)} 
+                    alt={ad.title} 
                     className="signature-card-img"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
-                  {item.tag && (
+                  {ad.type !== 'BANNER' && (
                     <span style={{
                       position: 'absolute',
                       top: '12px',
@@ -433,7 +432,7 @@ export const LandingPage: React.FC = () => {
                       fontWeight: 800,
                       letterSpacing: '0.5px'
                     }}>
-                      {item.tag}
+                      {ad.type}
                     </span>
                   )}
                 </div>
@@ -441,32 +440,26 @@ export const LandingPage: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-dark)' }}>
-                      {item.name}
+                      {ad.title}
                     </h3>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                      ★ {item.rating}
-                    </span>
                   </div>
                   <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.4 }}>
-                    {item.desc}
+                    {ad.subtitle}
                   </p>
                 </div>
 
                 <div
                   style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
+                    justifyContent: 'flex-end',
                     alignItems: 'center',
                     marginTop: 'auto',
                     paddingTop: '12px',
                     borderTop: '1px solid var(--border)'
                   }}
                 >
-                  <span style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary)' }}>
-                    {item.price}
-                  </span>
                   <button
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate('/menu')}
                     style={{
                       background: 'rgba(255, 107, 0, 0.06)',
                       color: 'var(--primary)',
@@ -490,11 +483,16 @@ export const LandingPage: React.FC = () => {
                       e.currentTarget.style.borderColor = 'rgba(255, 107, 0, 0.15)';
                     }}
                   >
-                    Order Now
+                    View Menu
                   </button>
                 </div>
               </div>
-            ))}
+              ))
+            ) : (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+                More exciting updates coming soon!
+              </div>
+            )}
           </div>
         </div>
       </section>

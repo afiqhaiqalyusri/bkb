@@ -83,6 +83,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.rating IS NOT NULL ORDER BY o.createdAt DESC LIMIT 20")
     List<Order> findRecentFeedback();
 
+    @EntityGraph(attributePaths = {"user", "items", "items.menuItem"})
+    List<Order> findByRatingIsNotNullOrderByCreatedAtDesc();
+
     @Query("SELECT o.completedByName, COUNT(o.id) FROM Order o WHERE o.completedById IS NOT NULL AND o.createdAt BETWEEN :from AND :to GROUP BY o.completedByName ORDER BY COUNT(o.id) DESC")
     List<Object[]> getStaffPerformance(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

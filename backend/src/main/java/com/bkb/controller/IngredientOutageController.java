@@ -23,8 +23,16 @@ public class IngredientOutageController {
         return ResponseEntity.ok(ApiResponse.success(ingredientOutageRepository.findAll()));
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<IngredientOutage>>> getActiveOutages() {
+        List<IngredientOutage> active = ingredientOutageRepository.findAll().stream()
+                .filter(IngredientOutage::getOutOfStock)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(active));
+    }
+
     @PatchMapping("/{name}/toggle")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<IngredientOutage>> toggleOutage(@PathVariable String name) {
         IngredientOutage outage = ingredientOutageRepository.findById(name)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingredient " + name + " not found"));

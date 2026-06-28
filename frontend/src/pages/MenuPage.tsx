@@ -4,6 +4,7 @@ import { MenuItem, Promotion, Order } from '../types';
 import { menuService } from '../services/menu.service';
 import { ingredientService } from '../services/ingredient.service';
 import { orderService } from '../services/order.service';
+import { advertisementService, Advertisement } from '../services/advertisement.service';
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
 import { useMenuStore } from '../store/menuStore';
@@ -17,6 +18,7 @@ import { getFoodImage } from '../utils/foodImages';
 import { EmptyState } from '../components/ui/EmptyState';
 import { CustomiseModal } from '../components/CustomiseModal';
 import { Search } from 'lucide-react';
+import { IngredientOutageBanner } from '../components/IngredientOutageBanner';
 
 /* ─── Food emojis ─── */
 const getFoodEmoji = (category: string): string => {
@@ -265,6 +267,7 @@ export const MenuPage: React.FC = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [ads, setAds] = useState<Advertisement[]>([]);
   const { activeCategory, setActiveCategory } = useMenuStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -282,11 +285,13 @@ export const MenuPage: React.FC = () => {
     setError(false);
     Promise.all([
       menuService.getAll(),
-      menuService.getPromotions()
+      menuService.getPromotions(),
+      advertisementService.getAll(true, 'MENU')
     ])
-      .then(([i, p]) => {
+      .then(([i, p, a]) => {
         setItems(i.data);
         setPromotions(p.data);
+        setAds(a.data);
         setError(false);
       })
       .catch((err) => {
@@ -332,6 +337,7 @@ export const MenuPage: React.FC = () => {
   const cartCount = itemCount();
   const cartTotal = total();
   const promo = promotions[0];
+  const activeAd = ads[0];
 
   if (loading) return (
     <div className="loading-screen" style={{ background: 'var(--background)' }}>
@@ -349,6 +355,7 @@ export const MenuPage: React.FC = () => {
 
   return (
     <PageShell activeKey="/menu">
+      <IngredientOutageBanner />
       {/* ── Slide container ── */}
       <div style={{ position:'relative', overflow:'hidden', minHeight:'100vh' }}>
 
@@ -381,8 +388,21 @@ export const MenuPage: React.FC = () => {
                 {searchQuery && <button onClick={() => setSearchQuery('')} style={{ border:'none', background:'none', cursor:'pointer', color:'var(--text-secondary)', fontSize:'0.9rem' }}>✕</button>}
               </div>
 
-              {/* Promo banner */}
-              {promo && (
+              {/* Promo banner / Ad */}
+              {activeAd ? (
+                <div style={{ background:'linear-gradient(135deg,#1A1008,#3D1F1C)', borderRadius:14, padding:'12px 14px', marginTop:12, display:'flex', justifyContent:'space-between', alignItems:'center', overflow:'hidden', position:'relative' }}>
+                  <div style={{ zIndex: 1 }}>
+                    <div style={{ fontSize:'0.62rem', fontWeight:700, color:'rgba(255,255,255,0.6)', marginBottom:1 }}>🔥 {activeAd.type === 'SEASONAL' ? 'SEASONAL OFFER' : 'FEATURED'}</div>
+                    <div style={{ fontFamily:'Poppins', fontWeight:700, fontSize:'0.85rem', color:'#fff' }}>{activeAd.title}</div>
+                    {activeAd.subtitle && <div style={{ fontSize:'0.7rem', color:'rgba(255,255,255,0.8)' }}>{activeAd.subtitle}</div>}
+                  </div>
+                  {activeAd.imageUrl ? (
+                    <img src={activeAd.imageUrl.startsWith('http') ? activeAd.imageUrl : `http://localhost:8081${activeAd.imageUrl}`} alt="" style={{ height: 48, objectFit: 'contain', zIndex: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+                  ) : (
+                    <span style={{ fontSize:'2rem', opacity:0.2, position:'absolute', right:10, bottom:-2 }}>🍔</span>
+                  )}
+                </div>
+              ) : promo && (
                 <div style={{ background:'linear-gradient(135deg,#1A1008,#3D1F1C)', borderRadius:14, padding:'12px 14px', marginTop:12, display:'flex', justifyContent:'space-between', alignItems:'center', overflow:'hidden', position:'relative' }}>
                   <div>
                     <div style={{ fontSize:'0.62rem', fontWeight:700, color:'rgba(255,255,255,0.6)', marginBottom:1 }}>🔥 LIMITED OFFER</div>

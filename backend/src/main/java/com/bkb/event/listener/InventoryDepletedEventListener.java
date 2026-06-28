@@ -5,6 +5,8 @@ import com.bkb.entity.RecipeIngredient;
 import com.bkb.event.InventoryDepletedEvent;
 import com.bkb.repository.MenuItemRepository;
 import com.bkb.repository.RecipeIngredientRepository;
+import com.bkb.entity.IngredientOutage;
+import com.bkb.repository.IngredientOutageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -20,6 +22,7 @@ public class InventoryDepletedEventListener {
 
     private final RecipeIngredientRepository recipeIngredientRepository;
     private final MenuItemRepository menuItemRepository;
+    private final IngredientOutageRepository ingredientOutageRepository;
 
     @EventListener
     @Transactional
@@ -36,6 +39,15 @@ public class InventoryDepletedEventListener {
                 log.info("Auto-disabled MenuItem '{}' due to out-of-stock ingredient '{}'", 
                         menuItem.getName(), event.getInventory().getItemName());
             }
+        }
+
+        IngredientOutage outage = ingredientOutageRepository.findById(event.getInventory().getItemName())
+                .orElse(IngredientOutage.builder().name(event.getInventory().getItemName()).build());
+        
+        if (!outage.getOutOfStock()) {
+            outage.setOutOfStock(true);
+            ingredientOutageRepository.save(outage);
+            log.info("Recorded IngredientOutage for '{}'", event.getInventory().getItemName());
         }
     }
 }

@@ -4,7 +4,7 @@ import { Plus, Edit2, Trash2, ToggleLeft, ToggleRight, X, Tag, Image as ImageIco
 import { MenuItem } from '../../types';
 import { menuService } from '../../services/menu.service';
 import { categoryService } from '../../services/category.service';
-import { ManagerLayout } from './ManagerDashboard';
+import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { IngredientsContent } from './ManagerIngredients';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatRM } from '../../utils/formatCurrency';

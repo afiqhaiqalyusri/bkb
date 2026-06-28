@@ -5,19 +5,12 @@ import { BkbLogo } from '../components/ui/BkbLogo';
 import toast from 'react-hot-toast';
 import { Mail, ArrowLeft, ArrowRight } from 'lucide-react';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
+import { AuthLayout } from '../components/layout/AuthLayout';
 
 export const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
-
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (localStorage.getItem('bkb-theme') as 'light' | 'dark') || 'light';
-  });
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,17 +35,7 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--background)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        position: 'relative'
-      }}
-    >
+    <AuthLayout>
       {loading && (
         <FullScreenLoader
           message="Sending reset email..."
@@ -138,6 +121,6 @@ export const ForgotPasswordPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

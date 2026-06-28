@@ -6,6 +6,7 @@ import { BkbLogo } from '../components/ui/BkbLogo';
 import toast from 'react-hot-toast';
 import { FullScreenLoader } from '../components/ui/FullScreenLoader';
 import { Mail, ArrowLeft, RefreshCw } from 'lucide-react';
+import { AuthLayout } from '../components/layout/AuthLayout';
 
 export const VerifyOtpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -113,16 +114,7 @@ export const VerifyOtpPage: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--background)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px'
-      }}
-    >
+    <AuthLayout>
       {loading && (
         <FullScreenLoader
           message="Verifying code..."
@@ -253,6 +245,6 @@ export const VerifyOtpPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

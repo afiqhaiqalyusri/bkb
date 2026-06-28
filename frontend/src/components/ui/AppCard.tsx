@@ -7,6 +7,7 @@ interface AppCardProps {
   headerAction?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
   noPadding?: boolean;
 }
 
@@ -17,13 +18,15 @@ export const AppCard: React.FC<AppCardProps> = ({
   headerAction,
   children,
   className = '',
+  style,
   noPadding = false,
 }) => {
   return (
     <div
       className={`bg-[var(--bkb-card-bg)] rounded-xl border border-[var(--bkb-border)] shadow-sm overflow-hidden ${className}`}
       style={{
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+        ...style,
       }}
     >
       {(title || headerAction) && (

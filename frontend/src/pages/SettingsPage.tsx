@@ -12,6 +12,7 @@ import { FullScreenLoader } from '../components/ui/FullScreenLoader';
 import { FAQModal } from '../components/feature/settings/FAQModal';
 import { EditProfileModal } from '../components/feature/settings/EditProfileModal';
 import { ChangePasswordModal } from '../components/feature/settings/ChangePasswordModal';
+import { FeedbackHistoryModal } from '../components/feature/settings/FeedbackHistoryModal';
 
 /* ─── Icons ─── */
 const IcoUser     = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
@@ -116,6 +117,7 @@ export const SettingsPage: React.FC = () => {
 
   const [orders, setOrders] = React.useState<any[]>([]);
   const [showFAQ, setShowFAQ] = React.useState(false);
+  const [showFeedbackHistory, setShowFeedbackHistory] = React.useState(false);
 
   React.useEffect(() => {
     if (isAuthenticated && user?.role === 'CUSTOMER') {
@@ -602,6 +604,13 @@ export const SettingsPage: React.FC = () => {
             />
             <div style={{ height: 1, background: 'var(--border)', margin: '0 16px' }} />
             <SettingRow
+              icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
+              label="Customer Feedback History"
+              sublabel="View recent ratings and feedback from customers"
+              onClick={() => setShowFeedbackHistory(true)}
+            />
+            <div style={{ height: 1, background: 'var(--border)', margin: '0 16px' }} />
+            <SettingRow
               icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>}
               label="Tax Configuration (SST)"
               sublabel="Active Malaysia sales and services tax rate"
@@ -1016,7 +1025,10 @@ export const SettingsPage: React.FC = () => {
       `}</style>
 
       {/* ── FAQ Modal ── */}
+
       {showFAQ && <FAQModal onClose={() => setShowFAQ(false)} />}
+      
+      <FeedbackHistoryModal isOpen={showFeedbackHistory} onClose={() => setShowFeedbackHistory(false)} />
     </PageShell>
   );
 };

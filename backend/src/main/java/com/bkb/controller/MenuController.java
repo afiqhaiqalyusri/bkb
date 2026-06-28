@@ -26,7 +26,7 @@ public class MenuController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<MenuItemResponse>>> getAllItemsForStaff() {
         return ResponseEntity.ok(ApiResponse.success(menuService.getAllItems()));
     }

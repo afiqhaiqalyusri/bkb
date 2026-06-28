@@ -8,6 +8,7 @@ interface AppEmptyStateProps {
   icon?: LucideIcon;
   actionLabel?: string;
   onAction?: () => void;
+  action?: React.ReactNode;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export const AppEmptyState: React.FC<AppEmptyStateProps> = ({
   icon: Icon = Inbox,
   actionLabel,
   onAction,
+  action,
   className = ''
 }) => {
   return (
@@ -31,6 +33,7 @@ export const AppEmptyState: React.FC<AppEmptyStateProps> = ({
           {actionLabel}
         </AppButton>
       )}
+      {action && <div className="mt-2">{action}</div>}
     </div>
   );
 };

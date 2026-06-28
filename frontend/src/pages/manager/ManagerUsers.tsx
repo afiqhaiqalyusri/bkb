@@ -5,7 +5,7 @@ import {
   Calendar, MessageSquare, Shield, Mail, Phone, FileText,
   UserCheck, UserX, ChevronDown, ChevronUp, Users, AlertCircle
 } from 'lucide-react';
-import { ManagerLayout } from './ManagerDashboard';
+import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { staffService } from '../../services/manager.service';
 import { orderService } from '../../services/order.service';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';

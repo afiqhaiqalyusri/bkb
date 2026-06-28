@@ -29,6 +29,10 @@ import { ManagerWasteLog } from './pages/manager/ManagerWasteLog';
 import { ManagerLoyalty } from './pages/manager/ManagerLoyalty';
 import { ManagerSettings } from './pages/manager/ManagerSettings';
 import { ManagerUsers } from './pages/manager/ManagerUsers';
+import { ManagerCategories } from './pages/manager/ManagerCategories';
+import { ManagerIngredients } from './pages/manager/ManagerIngredients';
+import { ManagerRecipes } from './pages/manager/ManagerRecipes';
+import { ManagerAdvertisements } from './pages/manager/ManagerAdvertisements';
 import { SettingsPage } from './pages/SettingsPage';
 import { FavouritesPage } from './pages/FavouritesPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
@@ -92,12 +96,15 @@ const router = createBrowserRouter([
       { path: 'manager/menu', element: <ManagerGuard><ManagerMenu /></ManagerGuard> },
       { path: 'manager/inventory', element: <ManagerGuard><ManagerInventory /></ManagerGuard> },
       { path: 'manager/waste', element: <ManagerGuard><ManagerWasteLog /></ManagerGuard> },
+      { path: 'manager/categories', element: <ManagerGuard><ManagerCategories /></ManagerGuard> },
+      { path: 'manager/ingredients', element: <ManagerGuard><ManagerIngredients /></ManagerGuard> },
       { path: 'manager/staff', element: <ManagerGuard><Navigate to="/manager/users?tab=staff" replace /></ManagerGuard> },
       { path: 'manager/loyalty', element: <ManagerGuard><ManagerLoyalty /></ManagerGuard> },
       { path: 'manager/users', element: <ManagerGuard><ManagerUsers /></ManagerGuard> },
       { path: 'manager/settings', element: <ManagerGuard><ManagerSettings /></ManagerGuard> },
       { path: 'manager/customers', element: <ManagerGuard><Navigate to="/manager/users?tab=customers" replace /></ManagerGuard> },
-      { path: 'manager/ingredients', element: <ManagerGuard><Navigate to="/manager/menu?tab=customize" replace /></ManagerGuard> },
+      { path: 'manager/recipes', element: <ManagerGuard><ManagerRecipes /></ManagerGuard> },
+      { path: 'manager/advertisements', element: <ManagerGuard><ManagerAdvertisements /></ManagerGuard> },
       
       { path: 'reset-password', element: <ResetPasswordPage /> },
       { path: '403', element: <AccessDeniedPage /> },

@@ -358,6 +358,10 @@ public class OrderService {
             throw new InvalidOrderStateException("You can only rate completed orders");
         }
 
+        if (order.getCompletedAt() != null && java.time.LocalDateTime.now().isAfter(order.getCompletedAt().plusHours(24))) {
+            throw new InvalidOrderStateException("Feedback can only be submitted within 24 hours of order completion");
+        }
+
         if (rating == null || rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
@@ -473,6 +477,11 @@ public class OrderService {
         }
         order.setStatus(OrderStatus.CANCELLED);
         return toResponse(orderRepository.save(order));
+    }
+
+    public List<OrderResponse> getFeedbackHistory() {
+        return orderRepository.findByRatingIsNotNullOrderByCreatedAtDesc()
+                .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     // ─── Payment Callbacks ───────────────────────────────────────

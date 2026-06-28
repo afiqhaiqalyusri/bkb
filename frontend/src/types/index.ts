@@ -256,4 +256,35 @@ export interface PageResponse<T> {
   empty: boolean;
 }
 
+// ─── Recipe / Ingredient Recipe Types ───────────────────────────────────────
+export interface RecipeIngredientItem {
+  id: number;
+  inventoryId: number;
+  inventoryName: string;
+  unit: string;
+  trackingType: 'AUTO' | 'MANUAL';
+  quantity: number;
+  isOptional: boolean;
+  currentStock: number;
+  stockStatus: 'GOOD' | 'LOW' | 'CRITICAL';
+}
+
+export interface Recipe {
+  id?: number;
+  menuItemId: number;
+  menuItemName: string;
+  menuItemCategory: string;
+  menuItemImageUrl?: string;
+  notes?: string;
+  updatedAt?: string;
+  ingredients: RecipeIngredientItem[];
+}
+
+export interface RecipeIngredientRequest {
+  inventoryId: number;
+  quantity: number;
+  isOptional: boolean;
+}
+
+
 

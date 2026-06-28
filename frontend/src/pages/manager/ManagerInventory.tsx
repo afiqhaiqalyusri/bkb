@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Sliders, RefreshCw, X, Package, AlertTriangle, AlertCircle, Database } from 'lucide-react';
 import { InventoryItem } from '../../types';
 import { inventoryService } from '../../services/inventory.service';
-import { ManagerLayout } from './ManagerDashboard';
+import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorState } from '../../components/ui/ErrorState';
 import toast from 'react-hot-toast';

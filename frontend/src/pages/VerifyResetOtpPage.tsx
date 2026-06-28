@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BkbLogo } from '../components/ui/BkbLogo';
 import { Mail, ArrowLeft, ArrowRight, Key } from 'lucide-react';
+import { AuthLayout } from '../components/layout/AuthLayout';
 
 export const VerifyResetOtpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,16 +25,7 @@ export const VerifyResetOtpPage: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--background)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px'
-      }}
-    >
+    <AuthLayout>
       <div style={{ width: '100%', maxWidth: '380px' }} className="animate-fade-in-up">
         {/* Logo */}
         <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
@@ -113,6 +105,6 @@ export const VerifyResetOtpPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

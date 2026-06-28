@@ -62,6 +62,11 @@ spring:
     caffeine:
       spec: maximumSize=10000,expireAfterWrite=60s
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 server:
   port: 8081
   servlet:

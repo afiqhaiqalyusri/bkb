@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, ChevronRight, AlertCircle, Sparkles, Image as ImageIcon, Search, Sliders } from 'lucide-react';
-import { ManagerLayout } from './ManagerDashboard';
+import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { ingredientService } from '../../services/ingredient.service';
 import { menuService } from '../../services/menu.service';
 import { categoryService } from '../../services/category.service';

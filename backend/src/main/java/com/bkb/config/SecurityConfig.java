@@ -129,6 +129,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/orders/store-status").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/orders/track/*").permitAll()
 
+                // Advertisements, Uploads & Outages (public)
+                .requestMatchers(HttpMethod.GET, "/api/advertisements").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/ingredients/outage", "/api/ingredients/outage/active").permitAll()
+                .requestMatchers("/uploads/**").permitAll()
+
                 // Payment callbacks and redirects (from ToyyibPay - no auth)
                 .requestMatchers("/api/payments/callback", "/api/payments/verify-redirect").permitAll()
                 .requestMatchers(

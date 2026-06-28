@@ -14,9 +14,9 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   ON_HOLD:        'Scheduled',
   INCOMING_ORDER: 'In Queue',
   PENDING:        'In Queue',
-  ACCEPTED:       'Preparing Soon',
-  GRILLING:       'Preparing Soon',
-  ASSEMBLING:     'Preparing Soon',
+  ACCEPTED:       'Preparing',
+  GRILLING:       'Grilling',
+  ASSEMBLING:     'Assembling',
   READY:          'Ready',
   COMPLETED:      'Completed',
   CANCELLED:      'Cancelled',
@@ -47,7 +47,7 @@ export const estimateWaitTime = (status: OrderStatus): string => {
     ACCEPTED:       '~12 min',
     GRILLING:       '~8 min',
     ASSEMBLING:     '~3 min',
-    READY:          'Now!',
+    READY:          'Ready for Pickup!',
   };
   return estimates[status] || '';
 };
