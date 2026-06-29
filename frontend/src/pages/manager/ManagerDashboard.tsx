@@ -19,11 +19,11 @@ import { StatCard } from '../../components/dashboard/StatCard';
 import { DashboardCard } from '../../components/dashboard/DashboardCard';
 import { ChartCard } from '../../components/dashboard/ChartCard';
 import { StatusBadge } from '../../components/dashboard/StatusBadge';
-import { SectionHeader } from '../../components/dashboard/SectionHeader';
 
-// Legacy UI Components (kept for complex tables)
+// UI Components
 import { AppTable, Column } from '../../components/ui/AppTable';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
+import { AppButton } from '../../components/ui/AppButton';
 
 // ─── 1. Overview Tab ──────────────────────────────────────────────────────────
 const OverviewContent: React.FC<{
@@ -40,48 +40,43 @@ const OverviewContent: React.FC<{
   return (
     <div className="space-y-6">
       
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary to-red-dark rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-black opacity-10 rounded-full blur-2xl"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Welcome back to BKB Console</h2>
-            <p className="text-orange-100 mb-6 max-w-lg">Here's what's happening with your restaurant today. Review performance, manage inventory, and keep track of your team.</p>
-            <div className="flex gap-4">
-              <button onClick={() => onNavigate('reports')} className="bg-white text-primary px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-orange-50 transition-colors shadow-sm">
-                View Full Report
-              </button>
-            </div>
+      {/* Hero Welcome Section (Slightly elevated, clean banner) */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-sm">
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mb-1.5 tracking-tight">Welcome back to BKB Console</h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
+            Here is a snapshot of your restaurant's activity. Track total order volumes, optimize inventory alerts, and check real-time sales trends.
+          </p>
+          <div className="flex gap-3 mt-5">
+            <AppButton variant="secondary" size="sm" onClick={() => onNavigate('reports')}>
+              View Detailed Sales Report
+            </AppButton>
           </div>
-          
-          <div className="flex gap-6 bg-black/20 p-5 rounded-xl backdrop-blur-sm border border-white/10">
-            <div>
-              <p className="text-orange-200 text-xs font-semibold uppercase tracking-wider mb-1">Today's Revenue</p>
-              <p className="text-3xl font-bold">{formatRM(execData?.revenue?.value ?? 0)}</p>
-            </div>
-            <div className="w-px bg-white/20"></div>
-            <div>
-              <p className="text-orange-200 text-xs font-semibold uppercase tracking-wider mb-1">Today's Orders</p>
-              <p className="text-3xl font-bold">{execData?.orders?.value ?? 0}</p>
-            </div>
+        </div>
+        
+        <div className="flex items-center gap-6 bg-slate-50 dark:bg-slate-950 p-5 rounded-xl border border-slate-100 dark:border-slate-900 shrink-0">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Today's Revenue</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{formatRM(execData?.revenue?.value ?? 0)}</p>
+          </div>
+          <div className="w-px h-10 bg-slate-200 dark:bg-slate-800"></div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Today's Orders</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{execData?.orders?.value ?? 0}</p>
           </div>
         </div>
       </div>
 
-      <SectionHeader title="Executive Summary" subtitle="Key performance indicators for the current period" />
-
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard 
           title="Total Revenue" 
           value={formatRM(execData?.revenue?.value ?? 0)} 
           icon={DollarSign} 
           trend={parseFloat(execData?.revenue?.percentChange || '0')} 
           trendLabel="vs last month"
-          iconBgColor="rgba(34, 197, 94, 0.1)"
-          iconColor="#22c55e"
+          iconBgColor="rgba(16, 185, 129, 0.05)"
+          iconColor="#10b981"
         />
         <StatCard 
           title="Estimated Profit" 
@@ -89,7 +84,7 @@ const OverviewContent: React.FC<{
           icon={TrendingUp} 
           trend={parseFloat(execData?.profit?.percentChange || '0')} 
           trendLabel="vs last month"
-          iconBgColor="rgba(59, 130, 246, 0.1)"
+          iconBgColor="rgba(59, 130, 246, 0.05)"
           iconColor="#3b82f6"
         />
         <StatCard 
@@ -98,7 +93,7 @@ const OverviewContent: React.FC<{
           icon={ShoppingBag} 
           trend={parseFloat(execData?.orders?.percentChange || '0')} 
           trendLabel="vs last month"
-          iconBgColor="rgba(168, 85, 247, 0.1)"
+          iconBgColor="rgba(168, 85, 247, 0.05)"
           iconColor="#a855f7"
         />
         <StatCard 
@@ -107,14 +102,15 @@ const OverviewContent: React.FC<{
           icon={Users} 
           trend={parseFloat(execData?.customers?.percentChange || '0')} 
           trendLabel="vs last month"
-          iconBgColor="rgba(255, 107, 0, 0.1)"
+          iconBgColor="rgba(255, 107, 0, 0.05)"
           iconColor="var(--primary)"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Peak Hours Chart */}
         <div className="lg:col-span-2">
-          <ChartCard title="Order Volume Trend" subtitle="Peak hours for the current period">
+          <ChartCard title="Order Volume Trend" subtitle="Hourly distribution of orders placed during this period">
             {(!execData?.peakHours || execData.peakHours.length === 0) ? (
               <AppEmptyState title="No data available" icon={BarChart3} />
             ) : (
@@ -122,43 +118,54 @@ const OverviewContent: React.FC<{
                 <AreaChart data={execData.peakHours.map((d: any) => ({ name: d.hour, Orders: d.orderCount }))} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4} />
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
                       <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                  <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.4} />
+                  <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--text-secondary)" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} />
                   <Tooltip 
-                    contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                    contentStyle={{ 
+                      background: 'var(--surface)', 
+                      border: '1px solid var(--border)', 
+                      borderRadius: '12px', 
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                      fontSize: '12px',
+                      color: 'var(--text-primary)'
+                    }} 
                   />
-                  <Area type="monotone" dataKey="Orders" stroke="var(--primary)" fillOpacity={1} fill="url(#colorOrders)" strokeWidth={3} />
+                  <Area type="monotone" dataKey="Orders" stroke="var(--primary)" fillOpacity={1} fill="url(#colorOrders)" strokeWidth={2.5} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
           </ChartCard>
         </div>
 
+        {/* Low Stock Alerts */}
         <div>
           <DashboardCard>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">Inventory Alerts</h3>
-              <button onClick={() => window.location.href = '/manager/inventory'} className="text-sm font-semibold text-primary hover:text-red-dark">Manage</button>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Inventory Alerts</h3>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 uppercase tracking-wider font-semibold">Critical raw items</p>
+              </div>
+              <AppButton variant="ghost" size="sm" onClick={() => window.location.href = '/manager/inventory'}>Manage</AppButton>
             </div>
             
             {lowStock.length === 0 ? (
-              <AppEmptyState title="All stock healthy" icon={CheckCircle2} />
+              <AppEmptyState title="All stocks healthy" icon={CheckCircle2} />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {lowStock.slice(0, 5).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-slate-700 last:border-0 last:pb-0">
+                  <div key={item.id} className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${item.status === 'CRITICAL' ? 'bg-red-100 text-red-600 dark:bg-red-900/30' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30'}`}>
-                        <AlertCircle size={18} />
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${item.status === 'CRITICAL' ? 'bg-rose-50 text-rose-500 dark:bg-rose-950/20' : 'bg-amber-50 text-amber-500 dark:bg-amber-950/20'}`}>
+                        <AlertCircle size={16} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{item.itemName}</p>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">{item.category}</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">{item.itemName}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">{item.category}</p>
                       </div>
                     </div>
                     <StatusBadge 
@@ -173,27 +180,31 @@ const OverviewContent: React.FC<{
         </div>
       </div>
 
+      {/* Top Sellers Grid */}
       {report?.topItems && report.topItems.length > 0 && (
         <DashboardCard>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">Top Selling Items</h3>
-              <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Best performing food items</p>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Top Selling Items</h3>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold mt-0.5">Best performing items on the menu</p>
             </div>
-            <button onClick={() => onNavigate('reports')} className="text-sm font-semibold text-primary hover:text-red-dark flex items-center gap-1">
-              Full Report <ArrowRight size={16} />
-            </button>
+            <AppButton variant="ghost" size="sm" onClick={() => onNavigate('reports')} className="group font-bold text-xs uppercase tracking-wider">
+              <span>Full Analytics</span>
+              <ArrowRight size={14} className="ml-1 transition-transform group-hover:translate-x-1" />
+            </AppButton>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {report.topItems.slice(0, 6).map((item: any, idx: number) => (
-              <div key={idx} className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-4 flex items-center gap-4 hover:bg-orange-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
-                <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-slate-700 flex items-center justify-center font-bold text-primary group-hover:scale-110 transition-transform">
+              <div key={idx} className="bg-slate-50/50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800/80 rounded-xl p-4 flex items-center gap-4 hover:border-slate-200 transition-colors cursor-pointer group">
+                <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center font-extrabold text-primary group-hover:scale-105 transition-transform text-sm shrink-0">
                   #{idx + 1}
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-gray-900 dark:text-white">{item.itemName}</div>
-                  <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{item.totalQuantity} sold · <span className="font-semibold text-gray-700 dark:text-slate-300">{formatRM(item.totalRevenue)}</span></div>
+                  <div className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white">{item.itemName}</div>
+                  <div className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
+                    {item.totalQuantity} sold · <span className="font-bold text-slate-600 dark:text-slate-300">{formatRM(item.totalRevenue)}</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -242,10 +253,10 @@ const ReportsContent: React.FC = () => {
   };
 
   const salesCols: Column<any>[] = [
-    { header: 'Rank', render: (item: any) => report?.topItems ? <span className="font-bold text-gray-500">#{report.topItems.indexOf(item) + 1}</span> : '', width: '60px' },
+    { header: 'Rank', render: (item: any) => report?.topItems ? <span className="font-bold text-slate-400">#{report.topItems.indexOf(item) + 1}</span> : '', width: '60px' },
     { header: 'Item', accessor: 'itemName' },
     { header: 'Units Sold', accessor: 'totalQuantity', align: 'center' },
-    { header: 'Revenue', render: (item) => <span className="font-semibold">{formatRM(item.totalRevenue)}</span>, align: 'right' },
+    { header: 'Revenue', render: (item) => <span className="font-bold text-slate-800 dark:text-white">{formatRM(item.totalRevenue)}</span>, align: 'right' },
   ];
 
   const staffCols: Column<any>[] = [
@@ -257,37 +268,37 @@ const ReportsContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <DashboardCard className="!bg-white dark:!bg-slate-800">
+      <DashboardCard className="!bg-white dark:!bg-slate-900 border border-slate-100 dark:border-slate-800">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <Calendar size={20} className="text-gray-400" />
+            <Calendar size={18} className="text-slate-400" />
             <input
               type="date" value={from} onChange={e => setFrom(e.target.value)}
-              className="border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
+              className="border border-slate-200 dark:border-slate-800 rounded-lg px-3.5 py-2 text-xs font-bold bg-white dark:bg-slate-950 text-slate-700 dark:text-white focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-shadow"
             />
-            <span className="text-sm font-medium text-gray-500">to</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">to</span>
             <input
               type="date" value={to} onChange={e => setTo(e.target.value)}
-              className="border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
+              className="border border-slate-200 dark:border-slate-800 rounded-lg px-3.5 py-2 text-xs font-bold bg-white dark:bg-slate-950 text-slate-700 dark:text-white focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-shadow"
             />
-            <button onClick={loadReport} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-dark transition-colors">Apply Filter</button>
+            <AppButton variant="primary" size="sm" onClick={loadReport} className="text-xs uppercase tracking-wider font-bold">Apply Filter</AppButton>
           </div>
-          <button onClick={handleExport} className="flex items-center gap-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-            <Download size={16} /> Export CSV
-          </button>
+          <AppButton variant="secondary" size="sm" onClick={handleExport} icon={Download} className="text-xs uppercase tracking-wider font-bold">
+            Export CSV
+          </AppButton>
         </div>
       </DashboardCard>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Total Revenue" value={formatRM(report?.totalRevenue ?? 0)} icon={DollarSign} iconBgColor="rgba(34, 197, 94, 0.1)" iconColor="#22c55e" />
-        <StatCard title="Total Orders" value={report?.totalOrders ?? 0} icon={FileText} iconBgColor="rgba(59, 130, 246, 0.1)" iconColor="#3b82f6" />
-        <StatCard title="Avg Order Value" value={formatRM(report?.avgOrderValue ?? 0)} icon={TrendingUp} iconBgColor="rgba(168, 85, 247, 0.1)" iconColor="#a855f7" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <StatCard title="Total Revenue" value={formatRM(report?.totalRevenue ?? 0)} icon={DollarSign} iconBgColor="rgba(16, 185, 129, 0.05)" iconColor="#10b981" />
+        <StatCard title="Total Orders" value={report?.totalOrders ?? 0} icon={FileText} iconBgColor="rgba(59, 130, 246, 0.05)" iconColor="#3b82f6" />
+        <StatCard title="Avg Order Value" value={formatRM(report?.avgOrderValue ?? 0)} icon={TrendingUp} iconBgColor="rgba(168, 85, 247, 0.05)" iconColor="#a855f7" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DashboardCard>
           <div className="mb-4">
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">Top Selling Items</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Top Selling Items</h3>
           </div>
           {(!report?.topItems || report.topItems.length === 0) ? (
             <AppEmptyState title="No sales data" icon={BarChart3} />
@@ -300,7 +311,7 @@ const ReportsContent: React.FC = () => {
 
         <DashboardCard>
           <div className="mb-4">
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">Staff Performance</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Staff Performance</h3>
           </div>
           {(!staffPerformance || staffPerformance.length === 0) ? (
             <AppEmptyState title="No staff data" icon={Users} />
@@ -342,11 +353,11 @@ const AuditLogsContent: React.FC = () => {
 
   const cols: Column<any>[] = [
     { header: 'Timestamp', render: (l: any) => new Date(l.createdAt).toLocaleString('en-MY') },
-    { header: 'User', render: (l: any) => l.userEmail || 'System' },
+    { header: 'User', render: (l: any) => <span className="font-semibold text-slate-700 dark:text-white">{l.userEmail || 'System'}</span> },
     { header: 'Role', render: (l: any) => <StatusBadge status={l.userRole === 'ADMIN' ? 'danger' : 'info'} label={l.userRole || 'SYSTEM'} /> },
     { header: 'Event', accessor: 'action' },
     { header: 'Details', accessor: 'details' },
-    { header: 'IP', render: (l: any) => l.ipAddress || '-' },
+    { header: 'IP Address', render: (l: any) => <span className="font-mono text-xs">{l.ipAddress || '-'}</span> },
   ];
 
   if (loading) return <TableSkeleton rows={8} />;
@@ -375,7 +386,7 @@ const MenuAnalyticsContent: React.FC = () => {
     { header: 'Item', accessor: 'itemName' },
     { header: 'Units', accessor: 'totalSold' },
     { header: 'Revenue', render: (i) => formatRM(i.totalRevenue), align: 'right' },
-    { header: 'Profit', render: (i) => <span className="text-green-600 font-bold">{formatRM(i.estimatedProfit)}</span>, align: 'right' },
+    { header: 'Profit', render: (i) => <span className="text-emerald-600 font-extrabold">{formatRM(i.estimatedProfit)}</span>, align: 'right' },
   ];
 
   if (loading) return <TableSkeleton rows={8} />;
@@ -384,7 +395,7 @@ const MenuAnalyticsContent: React.FC = () => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <DashboardCard>
         <div className="mb-4">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">Best Performers</h3>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Best Performers</h3>
         </div>
         <div className="overflow-x-auto">
           <AppTable columns={cols} data={analytics?.topSellers || []} keyExtractor={(i) => i.itemName} emptyMessage={<AppEmptyState title="No data" />} />
@@ -392,7 +403,7 @@ const MenuAnalyticsContent: React.FC = () => {
       </DashboardCard>
       <DashboardCard>
         <div className="mb-4">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">Needs Attention</h3>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Needs Attention</h3>
         </div>
         <div className="overflow-x-auto">
           <AppTable columns={cols} data={analytics?.worstSellers || []} keyExtractor={(i) => i.itemName} emptyMessage={<AppEmptyState title="No data" />} />
@@ -415,41 +426,42 @@ const CustomerInsightsContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Customers" value={insights?.totalUniqueCustomers || 0} icon={Users} iconBgColor="rgba(59, 130, 246, 0.1)" iconColor="#3b82f6" />
-        <StatCard title="Repeat Customers" value={insights?.repeatCustomers || 0} icon={TrendingUp} iconBgColor="rgba(34, 197, 94, 0.1)" iconColor="#22c55e" />
-        <StatCard title="Avg Customer LTV" value={formatRM(insights?.averageCustomerLtv || 0)} icon={DollarSign} iconBgColor="rgba(168, 85, 247, 0.1)" iconColor="#a855f7" />
-        <StatCard title="Avg Rating" value={`${insights?.averageRating || 0} / 5`} icon={AlertCircle} iconBgColor="rgba(245, 158, 11, 0.1)" iconColor="#f59e0b" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <StatCard title="Total Customers" value={insights?.totalUniqueCustomers || 0} icon={Users} iconBgColor="rgba(59, 130, 246, 0.05)" iconColor="#3b82f6" />
+        <StatCard title="Repeat Customers" value={insights?.repeatCustomers || 0} icon={TrendingUp} iconBgColor="rgba(16, 185, 129, 0.05)" iconColor="#10b981" />
+        <StatCard title="Avg Customer LTV" value={formatRM(insights?.averageCustomerLtv || 0)} icon={DollarSign} iconBgColor="rgba(168, 85, 247, 0.05)" iconColor="#a855f7" />
+        <StatCard title="Avg Rating" value={`${insights?.averageRating || 0} / 5`} icon={AlertCircle} iconBgColor="rgba(245, 158, 11, 0.05)" iconColor="#f59e0b" />
       </div>
 
       <DashboardCard>
-        <div className="mb-6">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Customer Feedback</h3>
+        <div className="mb-5">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recent Customer Feedback</h3>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold mt-0.5">Latest reviews left by verified purchases</p>
         </div>
         {(!insights?.recentFeedback || insights.recentFeedback.length === 0) ? (
           <AppEmptyState title="No feedback yet" icon={MessageSquare} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {insights.recentFeedback.map((fb: any, idx: number) => (
-              <div key={idx} className="p-5 border border-gray-100 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 transition-colors shadow-sm">
+              <div key={idx} className="p-5 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/30 hover:border-slate-200 transition-colors shadow-sm">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-primary flex items-center justify-center font-bold text-xs">
+                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 text-primary flex items-center justify-center font-bold text-xs border border-orange-500/20">
                       {fb.customerName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <span className="font-bold text-sm text-gray-900 dark:text-white block leading-tight">{fb.customerName}</span>
-                      <span className="text-[0.65rem] text-gray-500">Order #{fb.orderNumber}</span>
+                      <span className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white block leading-tight">{fb.customerName}</span>
+                      <span className="text-[10px] font-semibold text-slate-400 mt-1 block">Order #{fb.orderNumber}</span>
                     </div>
                   </div>
-                  <span className="text-[0.65rem] font-medium text-gray-400 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-2 py-1 rounded">{fb.date}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-lg">{fb.date}</span>
                 </div>
                 <div className="flex items-center gap-0.5 mb-3">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i} className={`text-sm ${i < fb.rating ? 'text-amber-400' : 'text-gray-300 dark:text-slate-600'}`}>★</span>
+                    <span key={i} className={`text-sm ${i < fb.rating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-700'}`}>★</span>
                   ))}
                 </div>
-                {fb.feedback && <p className="text-sm text-gray-700 dark:text-slate-300 italic">"{fb.feedback}"</p>}
+                {fb.feedback && <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed">"{fb.feedback}"</p>}
               </div>
             ))}
           </div>

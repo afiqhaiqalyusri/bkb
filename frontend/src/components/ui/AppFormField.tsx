@@ -70,16 +70,16 @@ export const AppFormField: React.FC<AppFormFieldProps> = ({
  * Apply to <input>, <select>, <textarea>.
  */
 export const formControlClass =
-  'w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all placeholder:text-[var(--text-secondary)]';
+  'w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-[var(--text-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 transition-all duration-150 shadow-sm';
 
 export const formControlStyle: React.CSSProperties = {
   width: '100%',
-  padding: '9px 12px',
-  background: 'var(--background)',
+  padding: '10px 14px',
+  background: '#ffffff',
   border: '1px solid var(--border)',
   borderRadius: 8,
   color: 'var(--text-primary)',
   fontSize: '0.85rem',
   outline: 'none',
-  transition: 'border-color 0.15s, box-shadow 0.15s',
+  transition: 'all 0.15s',
 };

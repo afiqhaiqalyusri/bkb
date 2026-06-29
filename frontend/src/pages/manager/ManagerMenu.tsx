@@ -16,8 +16,8 @@ import { useUnsavedChangesBlocker } from '../../hooks/useUnsavedChangesBlocker';
 // UI Components
 import { AppCard } from '../../components/ui/AppCard';
 import { AppButton } from '../../components/ui/AppButton';
-import { AppPageHeader } from '../../components/ui/AppPageHeader';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
+import { formControlClass } from '../../components/ui/AppFormField';
 
 export const MenuContent: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -147,40 +147,43 @@ export const MenuContent: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <AppPageHeader 
-        title="Menu Management" 
-        subtitle="Add, edit, and organize menu items and categories."
-        actions={
-          <>
-            <AppButton variant="outline" onClick={() => setShowCategoriesModal(true)} icon={Tag}>Categories</AppButton>
-            <AppButton variant="primary" onClick={() => openEdit(null)} icon={Plus}>Add Item</AppButton>
-          </>
-        }
-      />
-
-      {/* Toolbar */}
-      <AppCard className="!p-4" noPadding>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-6 py-4">
-          <div className="flex flex-wrap gap-2">
-            {catNames.map(c => (
-              <button key={c} onClick={() => setFilterCat(c)}
-                className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-                  filterCat === c ? 'bg-[var(--primary)] text-white' : 'bg-[var(--background)] text-[var(--text-secondary)] hover:bg-[rgba(0,0,0,0.05)]'
-                }`}>
-                {c}
-              </button>
-            ))}
+      
+      {/* Search & Actions Toolbar */}
+      <AppCard noPadding>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 px-6 py-5 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">Active Catalog</h3>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold mt-0.5">Filter items by categorization</p>
           </div>
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search items..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]"
-            />
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div className="relative w-full lg:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+              <input 
+                type="text" 
+                placeholder="Search items by name..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 transition-all placeholder-slate-400"
+              />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+              <AppButton variant="secondary" size="sm" onClick={() => setShowCategoriesModal(true)} icon={Tag} className="flex-1 sm:flex-initial">Categories</AppButton>
+              <AppButton variant="primary" size="sm" onClick={() => openEdit(null)} icon={Plus} className="flex-1 sm:flex-initial">Add Item</AppButton>
+            </div>
           </div>
+        </div>
+        
+        <div className="px-6 py-4 flex flex-wrap gap-1.5 bg-slate-50/50 dark:bg-slate-900/10">
+          {catNames.map(c => (
+            <button key={c} onClick={() => setFilterCat(c)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                filterCat === c 
+                  ? 'bg-primary text-white shadow-sm' 
+                  : 'bg-white hover:bg-slate-100 border border-slate-150 text-slate-500 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
+              }`}>
+              {c}
+            </button>
+          ))}
         </div>
       </AppCard>
 
@@ -188,44 +191,46 @@ export const MenuContent: React.FC = () => {
       {loading ? (
         <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>
       ) : filtered.length === 0 ? (
-        <AppCard><AppEmptyState title="No items found" description="Try adjusting your search or category filter." /></AppCard>
+        <AppCard><AppEmptyState title="No items found" description="Try adjusting your search query or category filters." /></AppCard>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filtered.map(item => (
-            <div key={item.id} className={`bg-[var(--bkb-card-bg)] border border-[var(--bkb-border)] rounded-xl overflow-hidden shadow-sm transition-all duration-200 hover:shadow-md ${!item.isAvailable ? 'opacity-70 grayscale-[0.2]' : ''}`}>
-              <div className="h-36 relative bg-[var(--background)] flex items-center justify-center overflow-hidden">
+            <div key={item.id} className={`bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col group ${!item.isAvailable ? 'opacity-70' : ''}`}>
+              <div className="h-40 relative bg-slate-50 dark:bg-slate-950 flex items-center justify-center overflow-hidden shrink-0 border-b border-slate-50 dark:border-slate-850">
                 {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" />
                 ) : (
-                  <ImageIcon size={48} className="text-[var(--border)]" />
+                  <ImageIcon size={40} className="text-slate-300" />
                 )}
                 {!item.isAvailable && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <span className="bg-red-500/90 text-white text-xs font-bold px-3 py-1 rounded-md uppercase tracking-wide">Sold Out</span>
+                  <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[1px] flex items-center justify-center">
+                    <span className="bg-red-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider">Sold Out</span>
                   </div>
                 )}
               </div>
-              <div className="p-5">
-                <div className="flex justify-between items-start gap-2 mb-2">
-                  <div>
-                    <h4 className="font-bold text-[var(--text-primary)] leading-tight m-0">{item.name}</h4>
-                    <span className="text-xs text-[var(--text-secondary)] mt-1 block">{item.category}</span>
+              <div className="p-5 flex flex-col justify-between flex-1">
+                <div>
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <div>
+                      <h4 className="font-extrabold text-sm text-slate-800 dark:text-white leading-tight m-0">{item.name}</h4>
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1.5 block">{item.category}</span>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className={`font-extrabold text-sm ${item.promoPrice ? 'text-slate-400 line-through text-[11px]' : 'text-primary'}`}>{formatRM(item.price)}</div>
+                      {item.promoPrice && <div className="font-black text-primary text-sm mt-0.5">{formatRM(item.promoPrice)}</div>}
+                    </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className={`font-bold ${item.promoPrice ? 'text-[var(--text-secondary)] text-xs line-through' : 'text-[var(--primary)] text-sm'}`}>{formatRM(item.price)}</div>
-                    {item.promoPrice && <div className="font-bold text-[var(--primary)] text-sm">{formatRM(item.promoPrice)}</div>}
-                  </div>
+                  {item.description && <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed line-clamp-2 mt-2 mb-0">{item.description}</p>}
                 </div>
-                {item.description && <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mt-2 mb-0">{item.description}</p>}
                 
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border)]">
-                  <button onClick={() => handleToggle(item.id)} className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${item.isAvailable ? 'text-[var(--primary)]' : 'text-[var(--text-secondary)]'}`}>
-                    {item.isAvailable ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                    {item.isAvailable ? 'Available' : 'Unavailable'}
+                <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 shrink-0">
+                  <button onClick={() => handleToggle(item.id)} className={`flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider transition-colors ${item.isAvailable ? 'text-primary' : 'text-slate-400'}`}>
+                    {item.isAvailable ? <ToggleRight size={20} className="text-primary" /> : <ToggleLeft size={20} className="text-slate-300" />}
+                    <span>{item.isAvailable ? 'Available' : 'Sold Out'}</span>
                   </button>
                   <div className="flex gap-1">
-                    <AppButton variant="ghost" size="icon" onClick={() => openEdit(item)}><Edit2 size={16} /></AppButton>
-                    <AppButton variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50"><Trash2 size={16} /></AppButton>
+                    <AppButton variant="ghost" size="icon" onClick={() => openEdit(item)} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50"><Edit2 size={13} /></AppButton>
+                    <AppButton variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50"><Trash2 size={13} /></AppButton>
                   </div>
                 </div>
               </div>
@@ -234,71 +239,73 @@ export const MenuContent: React.FC = () => {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Modal (Sleek side-modal mockup or floating modal card) */}
       {isEditing && editItem && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={closeEditWithCheck}>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
-              <h3 className="font-bold text-lg m-0">{editItem.id ? 'Edit' : 'Add'} Menu Item</h3>
-              <button onClick={closeEditWithCheck} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+        <div className="fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={closeEditWithCheck}>
+          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4.5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-slate-700 dark:text-slate-300">{editItem.id ? 'Edit' : 'Create'} Menu Item</h3>
+              <button onClick={closeEditWithCheck} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
             </div>
             <form onSubmit={handleSave} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
               <div>
-                <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Item Name</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Item Name</label>
                 <input type="text" value={editItem.name || ''} onChange={e => setEditItem(p => ({ ...p, name: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" required />
+                  className={formControlClass} placeholder="e.g. Double Beef Cheeseburger" required />
               </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Price (RM)</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Price (RM)</label>
                   <input type="number" step="0.01" min="0" value={editItem.price || ''} onChange={e => setEditItem(p => ({ ...p, price: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" required />
+                    className={formControlClass} placeholder="12.90" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Promo Price (RM)</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Promo Price (RM)</label>
                   <input type="number" step="0.01" min="0" value={editItem.promoPrice || ''} onChange={e => setEditItem(p => ({ ...p, promoPrice: e.target.value ? Number(e.target.value) : undefined }))}
-                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" placeholder="Optional" />
+                    className={formControlClass} placeholder="Optional" />
                 </div>
               </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Category</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Category</label>
                   <select value={editItem.category || ''} onChange={e => setEditItem(p => ({ ...p, category: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]">
+                    className={formControlClass}>
                     {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Image Source</label>
-                  <div className="flex flex-col gap-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Image URL</label>
+                  <div className="flex flex-col gap-1.5">
                     <input type="text" value={editItem.imageUrl || ''} onChange={e => setEditItem(p => ({ ...p, imageUrl: e.target.value }))}
-                      className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" placeholder="https://..." />
-                    <label className="text-xs font-semibold text-[var(--primary)] cursor-pointer hover:underline inline-flex items-center gap-1">
+                      className={formControlClass} placeholder="https://..." />
+                    <label className="text-[10px] font-bold text-primary cursor-pointer hover:underline inline-flex items-center gap-1 self-start">
                       <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                      Upload File Instead
+                      Upload from computer
                     </label>
                   </div>
                 </div>
               </div>
               
               {editItem.imageUrl && !uploadingFile && (
-                <div className="w-full h-32 rounded-lg border border-[var(--border)] overflow-hidden">
+                <div className="w-full h-36 rounded-xl border border-slate-100 overflow-hidden relative shrink-0">
                   <img src={editItem.imageUrl} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Description</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
                 <textarea value={editItem.description || ''} onChange={e => setEditItem(p => ({ ...p, description: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] min-h-[80px]" />
+                  className={`${formControlClass} min-h-[70px] resize-none`} placeholder="Describe item ingredients and sizing..." />
               </div>
               
-              <label className="flex items-center gap-2 cursor-pointer mt-2">
-                <input type="checkbox" checked={!!editItem.isAvailable} onChange={e => setEditItem(p => ({ ...p, isAvailable: e.target.checked }))} className="w-4 h-4 accent-[var(--primary)]" />
-                <span className="text-sm font-semibold">Available for Ordering</span>
+              <label className="flex items-center gap-2 cursor-pointer mt-1">
+                <input type="checkbox" checked={!!editItem.isAvailable} onChange={e => setEditItem(p => ({ ...p, isAvailable: e.target.checked }))} className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary" />
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Available on counter kiosk</span>
               </label>
 
-              <AppButton type="submit" variant="primary" className="w-full mt-4" size="lg">Save Item</AppButton>
+              <AppButton type="submit" variant="primary" className="w-full mt-4 py-3 text-xs uppercase tracking-wider font-bold">Save Menu Item</AppButton>
             </form>
           </div>
         </div>
@@ -306,27 +313,27 @@ export const MenuContent: React.FC = () => {
 
       {/* Categories Modal */}
       {showCategoriesModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowCategoriesModal(false)}>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-sm overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
-              <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Tag size={18} className="text-[var(--primary)]" /> Categories</h3>
-              <button onClick={() => setShowCategoriesModal(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+        <div className="fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowCategoriesModal(false)}>
+          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4.5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5"><Tag size={15} /> Categories</h3>
+              <button onClick={() => setShowCategoriesModal(false)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
             </div>
             <div className="p-6">
-              <form onSubmit={handleAddCategory} className="flex gap-2 mb-6">
-                <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="New category..."
-                  className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" required />
-                <AppButton type="submit" disabled={savingCat}>Add</AppButton>
+              <form onSubmit={handleAddCategory} className="flex gap-2 mb-5">
+                <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="New category label..."
+                  className={formControlClass} required />
+                <AppButton type="submit" size="sm" disabled={savingCat} className="font-bold text-xs uppercase tracking-wider px-4">Add</AppButton>
               </form>
-              <div className="flex flex-col gap-2 max-h-[250px] overflow-y-auto pr-2">
+              <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
                 {categories.length === 0 ? (
-                  <div className="text-center text-sm text-[var(--text-secondary)] py-4">No categories created.</div>
+                  <div className="text-center text-xs text-slate-400 py-4">No categories created.</div>
                 ) : (
                   categories.map(cat => (
-                    <div key={cat.id} className="flex justify-between items-center px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-lg">
-                      <span className="font-semibold text-sm">{cat.name}</span>
-                      <AppButton variant="ghost" size="icon" onClick={() => handleDeleteCategory(cat.id, cat.name)} className="text-[var(--danger)] hover:text-red-700 w-8 h-8 p-0">
-                        <Trash2 size={14} />
+                    <div key={cat.id} className="flex justify-between items-center px-4 py-2.5 bg-slate-50 border border-slate-100 dark:bg-slate-950 dark:border-slate-800 rounded-xl">
+                      <span className="font-bold text-xs text-slate-700 dark:text-slate-300">{cat.name}</span>
+                      <AppButton variant="ghost" size="icon" onClick={() => handleDeleteCategory(cat.id, cat.name)} className="text-rose-500 hover:text-rose-700 w-7 h-7 p-0 rounded-lg">
+                        <Trash2 size={12} />
                       </AppButton>
                     </div>
                   ))

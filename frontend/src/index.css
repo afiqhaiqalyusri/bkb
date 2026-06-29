@@ -5,15 +5,15 @@
 :root {
   /* Centralized Theme Tokens (Unified Premium Orange Brand Theme) */
   --primary:         #FF6B00; /* Primary Orange Accent */
-  --secondary:       #FF8A3D; /* Secondary Orange Accent */
-  --background:      #F3F4F6; /* Light Gray */
+  --secondary:       #0F172A; /* Secondary Dark Navy */
+  --background:      #F8FAFC; /* Light Neutral Gray background */
   --secondary-bg:    #FFFFFF; /* White */
   --surface:         #FFFFFF; /* White */
-  --surface-hover:   #F9FAFB; /* Subtle gray hover */
-  --text-primary:    #111827; /* Dark Charcoal (gray-900) */
-  --text-secondary:  #4B5563; /* Gray-600 */
-  --border:          #E5E7EB; /* Gray-200 */
-  --success:         #22C55E; /* Green */
+  --surface-hover:   #F1F5F9; /* Slate 100 hover */
+  --text-primary:    #0F172A; /* Slate 900 (Dark Gray) */
+  --text-secondary:  #64748B; /* Slate 500 (Medium Gray) */
+  --border:          #E2E8F0; /* Slate 200 border */
+  --success:         #10B981; /* Green */
   --warning:         #F59E0B; /* Amber */
   --danger:          #EF4444; /* Red */
   --info:            #3B82F6; /* Blue */
@@ -23,7 +23,7 @@
   --red-dark:        #E05E00; /* Darker Orange */
   --red-light:       #FF8A3D; /* Lighter Orange */
   --cream:           var(--background);
-  --cream-dark:      #E5E7EB;
+  --cream-dark:      #E2E8F0;
   --warm-white:      var(--background);
   --brown:           var(--text-primary);
   --text-dark:       var(--text-primary);
@@ -31,14 +31,14 @@
   --text-muted:      var(--text-secondary);
   --white:           var(--surface);
   --card-bg:         var(--surface);
-  --shadow-sm:       0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md:       0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg:       0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-red:      0 6px 20px rgba(255, 107, 0, 0.15);
+  --shadow-sm:       0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md:       0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-lg:       0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+  --shadow-red:      0 6px 20px rgba(255, 107, 0, 0.08);
   --radius-sm:       6px;
-  --radius-md:       8px;
-  --radius-lg:       12px;
-  --radius-xl:       16px;
+  --radius-md:       10px;
+  --radius-lg:       16px;
+  --radius-xl:       24px;
   --radius-pill:     999px;
 
   /* Theme tokens for tracking, loyalty & manager pages */
@@ -46,14 +46,14 @@
   --bkb-card-bg:     var(--surface);
   --bkb-text:        var(--text-primary);
   --bkb-gray-400:    var(--text-secondary);
-  --bkb-sidebar-bg:  #1F2937; /* Dark Charcoal sidebar */
+  --bkb-sidebar-bg:  #0F172A; /* Dark Navy sidebar */
   --bkb-border:      var(--border);
   --bkb-orange:      var(--primary);
   --bkb-orange-dark: var(--red-dark);
   --bkb-cream:       var(--background);
   --bkb-success:     var(--success);
   --bkb-warning:     var(--warning);
-  --radius-card:     12px;
+  --radius-card:     16px;
 }
 
 [data-theme="dark"] {

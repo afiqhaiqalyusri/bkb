@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   ChefHat, Plus, Trash2, Edit2, Search, Package,
-  X, Check, AlertTriangle, Info, ChevronRight,
-  Save, FileText, Layers
+  X, Check, ChevronRight, Save, FileText
 } from 'lucide-react';
 import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { recipeService } from '../../services/recipe.service';
 import { inventoryService } from '../../services/inventory.service';
 import { menuService } from '../../services/menu.service';
-import { categoryService } from '../../services/category.service';
-import { Recipe, RecipeIngredientItem, RecipeIngredientRequest, InventoryItem, MenuItem, Category } from '../../types';
+import { Recipe, RecipeIngredientItem, RecipeIngredientRequest, InventoryItem, MenuItem } from '../../types';
 import toast from 'react-hot-toast';
 
 // UI Components
@@ -17,7 +15,7 @@ import { AppCard } from '../../components/ui/AppCard';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppBadge } from '../../components/ui/AppBadge';
 import { AppModal } from '../../components/ui/AppModal';
-import { AppFormField, formControlStyle } from '../../components/ui/AppFormField';
+import { AppFormField, formControlClass } from '../../components/ui/AppFormField';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatRM } from '../../utils/formatCurrency';
@@ -36,73 +34,42 @@ const IngredientRow: React.FC<{
   onEdit: (ingredient: RecipeIngredientItem) => void;
   onDelete: (id: number) => void;
 }> = ({ ingredient, onEdit, onDelete }) => (
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '10px 14px',
-    background: 'var(--background)',
-    border: '1px solid var(--border)',
-    borderRadius: 8,
-    transition: 'border-color 0.15s',
-  }}
-  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--primary)')}
-  onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-  >
+  <div className="flex items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl hover:border-slate-200 transition-colors group">
     {/* Icon */}
-    <div style={{
-      width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-      background: ingredient.trackingType === 'AUTO'
-        ? 'rgba(59,130,246,0.08)' : 'rgba(139,92,246,0.08)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: ingredient.trackingType === 'AUTO' ? '#3B82F6' : '#8B5CF6',
-    }}>
+    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+      ingredient.trackingType === 'AUTO' 
+        ? 'bg-blue-50 text-blue-500 dark:bg-blue-950/20' 
+        : 'bg-purple-50 text-purple-500 dark:bg-purple-950/20'
+    }`}>
       <Package size={16} />
     </div>
 
     {/* Name & Details */}
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-        <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="font-bold text-slate-800 dark:text-white text-sm">
           {ingredient.inventoryName}
         </span>
         {ingredient.isOptional && (
-          <span style={{
-            fontSize: '0.65rem', fontWeight: 700, color: '#8B5CF6',
-            background: 'rgba(139,92,246,0.1)', padding: '1px 6px', borderRadius: 99,
-          }}>
-            OPTIONAL
+          <span className="text-[9px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-950/20 dark:text-purple-400 px-2 py-0.5 rounded-md uppercase tracking-wider">
+            Optional
           </span>
         )}
-        <span style={{
-          fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)',
-          background: 'var(--surface)', border: '1px solid var(--border)',
-          padding: '1px 6px', borderRadius: 99,
-        }}>
+        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 bg-white border border-slate-100 dark:bg-slate-950 dark:border-slate-800 px-2 py-0.5 rounded-md uppercase tracking-wider">
           {ingredient.trackingType}
         </span>
       </div>
-      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-        Qty: <strong>{ingredient.quantity}</strong> {ingredient.unit}
-        &nbsp;·&nbsp;
-        Stock: <StockBadge status={ingredient.stockStatus} stock={ingredient.currentStock} unit={ingredient.unit} />
+      <div className="text-[11px] text-slate-450 mt-1 font-semibold flex items-center gap-1.5 flex-wrap">
+        <span>Serving Qty: <strong className="text-slate-700 dark:text-slate-350">{ingredient.quantity}</strong> {ingredient.unit}</span>
+        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+        <span className="flex items-center gap-1">Stock Status: <StockBadge status={ingredient.stockStatus} stock={ingredient.currentStock} unit={ingredient.unit} /></span>
       </div>
     </div>
 
     {/* Actions */}
-    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-      <AppButton variant="ghost" size="icon" onClick={() => onEdit(ingredient)} title="Edit">
-        <Edit2 size={14} />
-      </AppButton>
-      <AppButton
-        variant="ghost"
-        size="icon"
-        onClick={() => onDelete(ingredient.id)}
-        className="hover:text-[var(--danger)]"
-        title="Remove"
-      >
-        <Trash2 size={14} />
-      </AppButton>
+    <div className="flex items-center gap-1 shrink-0">
+      <AppButton variant="ghost" size="icon" onClick={() => onEdit(ingredient)} title="Edit"><Edit2 size={13} /></AppButton>
+      <AppButton variant="ghost" size="icon" onClick={() => onDelete(ingredient.id)} className="text-rose-500 hover:text-rose-700" title="Remove"><Trash2 size={13} /></AppButton>
     </div>
   </div>
 );
@@ -156,8 +123,8 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
     <AppModal
       isOpen={isOpen}
       onClose={onClose}
-      title={editingIngredient ? 'Edit Recipe Ingredient' : 'Add Ingredient to Recipe'}
-      subtitle="Link an inventory item to this recipe with a required quantity."
+      title={editingIngredient ? 'Edit Ingredient' : 'Add Recipe Ingredient'}
+      subtitle="Link an inventory raw material item to this recipe serving."
       icon={<Package size={18} />}
       size="md"
       onSubmit={handleSubmit}
@@ -166,26 +133,22 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
         { label: editingIngredient ? 'Save Changes' : 'Add Ingredient', variant: 'primary', isLoading: saving, type: 'submit', onClick: () => {} },
       ]}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="flex flex-col gap-4">
         {/* Inventory Item Selector */}
-        <AppFormField label="Inventory Item" required>
-          <div style={{ position: 'relative', marginBottom: 6 }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
+        <AppFormField label="Raw Ingredient" required>
+          <div className="relative mb-2">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search inventory items…"
+              placeholder="Search ingredient index..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ ...formControlStyle, paddingLeft: 32, fontSize: '0.82rem' }}
+              className={`${formControlClass} pl-9 py-2 text-xs`}
             />
           </div>
-          <div style={{
-            maxHeight: 180, overflowY: 'auto',
-            border: '1px solid var(--border)', borderRadius: 8,
-            background: 'var(--background)',
-          }}>
+          <div className="max-h-44 overflow-y-auto border border-slate-100 rounded-xl bg-slate-50 dark:bg-slate-950 dark:border-slate-800">
             {filtered.length === 0 ? (
-              <div style={{ padding: '12px 14px', fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+              <div className="p-4 text-xs text-slate-400 text-center font-semibold">
                 No inventory items found
               </div>
             ) : (
@@ -193,75 +156,58 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
                 <div
                   key={item.id}
                   onClick={() => { setInventoryId(item.id); setSearch(''); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '8px 12px', cursor: 'pointer',
-                    background: inventoryId === item.id ? 'rgba(255,107,0,0.07)' : 'transparent',
-                    borderBottom: '1px solid var(--border)',
-                    transition: 'background 0.12s',
-                  }}
-                  onMouseEnter={e => { if (inventoryId !== item.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface)'; }}
-                  onMouseLeave={e => { if (inventoryId !== item.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  className={`flex items-center justify-between p-3 cursor-pointer border-b border-slate-100 dark:border-slate-900/50 last:border-0 transition-colors ${
+                    inventoryId === item.id 
+                      ? 'bg-orange-500/10 text-primary' 
+                      : 'hover:bg-white dark:hover:bg-slate-900'
+                  }`}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.83rem', color: 'var(--text-primary)' }}>
+                    <div className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white">
                       {item.itemName}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                      {item.category} · {item.unit} · Stock: {item.currentStock}
+                    <div className="text-[10px] text-slate-400 mt-1 font-semibold">
+                      Category: {item.category} · Unit: {item.unit} · Stock: {item.currentStock}
                     </div>
                   </div>
-                  {inventoryId === item.id && <Check size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
+                  {inventoryId === item.id && <Check size={14} className="text-primary shrink-0" />}
                 </div>
               ))
             )}
           </div>
           {selectedItem && (
-            <div style={{
-              marginTop: 6, padding: '6px 10px',
-              background: 'rgba(255,107,0,0.05)',
-              border: '1px solid rgba(255,107,0,0.2)',
-              borderRadius: 6, fontSize: '0.78rem', color: 'var(--primary)',
-            }}>
-              Selected: <strong>{selectedItem.itemName}</strong> ({selectedItem.unit})
+            <div className="mt-2 p-2.5 bg-orange-500/5 border border-orange-500/20 rounded-xl text-xs font-bold text-primary">
+              Linked: {selectedItem.itemName} ({selectedItem.unit})
             </div>
           )}
         </AppFormField>
 
         {/* Quantity */}
-        <AppFormField label="Required Quantity per Serving" required hint={selectedItem ? `Unit: ${selectedItem.unit}` : 'Select an inventory item first'}>
+        <AppFormField label="Served Quantity" required hint={selectedItem ? `Served unit is measured in (${selectedItem.unit})` : 'Select an inventory item first'}>
           <input
             type="number"
             value={quantity}
             onChange={e => setQuantity(parseFloat(e.target.value) || 0)}
             min="0.01"
             step="0.01"
-            style={formControlStyle}
+            className={formControlClass}
           />
         </AppFormField>
 
         {/* Optional Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 8 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flex: 1 }}>
-            <div
-              onClick={() => setIsOptional(v => !v)}
-              style={{
-                width: 40, height: 22, borderRadius: 99, flexShrink: 0,
-                background: isOptional ? 'var(--primary)' : 'var(--border)',
-                position: 'relative', cursor: 'pointer', transition: 'background 0.2s',
-              }}
-            >
-              <div style={{
-                position: 'absolute', top: 3, left: isOptional ? 21 : 3,
-                width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-              }} />
-            </div>
+        <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800 rounded-xl">
+          <label className="flex items-center gap-3 cursor-pointer flex-1">
+            <input 
+              type="checkbox" 
+              checked={isOptional} 
+              onChange={e => setIsOptional(e.target.checked)} 
+              className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary" 
+            />
             <div>
-              <div style={{ fontSize: '0.83rem', fontWeight: 600, color: 'var(--text-primary)' }}>Optional Ingredient</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-                Optional ingredients won't cause the item to be unavailable if out of stock
-              </div>
+              <div className="text-xs font-bold text-slate-700 dark:text-white">Optional Ingredient</div>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-semibold">
+                Will not trigger "Sold Out" status if stock level becomes critical.
+              </p>
             </div>
           </label>
         </div>
@@ -282,17 +228,17 @@ const NotesEditor: React.FC<{
   useEffect(() => { setValue(initialNotes || ''); setDirty(false); }, [initialNotes]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div className="flex flex-col gap-3.5">
       <textarea
         value={value}
         onChange={e => { setValue(e.target.value); setDirty(true); }}
-        placeholder="e.g. Toast bun separately. Grill patty to 75°C internal temp. Apply sauce before closing bun."
+        placeholder="e.g. Grill chicken patty for 4 mins each side. Assemble pickles on top bun..."
         rows={4}
-        style={{ ...formControlStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }}
+        className={`${formControlClass} resize-none min-h-[90px]`}
       />
       {dirty && (
-        <AppButton size="sm" icon={Save} isLoading={saving} onClick={() => onSave(value)}>
-          Save Notes
+        <AppButton size="sm" icon={Save} isLoading={saving} onClick={() => onSave(value)} className="self-end text-xs font-bold uppercase tracking-wider px-4">
+          Save Preparation Notes
         </AppButton>
       )}
     </div>
@@ -301,29 +247,23 @@ const NotesEditor: React.FC<{
 
 // ─── Manager Recipes Page (Main) ──────────────────────────────────────────────
 export const ManagerRecipes: React.FC = () => {
-  // Panel 1: Category filter
   const [categories, setCategories] = useState<string[]>(['All']);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  // Panel 2: Menu item list
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [menuSearch, setMenuSearch] = useState('');
   const [menuLoading, setMenuLoading] = useState(true);
 
-  // Panel 3: Recipe editor
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [recipeLoading, setRecipeLoading] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [inventoryLoading, setInventoryLoading] = useState(true);
 
-  // Modal state
   const [showIngredientModal, setShowIngredientModal] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState<RecipeIngredientItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [notesSaving, setNotesSaving] = useState(false);
 
-  // Load menu items and categories on mount
   useEffect(() => {
     Promise.all([
       menuService.getAllItems(),
@@ -335,10 +275,9 @@ export const ManagerRecipes: React.FC = () => {
       setCategories(cats as string[]);
       setInventoryItems(invRes.data || []);
     }).catch(() => toast.error('Failed to load data'))
-    .finally(() => { setMenuLoading(false); setInventoryLoading(false); });
+    .finally(() => { setMenuLoading(false); });
   }, []);
 
-  // Load recipe when a menu item is selected
   const loadRecipe = useCallback(async (menuItemId: number) => {
     setRecipeLoading(true);
     try {
@@ -362,7 +301,6 @@ export const ManagerRecipes: React.FC = () => {
     return matchCat && matchSearch;
   });
 
-  // Add ingredient
   const handleAddIngredient = async (data: RecipeIngredientRequest) => {
     if (!selectedItem) return;
     setSaving(true);
@@ -378,7 +316,6 @@ export const ManagerRecipes: React.FC = () => {
     }
   };
 
-  // Edit ingredient
   const handleEditIngredient = async (data: RecipeIngredientRequest) => {
     if (!selectedItem || !editingIngredient) return;
     setSaving(true);
@@ -395,7 +332,6 @@ export const ManagerRecipes: React.FC = () => {
     }
   };
 
-  // Remove ingredient
   const handleRemoveIngredient = async (ingredientId: number) => {
     if (!selectedItem) return;
     try {
@@ -407,7 +343,6 @@ export const ManagerRecipes: React.FC = () => {
     }
   };
 
-  // Save notes
   const handleSaveNotes = async (notes: string) => {
     if (!selectedItem) return;
     setNotesSaving(true);
@@ -428,180 +363,150 @@ export const ManagerRecipes: React.FC = () => {
   return (
     <ManagerLayout
       title="Recipe Management"
-      subtitle="Define standard ingredients required to prepare each menu item"
+      subtitle="Link catalog menu items to required kitchen raw ingredients"
     >
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 280px 1fr', gap: 16, height: 'calc(100vh - 120px)', minHeight: 0 }}>
-
-        {/* ── Panel 1: Category Selector ── */}
-        <AppCard noPadding>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>
-              Categories
-            </span>
-          </div>
-          <div style={{ overflowY: 'auto', padding: '8px 8px' }}>
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                style={{
-                  width: '100%', textAlign: 'left',
-                  padding: '8px 12px', borderRadius: 6, border: 'none',
-                  background: selectedCategory === cat ? 'rgba(255,107,0,0.1)' : 'transparent',
-                  color: selectedCategory === cat ? 'var(--primary)' : 'var(--text-secondary)',
-                  fontWeight: selectedCategory === cat ? 700 : 500,
-                  fontSize: '0.83rem', cursor: 'pointer',
-                  transition: 'all 0.12s',
-                }}
-                onMouseEnter={e => { if (selectedCategory !== cat) (e.currentTarget as HTMLElement).style.background = 'var(--background)'; }}
-                onMouseLeave={e => { if (selectedCategory !== cat) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </AppCard>
-
-        {/* ── Panel 2: Menu Item List ── */}
-        <AppCard noPadding style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>
-              Menu Items ({filteredItems.length})
-            </span>
-            <div style={{ position: 'relative', marginTop: 8 }}>
-              <Search size={13} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
-              <input
-                type="text"
-                placeholder="Search items…"
-                value={menuSearch}
-                onChange={e => setMenuSearch(e.target.value)}
-                style={{ ...formControlStyle, paddingLeft: 28, fontSize: '0.8rem', padding: '7px 8px 7px 28px' }}
-              />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        
+        {/* Categories Panel */}
+        <div className="lg:col-span-1 flex flex-col gap-4">
+          <AppCard noPadding>
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Categories</span>
             </div>
-          </div>
-          <div style={{ overflowY: 'auto', flex: 1, padding: '8px 8px' }}>
-            {menuLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 20 }}><LoadingSpinner size="sm" /></div>
-            ) : filteredItems.length === 0 ? (
-              <AppEmptyState title="No items" icon={ChefHat} />
-            ) : (
-              filteredItems.map(item => {
-                const isSelected = selectedItem?.id === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleSelectItem(item)}
-                    style={{
-                      width: '100%', textAlign: 'left',
-                      padding: '9px 12px', borderRadius: 8, border: 'none',
-                      background: isSelected ? 'rgba(255,107,0,0.1)' : 'transparent',
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                      marginBottom: 2, transition: 'background 0.12s',
-                    }}
-                    onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--background)'; }}
-                    onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                  >
-                    {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.name} style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
-                    ) : (
-                      <div style={{ width: 36, height: 36, borderRadius: 6, background: 'rgba(255,107,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <ChefHat size={16} style={{ color: 'var(--primary)' }} />
-                      </div>
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize: '0.83rem', fontWeight: isSelected ? 700 : 500,
-                        color: isSelected ? 'var(--primary)' : 'var(--text-primary)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {item.name}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                        {item.category}
-                      </div>
-                    </div>
-                    {isSelected && <ChevronRight size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </AppCard>
+            <div className="p-2 flex flex-col gap-0.5 max-h-64 lg:max-h-none overflow-y-auto">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-150 ${
+                    selectedCategory === cat 
+                      ? 'bg-orange-500/10 text-primary' 
+                      : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-700'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </AppCard>
+        </div>
 
-        {/* ── Panel 3: Recipe Editor ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', minHeight: 0 }}>
+        {/* Menu Items Selector Panel */}
+        <div className="lg:col-span-1 flex flex-col gap-4">
+          <AppCard noPadding className="flex flex-col max-h-[500px] lg:max-h-none overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Menu Items ({filteredItems.length})</span>
+              <div className="relative mt-2.5">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search item..."
+                  value={menuSearch}
+                  onChange={e => setMenuSearch(e.target.value)}
+                  className={`${formControlClass} pl-8.5 py-1.5 text-xs placeholder-slate-400`}
+                />
+              </div>
+            </div>
+            
+            <div className="p-2 overflow-y-auto flex-1 flex flex-col gap-0.5">
+              {menuLoading ? (
+                <div className="flex justify-center py-8"><LoadingSpinner size="sm" /></div>
+              ) : filteredItems.length === 0 ? (
+                <AppEmptyState title="No items found" icon={ChefHat} />
+              ) : (
+                filteredItems.map(item => {
+                  const isSelected = selectedItem?.id === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleSelectItem(item)}
+                      className={`w-full text-left p-2.5 rounded-xl border border-transparent cursor-pointer flex items-center gap-3 transition-colors ${
+                        isSelected 
+                          ? 'bg-orange-500/5 text-primary border-orange-500/10' 
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-900'
+                      }`}
+                    >
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-slate-50" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0 border border-orange-500/15">
+                          <ChefHat size={15} className="text-primary" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-primary' : 'text-slate-700 dark:text-slate-300'} truncate`}>
+                          {item.name}
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-wider">
+                          {item.category}
+                        </div>
+                      </div>
+                      {isSelected && <ChevronRight size={14} className="text-primary shrink-0" />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </AppCard>
+        </div>
+
+        {/* Recipe Editor Details Panel */}
+        <div className="lg:col-span-2 flex flex-col gap-5">
           {!selectedItem ? (
-            <AppCard style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AppCard className="h-64 flex items-center justify-center">
               <AppEmptyState
-                title="Select a menu item"
-                description="Choose a menu item from the list to view and edit its recipe ingredients."
+                title="Select Menu Item"
+                description="Choose an item from the side panel to view, add, or configure its raw ingredient recipe."
                 icon={ChefHat}
               />
             </AppCard>
           ) : recipeLoading ? (
-            <AppCard style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+            <AppCard className="h-64 flex items-center justify-center">
               <LoadingSpinner size="lg" />
             </AppCard>
           ) : (
             <>
-              {/* Header Card */}
+              {/* Active Selection Info Header */}
               <AppCard>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  {selectedItem.imageUrl ? (
-                    <img src={selectedItem.imageUrl} alt={selectedItem.name} style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                  ) : (
-                    <div style={{ width: 56, height: 56, borderRadius: 10, background: 'rgba(255,107,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <ChefHat size={24} style={{ color: 'var(--primary)' }} />
-                    </div>
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {selectedItem.name}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-                      {selectedItem.category} · {formatRM(selectedItem.price)}
-                    </div>
-                    {recipe && (
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 4 }}>
-                        {recipe.ingredients.length} ingredient{recipe.ingredients.length !== 1 ? 's' : ''}
-                        {recipe.updatedAt && ` · Last updated ${new Date(recipe.updatedAt).toLocaleDateString('en-MY')}`}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    {selectedItem.imageUrl ? (
+                      <img src={selectedItem.imageUrl} alt={selectedItem.name} className="w-12 h-12 rounded-xl object-cover border border-slate-50 shadow-sm shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/15">
+                        <ChefHat size={20} className="text-primary" />
                       </div>
                     )}
+                    <div>
+                      <h3 className="font-extrabold text-slate-800 dark:text-white text-base leading-tight">
+                        {selectedItem.name}
+                      </h3>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">
+                        {selectedItem.category} · {formatRM(selectedItem.price)}
+                      </p>
+                    </div>
                   </div>
-                  <AppButton icon={Plus} onClick={openAddModal} size="sm">
+                  <AppButton variant="primary" size="sm" icon={Plus} onClick={openAddModal} className="text-xs uppercase font-bold tracking-wider py-2.5">
                     Add Ingredient
                   </AppButton>
                 </div>
               </AppCard>
 
-              {/* Ingredients Card */}
-              <AppCard
-                title="Recipe Ingredients"
-                subtitle="Standard ingredients required to prepare this item"
-                headerAction={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {recipe && recipe.ingredients.some(i => i.stockStatus === 'CRITICAL') && (
-                      <AppBadge variant="danger" text="Low Stock" icon />
-                    )}
-                    {recipe && recipe.ingredients.some(i => i.stockStatus === 'LOW') && (
-                      <AppBadge variant="warning" text="Stock Alert" icon />
-                    )}
-                  </div>
-                }
-              >
+              {/* Recipe Components */}
+              <AppCard title="Recipe Components" subtitle="Raw ingredients mapped for single serving deduction">
                 {!recipe || recipe.ingredients.length === 0 ? (
                   <AppEmptyState
-                    title="No ingredients yet"
-                    description="Add inventory items to define what's needed to prepare this menu item."
+                    title="No ingredients defined"
+                    description="Map raw items from inventory to set serving quantities."
                     icon={Package}
                     action={
-                      <AppButton icon={Plus} onClick={openAddModal} size="sm">
-                        Add First Ingredient
+                      <AppButton variant="primary" size="sm" icon={Plus} onClick={openAddModal} className="text-xs uppercase font-bold tracking-wider mt-3">
+                        Define Recipe
                       </AppButton>
                     }
                   />
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div className="flex flex-col gap-3">
                     {recipe.ingredients.map(ing => (
                       <IngredientRow
                         key={ing.id}
@@ -614,12 +519,8 @@ export const ManagerRecipes: React.FC = () => {
                 )}
               </AppCard>
 
-              {/* Preparation Notes Card */}
-              <AppCard
-                title="Preparation Notes"
-                subtitle="Kitchen instructions for preparing this item"
-                icon={FileText}
-              >
+              {/* Preparation Guidelines */}
+              <AppCard title="Kitchen Guidelines" subtitle="Preparation instructions displayed on order execution" icon={FileText}>
                 <NotesEditor
                   notes={recipe?.notes || ''}
                   onSave={handleSaveNotes}
@@ -629,6 +530,7 @@ export const ManagerRecipes: React.FC = () => {
             </>
           )}
         </div>
+
       </div>
 
       {/* Ingredient Form Modal */}

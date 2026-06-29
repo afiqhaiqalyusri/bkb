@@ -15,17 +15,17 @@ interface AppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const getVariantStyles = (variant: AppButtonVariant) => {
   switch (variant) {
     case 'primary':
-      return 'bg-[var(--primary)] hover:bg-[var(--red-dark)] text-white border border-transparent shadow-sm';
+      return 'bg-[var(--primary)] hover:bg-[var(--red-dark)] active:bg-orange-700 text-white border border-transparent shadow-sm hover:shadow transition-all';
     case 'secondary':
-      return 'bg-[var(--bkb-card-bg)] hover:bg-[var(--bkb-cream)] text-[var(--bkb-text)] border border-[var(--bkb-border)] shadow-sm';
+      return 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-[var(--bkb-text)] border border-[var(--bkb-border)] shadow-sm transition-all';
     case 'danger':
-      return 'bg-[var(--danger)] hover:bg-red-600 text-white border border-transparent shadow-sm';
+      return 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white border border-transparent shadow-sm transition-all';
     case 'success':
-      return 'bg-[var(--bkb-success)] hover:bg-green-600 text-white border border-transparent shadow-sm';
+      return 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white border border-transparent shadow-sm transition-all';
     case 'outline':
-      return 'bg-transparent hover:bg-[rgba(255,107,0,0.05)] text-[var(--primary)] border border-[var(--primary)]';
+      return 'bg-transparent hover:bg-orange-50 dark:hover:bg-orange-950/20 text-[var(--primary)] border border-[var(--primary)] transition-all';
     case 'ghost':
-      return 'bg-transparent hover:bg-[rgba(0,0,0,0.05)] text-[var(--bkb-gray-400)] hover:text-[var(--bkb-text)]';
+      return 'bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-[var(--bkb-gray-400)] hover:text-[var(--bkb-text)] transition-all';
     default:
       return '';
   }
@@ -33,10 +33,10 @@ const getVariantStyles = (variant: AppButtonVariant) => {
 
 const getSizeStyles = (size: AppButtonSize) => {
   switch (size) {
-    case 'sm': return 'px-3 py-1.5 text-xs';
-    case 'md': return 'px-4 py-2 text-sm';
-    case 'lg': return 'px-6 py-3 text-base font-semibold';
-    case 'icon': return 'p-2';
+    case 'sm': return 'px-3 py-1.5 text-xs rounded-md';
+    case 'md': return 'px-4 py-2 text-sm rounded-lg';
+    case 'lg': return 'px-5 py-2.5 text-sm font-semibold rounded-lg';
+    case 'icon': return 'p-2 rounded-lg';
     default: return '';
   }
 };
@@ -54,11 +54,11 @@ export const AppButton: React.FC<AppButtonProps> = ({
 }) => {
   const variantStyles = getVariantStyles(variant);
   const sizeStyles = getSizeStyles(size);
-  const disabledStyles = disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer transform hover:-translate-y-px transition-all duration-150';
+  const disabledStyles = disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-[0.98] transition-all duration-150';
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bkb-card-bg)] ${variantStyles} ${sizeStyles} ${disabledStyles} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:ring-offset-0 ${variantStyles} ${sizeStyles} ${disabledStyles} ${className}`}
       disabled={disabled || isLoading}
       {...props}
     >

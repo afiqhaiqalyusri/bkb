@@ -12,7 +12,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
   noPadding = false 
 }) => {
   return (
-    <div className={`bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden ${className}`}>
+    <div className={`bg-[var(--bkb-card-bg)] rounded-2xl border border-[var(--bkb-border)] shadow-sm overflow-hidden transition-shadow duration-200 hover:shadow-md ${className}`}>
       <div className={noPadding ? '' : 'p-6'}>
         {children}
       </div>
