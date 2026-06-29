@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { securityLogger } from '../utils/securityLogger';
 import { SESSION_TIMEOUTS_MS, SESSION_WARNING_BEFORE_MS } from '../constants/config';
 import { STORAGE_KEYS } from '../constants/storage';
+import { bkbStorage } from '../utils/storage';
 
 const isTokenExpired = (token: string | null): boolean => {
   if (!token) return true;
@@ -114,7 +115,7 @@ export const SessionTimeoutManager: React.FC = () => {
       const timeoutLimit = getTimeoutDuration();
       const elapsed = now - lastActivityTime.current;
 
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const token = bkbStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       if (isTokenExpired(token)) {
         handleLogout('TIMEOUT');
         return;
@@ -161,7 +162,7 @@ export const SessionTimeoutManager: React.FC = () => {
     if (!isAuthenticated) return;
 
     const verifySessionStatus = () => {
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const token = bkbStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       const timeoutLimit = getTimeoutDuration();
       const elapsed = Date.now() - lastActivityTime.current;
 

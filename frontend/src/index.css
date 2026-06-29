@@ -6,23 +6,24 @@
   /* Centralized Theme Tokens (Unified Premium Orange Brand Theme) */
   --primary:         #FF6B00; /* Primary Orange Accent */
   --secondary:       #FF8A3D; /* Secondary Orange Accent */
-  --background:      #F8FAFC; /* Clean Light Canvas Background */
-  --secondary-bg:    #FFFFFF; /* Canvas Secondary Card/Box Background */
-  --surface:         #FFFFFF; /* Elevated Card/Dialog Canvas */
-  --surface-hover:   #FFFAF5; /* Warm Orange Tint Surface Hover State */
-  --text-primary:    #1A1A1A; /* Primary Dark Text */
-  --text-secondary:  #6B7280; /* Secondary Muted Text */
-  --border:          #E5E7EB; /* Soft Border Gray */
-  --success:         #22C55E; /* Success Green */
-  --warning:         #F59E0B; /* Warning Amber */
-  --danger:          #EF4444; /* Error Red */
+  --background:      #F3F4F6; /* Light Gray */
+  --secondary-bg:    #FFFFFF; /* White */
+  --surface:         #FFFFFF; /* White */
+  --surface-hover:   #F9FAFB; /* Subtle gray hover */
+  --text-primary:    #111827; /* Dark Charcoal (gray-900) */
+  --text-secondary:  #4B5563; /* Gray-600 */
+  --border:          #E5E7EB; /* Gray-200 */
+  --success:         #22C55E; /* Green */
+  --warning:         #F59E0B; /* Amber */
+  --danger:          #EF4444; /* Red */
+  --info:            #3B82F6; /* Blue */
 
   /* Legacy & Layout Compatibility Mappings */
   --red:             var(--primary);
   --red-dark:        #E05E00; /* Darker Orange */
   --red-light:       #FF8A3D; /* Lighter Orange */
   --cream:           var(--background);
-  --cream-dark:      #F1F5F9; /* Slate-like subtle gray for inputs/sections */
+  --cream-dark:      #E5E7EB;
   --warm-white:      var(--background);
   --brown:           var(--text-primary);
   --text-dark:       var(--text-primary);
@@ -30,22 +31,22 @@
   --text-muted:      var(--text-secondary);
   --white:           var(--surface);
   --card-bg:         var(--surface);
-  --shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md:       0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
-  --shadow-lg:       0 16px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-sm:       0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md:       0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:       0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-red:      0 6px 20px rgba(255, 107, 0, 0.15);
   --radius-sm:       6px;
   --radius-md:       8px;
   --radius-lg:       12px;
-  --radius-xl:       12px;
+  --radius-xl:       16px;
   --radius-pill:     999px;
 
   /* Theme tokens for tracking, loyalty & manager pages */
-  --bkb-dark:        var(--background);
+  --bkb-dark:        var(--text-primary);
   --bkb-card-bg:     var(--surface);
   --bkb-text:        var(--text-primary);
   --bkb-gray-400:    var(--text-secondary);
-  --bkb-sidebar-bg:  #111827; /* Gray-900 for modern sidebar */
+  --bkb-sidebar-bg:  #1F2937; /* Dark Charcoal sidebar */
   --bkb-border:      var(--border);
   --bkb-orange:      var(--primary);
   --bkb-orange-dark: var(--red-dark);
@@ -59,16 +60,17 @@
   /* Centralized Theme Tokens (Dark Mode) */
   --primary:         #FF6B00; /* Primary Orange Accent */
   --secondary:       #FF8C42; /* Secondary Orange Accent */
-  --background:      #0B0F19; /* Sleek Dark Background */
-  --secondary-bg:    #151D30; /* Dark surface background */
-  --surface:         #151D30; /* Elevated Card/Dialog Canvas */
-  --surface-hover:   #1D2942; /* Subtle hover state */
+  --background:      #0F172A; /* Slate 900 */
+  --secondary-bg:    #1E293B; /* Slate 800 */
+  --surface:         #1E293B; /* Elevated Card/Dialog Canvas */
+  --surface-hover:   #334155; /* Slate 700 */
   --text-primary:    #F8F9FA; /* Light Text */
   --text-secondary:  #94A3B8; /* Muted Slate Text */
-  --border:          #1E293B; /* Dark divider border */
+  --border:          #334155; /* Slate 700 */
   --success:         #10B981;
   --warning:         #F59E0B;
   --danger:          #EF4444;
+  --info:            #3B82F6;
 
   /* Legacy & Layout Compatibility Mappings */
   --red:             var(--primary);
@@ -89,11 +91,11 @@
   --shadow-red:      none;
 
   /* Manager/Kitchen dark overrides */
-  --bkb-dark:        var(--background);
+  --bkb-dark:        var(--text-primary);
   --bkb-card-bg:     var(--surface);
   --bkb-text:        var(--text-primary);
   --bkb-gray-400:    var(--text-secondary);
-  --bkb-sidebar-bg:  var(--background); /* Flat black sidebar */
+  --bkb-sidebar-bg:  #0F172A; /* Flat black sidebar */
   --bkb-border:      var(--border);
   --bkb-orange:      var(--primary);
   --bkb-orange-dark: var(--red-dark);

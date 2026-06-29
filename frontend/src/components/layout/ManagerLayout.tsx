@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, Package, Trash2, Users, Award,
-  Settings, Menu, ChefHat, Tag, Megaphone, ChevronRight,
-  BarChart3, Shield, LogOut, Bell
+  Settings, Menu, ChefHat, Tag, Megaphone, LogOut, Bell, Search, Calendar, ChevronDown
 } from 'lucide-react';
 import { BkbLogo } from '../ui/BkbLogo';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/auth.service';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { RoleBadge } from '../shared/RoleBadge';
 
 // ─── Nav Item Definition ─────────────────────────────────────────────────────
 interface NavItem {
@@ -44,24 +43,11 @@ interface ManagerSidebarProps {
 
 export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
   const location = useLocation();
-  const { user, clearAuth } = useAuthStore();
-  const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   const isActive = (item: NavItem) => {
     if (item.exact) return location.pathname === item.path;
     return location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-  };
-
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch {
-      // ignore
-    } finally {
-      clearAuth();
-      navigate('/login', { replace: true });
-      toast.success('Logged out successfully');
-    }
   };
 
   const filteredNavItems = NAV_ITEMS.filter(item => {
@@ -70,44 +56,28 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
   });
 
   return (
-    <aside style={{
-      width: 240,
-      minHeight: '100vh',
-      background: 'var(--surface)',
-      display: 'flex',
-      flexDirection: 'column',
-      flexShrink: 0,
-      borderRight: '1px solid var(--border)',
-      position: 'sticky',
-      top: 0,
-      height: '100vh',
-      overflowY: 'auto',
-      overflowX: 'hidden',
-    }}>
+    <aside className="w-64 min-h-screen bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
       {/* Brand */}
-      <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <Link to="/manager" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }} onClick={onClose}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: 'linear-gradient(135deg, var(--primary) 0%, #e05000 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <BkbLogo size={20} showText={false} color="#fff" />
+      <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex-shrink-0">
+        <Link to="/manager" className="flex items-center gap-3 no-underline" onClick={onClose}>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-red-dark flex items-center justify-center flex-shrink-0 shadow-sm">
+            <BkbLogo size={22} showText={false} color="#fff" />
           </div>
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>BKB Console</div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              {user?.role === 'ADMIN' ? 'Administrator' : 'Manager'}
+            <div className="text-base font-bold text-gray-900 dark:text-white tracking-tight">
+              {user?.role === 'ADMIN' ? 'Admin Portal' : 'Manager Portal'}
+            </div>
+            <div className="mt-1">
+              <RoleBadge role={user?.role || 'MANAGER'} size="sm" />
             </div>
           </div>
         </Link>
       </div>
 
       {/* Main Nav */}
-      <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '4px 10px 8px' }}>
-          Main Menu
+      <nav className="flex-1 p-4 flex flex-col gap-1">
+        <div className="text-[0.65rem] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest px-3 py-2 mb-1">
+          Menu
         </div>
         {filteredNavItems.map(item => {
           const Icon = item.icon;
@@ -117,47 +87,16 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
               key={item.path}
               to={item.path}
               onClick={onClose}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                textDecoration: 'none',
-                padding: '9px 12px',
-                borderRadius: 8,
-                background: active ? 'rgba(255,107,0,0.1)' : 'transparent',
-                color: active ? 'var(--primary)' : 'var(--text-secondary)',
-                fontWeight: active ? 700 : 500,
-                fontSize: '0.83rem',
-                transition: 'all 0.15s ease',
-                position: 'relative',
-              }}
-              onMouseEnter={e => {
-                if (!active) {
-                  (e.currentTarget as HTMLElement).style.background = 'var(--background)';
-                  (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
-                }
-              }}
-              onMouseLeave={e => {
-                if (!active) {
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
-                }
-              }}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+                active 
+                  ? 'bg-orange-50 text-primary dark:bg-orange-900/20 dark:text-primary' 
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+              }`}
             >
-              {active && (
-                <span style={{
-                  position: 'absolute', left: 0, top: '18%', bottom: '18%',
-                  width: 3, background: 'var(--primary)', borderRadius: '0 3px 3px 0',
-                }} />
-              )}
-              <Icon size={16} />
-              <span style={{ flex: 1 }}>{item.label}</span>
+              <Icon size={18} className={`${active ? 'text-primary' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`} />
+              <span className={`flex-1 text-sm ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
               {item.badge !== undefined && item.badge > 0 && (
-                <span style={{
-                  background: 'var(--danger)', color: '#fff',
-                  fontSize: '0.6rem', fontWeight: 800,
-                  padding: '1px 6px', borderRadius: 99, minWidth: 18, textAlign: 'center',
-                }}>
+                <span className="bg-red-500 text-white text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                   {item.badge}
                 </span>
               )}
@@ -166,8 +105,8 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
         })}
 
         {/* Separator */}
-        <div style={{ height: 1, background: 'var(--border)', margin: '8px 4px' }} />
-        <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '4px 10px 8px' }}>
+        <div className="h-px bg-gray-100 dark:bg-slate-800 my-4 mx-2" />
+        <div className="text-[0.65rem] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest px-3 py-2 mb-1">
           System
         </div>
         {BOTTOM_NAV_ITEMS.map(item => {
@@ -178,80 +117,18 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
               key={item.path}
               to={item.path}
               onClick={onClose}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                textDecoration: 'none',
-                padding: '9px 12px',
-                borderRadius: 8,
-                background: active ? 'rgba(255,107,0,0.1)' : 'transparent',
-                color: active ? 'var(--primary)' : 'var(--text-secondary)',
-                fontWeight: active ? 700 : 500,
-                fontSize: '0.83rem',
-                transition: 'all 0.15s ease',
-                position: 'relative',
-              }}
-              onMouseEnter={e => {
-                if (!active) {
-                  (e.currentTarget as HTMLElement).style.background = 'var(--background)';
-                  (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
-                }
-              }}
-              onMouseLeave={e => {
-                if (!active) {
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
-                }
-              }}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+                active 
+                  ? 'bg-orange-50 text-primary dark:bg-orange-900/20 dark:text-primary' 
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+              }`}
             >
-              {active && (
-                <span style={{
-                  position: 'absolute', left: 0, top: '18%', bottom: '18%',
-                  width: 3, background: 'var(--primary)', borderRadius: '0 3px 3px 0',
-                }} />
-              )}
-              <Icon size={16} />
-              <span>{item.label}</span>
+              <Icon size={18} className={`${active ? 'text-primary' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`} />
+              <span className={`flex-1 text-sm ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
             </Link>
           );
         })}
       </nav>
-
-      {/* User Footer */}
-      <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--background)' }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: '50%',
-            background: 'var(--primary)', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 800, fontSize: '0.8rem', flexShrink: 0,
-          }}>
-            {user?.name ? user.name.charAt(0).toUpperCase() : 'M'}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {user?.name || 'Manager'}
-            </div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-              {user?.role === 'ADMIN' ? 'Administrator' : 'Store Manager'}
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            title="Log out"
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-secondary)', padding: 4, borderRadius: 6,
-              display: 'flex', alignItems: 'center', transition: 'color 0.15s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
-          >
-            <LogOut size={15} />
-          </button>
-        </div>
-      </div>
     </aside>
   );
 };
@@ -280,7 +157,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   headerAction,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuthStore();
+  const { user, clearAuth } = useAuthStore();
+  const navigate = useNavigate();
 
   // Prevent browser back navigation in manager area
   useEffect(() => {
@@ -293,148 +171,151 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
     return () => window.removeEventListener('popstate', preventBack);
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // ignore
+    } finally {
+      clearAuth();
+      navigate('/login', { replace: true });
+      toast.success('Logged out successfully');
+    }
+  };
+
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
+  });
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--background)',
-      display: 'flex',
-      flexDirection: 'row',
-      color: 'var(--text-primary)',
-    }}>
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex text-gray-900 dark:text-gray-100 font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Desktop Sidebar */}
-      <div className="manager-sidebar-desktop">
+      <div className="hidden lg:block">
         <ManagerSidebar />
       </div>
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex' }}
+          className="fixed inset-0 bg-black/60 z-[200] flex"
           onClick={() => setSidebarOpen(false)}
         >
-          <div onClick={e => e.stopPropagation()} style={{ zIndex: 201 }}>
+          <div onClick={e => e.stopPropagation()} className="z-[201]">
             <ManagerSidebar onClose={() => setSidebarOpen(false)} />
           </div>
         </div>
       )}
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'hidden' }}>
-        {/* Top Header */}
-        <header style={{
-          height: 62,
-          padding: '0 24px',
-          display: 'flex',
-          alignItems: 'center',
-          borderBottom: '1px solid var(--border)',
-          background: 'var(--surface)',
-          flexShrink: 0,
-          gap: 16,
-        }}>
-          {/* Mobile Menu Button */}
-          <button
-            className="manager-menu-btn"
-            onClick={() => setSidebarOpen(true)}
-            style={{
-              background: 'none', border: 'none',
-              color: 'var(--text-primary)', cursor: 'pointer',
-              padding: 6, borderRadius: 8, display: 'none', alignItems: 'center',
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--background)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-          >
-            <Menu size={20} />
-          </button>
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        
+        {/* Top Navigation Bar */}
+        <header className="h-[72px] px-6 lg:px-8 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between flex-shrink-0 z-10 shadow-sm">
+          
+          <div className="flex items-center gap-4">
+            {/* Mobile Menu Button */}
+            <button
+              className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu size={20} />
+            </button>
 
-          {/* Page Title */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h1 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
-              {title}
-            </h1>
-            {subtitle && (
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 1 }}>
-                {subtitle}
-              </span>
-            )}
+            {/* Global Search (Visual Only for now) */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg w-64 text-sm text-gray-400">
+              <Search size={16} />
+              <span>Search...</span>
+            </div>
           </div>
 
-          {/* Tabs */}
-          {tabs && tabs.length > 0 && (
-            <div style={{ display: 'flex', marginLeft: 24, overflowX: 'auto', flexShrink: 0 }} className="manager-tabs">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={tab.onClick}
-                  style={{
-                    background: 'none', border: 'none',
-                    color: tab.active ? 'var(--primary)' : 'var(--text-secondary)',
-                    fontWeight: tab.active ? 600 : 500,
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    padding: '20px 14px',
-                    transition: 'color 0.15s',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}
-                >
-                  {tab.label}
-                  {tab.active && (
-                    <span style={{
-                      position: 'absolute', bottom: 0, left: 0, right: 0,
-                      height: 2.5, background: 'var(--primary)', borderRadius: '2px 2px 0 0',
-                    }} />
-                  )}
-                </button>
-              ))}
+          {/* Right Actions */}
+          <div className="flex items-center gap-4 lg:gap-6">
+            
+            {/* Date Display */}
+            <div className="hidden lg:flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+              <Calendar size={16} />
+              <span>{today}</span>
             </div>
-          )}
+            
+            <div className="hidden lg:block w-px h-6 bg-gray-200 dark:bg-slate-700"></div>
 
-          {/* Right Spacer + Actions */}
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-            {headerAction && <div>{headerAction}</div>}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ textAlign: 'right', display: 'none' }} className="manager-user-text">
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
-                  {user?.name || 'Manager'}
-                </div>
-                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-                  {user?.role === 'ADMIN' ? 'Administrator' : 'Store Manager'}
-                </div>
-              </div>
-              <div style={{
-                width: 34, height: 34, borderRadius: '50%',
-                background: 'var(--primary)', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 800, fontSize: '0.8rem', flexShrink: 0,
-              }}>
+            {/* Notifications */}
+            <button className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+              <Bell size={20} />
+              <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-800"></span>
+            </button>
+
+            {/* Profile Dropdown (Simplified for layout) */}
+            <div className="flex items-center gap-3 pl-2 lg:pl-0">
+              <div className="w-9 h-9 rounded-full bg-orange-100 text-primary dark:bg-orange-900/30 flex items-center justify-center font-bold text-sm border border-orange-200 dark:border-orange-800">
                 {user?.name ? user.name.charAt(0).toUpperCase() : 'M'}
               </div>
+              <div className="hidden sm:block text-left">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white leading-tight mb-1">
+                  {user?.name || 'Manager'}
+                </div>
+                <RoleBadge role={user?.role || 'MANAGER'} size="sm" />
+              </div>
+              <button 
+                onClick={handleLogout}
+                className="p-1.5 text-gray-400 hover:text-red-500 transition-colors ml-1"
+                title="Log out"
+              >
+                <LogOut size={16} />
+              </button>
             </div>
           </div>
         </header>
 
-        {/* Scrollable Content */}
-        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 24px', background: 'var(--background)' }}>
-          {children}
+        {/* Page Header Area (Title & Tabs) */}
+        <div className="bg-white dark:bg-slate-800 px-6 lg:px-8 py-5 border-b border-gray-100 dark:border-slate-700 flex flex-col gap-4 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                {title}
+              </h1>
+              {subtitle && (
+                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+            {headerAction && <div>{headerAction}</div>}
+          </div>
+
+          {/* Tabs */}
+          {tabs && tabs.length > 0 && (
+            <div className="flex overflow-x-auto scrollbar-hide -mb-5 gap-6 border-t border-gray-100 dark:border-slate-700 pt-1 mt-2">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={tab.onClick}
+                  className={`py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                    tab.active 
+                      ? 'border-primary text-primary' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-gray-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Scrollable Main Content */}
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto w-full">
+            {children}
+          </div>
         </main>
       </div>
 
       <style>{`
-        .manager-tabs { scrollbar-width: none; }
-        .manager-tabs::-webkit-scrollbar { display: none; }
-
-        @media (min-width: 900px) {
-          .manager-sidebar-desktop { display: block !important; }
-          .manager-menu-btn { display: none !important; }
-          .manager-user-text { display: block !important; }
-        }
-        @media (max-width: 899px) {
-          .manager-sidebar-desktop { display: none !important; }
-          .manager-menu-btn { display: flex !important; }
-          .manager-user-text { display: none !important; }
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );

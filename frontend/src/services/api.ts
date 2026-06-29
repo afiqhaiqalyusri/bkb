@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { STORAGE_KEYS } from '../constants/storage';
+import { bkbStorage } from '../utils/storage';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:8081'),
@@ -12,7 +13,7 @@ const api = axios.create({
 
 // Request interceptor — attach token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  const token = bkbStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -52,7 +53,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       // If no refresh token exists, clear auth and redirect
-      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      const refreshToken = bkbStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
       if (!refreshToken) {
         useAuthStore.getState().clearAuth();
         window.location.href = '/';

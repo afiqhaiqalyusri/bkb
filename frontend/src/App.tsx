@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-rou
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import { SessionTimeoutManager } from './components/SessionTimeoutManager';
+import { SessionSyncManager } from './components/SessionSyncManager';
 import { ConfirmationProvider } from './components/ConfirmationProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -59,6 +60,7 @@ const RootLayout: React.FC = () => {
   return (
     <ConfirmationProvider>
       <SessionTimeoutManager />
+      <SessionSyncManager />
       <Outlet />
     </ConfirmationProvider>
   );
