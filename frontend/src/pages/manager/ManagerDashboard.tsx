@@ -55,33 +55,33 @@ const OverviewContent: React.FC<{
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Primary Brand (Total Revenue) */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-xl p-5 text-white shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-xl p-4 text-white shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-          <div className="flex justify-between items-start z-10 mb-4">
-            <span className="text-xs font-medium text-white/80">Total Revenue</span>
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-              <DollarSign size={15} strokeWidth={2.5} />
+          <div className="flex justify-between items-start z-10">
+            <span className="text-xs font-medium text-white/90">Total Revenue</span>
+            <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
+              <DollarSign size={14} strokeWidth={2.5} />
             </div>
           </div>
-          <div className="z-10">
-            <div className="text-2xl font-bold mb-0.5">{formatRM(execData?.revenue?.value ?? 0)}</div>
+          <div className="z-10 relative mt-3">
+            <div className="text-2xl font-bold mb-0.5 tracking-tight">{formatRM(execData?.revenue?.value ?? 0)}</div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/20 rounded">+12%</span>
-              <span className="text-[10px] text-white/60">vs last month</span>
+              <span className="text-[10px] text-white/70">vs last month</span>
             </div>
           </div>
         </motion.div>
 
         {/* Card 2: Orders */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
             <span className="text-xs font-medium text-gray-500">Total Orders</span>
-            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-              <ShoppingBag size={14} strokeWidth={2.5} className="text-white" />
+            <div className="w-7 h-7 bg-gray-50 border border-gray-100 rounded-md flex items-center justify-center">
+              <ShoppingBag size={14} strokeWidth={2.5} className="text-gray-600" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900 mb-0.5">{execData?.orders?.value ?? 0}</div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-gray-900 mb-0.5 tracking-tight">{execData?.orders?.value ?? 0}</div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded">+5.2%</span>
               <span className="text-[10px] text-gray-400">vs last month</span>
@@ -90,15 +90,15 @@ const OverviewContent: React.FC<{
         </motion.div>
 
         {/* Card 3: Customers */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
             <span className="text-xs font-medium text-gray-500">Customers</span>
-            <div className="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center">
+            <div className="w-7 h-7 bg-orange-50 border border-orange-100/50 rounded-md flex items-center justify-center">
               <Users size={14} strokeWidth={2.5} className="text-orange-500" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900 mb-0.5">{execData?.customers?.value ?? 0}</div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-gray-900 mb-0.5 tracking-tight">{execData?.customers?.value ?? 0}</div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold px-1.5 py-0.5 bg-red-50 text-red-500 rounded">-1.5%</span>
               <span className="text-[10px] text-gray-400">vs last month</span>
@@ -107,15 +107,15 @@ const OverviewContent: React.FC<{
         </motion.div>
 
         {/* Card 4: Avg Order Value */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <span className="text-xs font-medium text-gray-500">Avg Order Value</span>
-            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-xs font-medium text-gray-500">Avg Order</span>
+            <div className="w-7 h-7 bg-blue-50 border border-blue-100/50 rounded-md flex items-center justify-center">
               <TrendingUp size={14} strokeWidth={2.5} className="text-blue-500" />
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900 mb-0.5">{formatRM(35.50)}</div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold text-gray-900 mb-0.5 tracking-tight">{formatRM(35.50)}</div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded">+4.1%</span>
               <span className="text-[10px] text-gray-400">vs last month</span>

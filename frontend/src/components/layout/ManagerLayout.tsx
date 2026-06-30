@@ -55,11 +55,11 @@ const PillNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             to={item.path}
             onClick={onClose}
             className={`
-              whitespace-nowrap px-3.5 py-1.5 rounded-full text-[13px] font-semibold
+              whitespace-nowrap px-3.5 py-1.5 rounded-md text-[13px] font-semibold
               transition-all duration-150 flex-shrink-0
               ${active
-                ? 'bg-gray-900 text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'}
+                ? 'bg-gray-100 text-gray-900'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
             `}
           >
             {item.label}
