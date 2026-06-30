@@ -59,8 +59,16 @@ const OverviewContent: React.FC<{
           
           <div className="relative z-10 flex flex-col h-full justify-between">
             <div>
-              <p className="text-orange-100 font-semibold mb-2 tracking-wide uppercase text-sm">Today's Revenue</p>
-              <h2 className="text-6xl md:text-7xl font-extrabold tracking-tighter mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-orange-100 font-semibold tracking-wide uppercase text-sm">Today's Revenue</p>
+                <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-lg backdrop-blur-sm border border-white/10">
+                  <span className="text-emerald-300 font-bold text-xs flex items-center">
+                    <TrendingUp size={12} className="mr-1" /> +12%
+                  </span>
+                  <span className="text-orange-100/70 text-[10px] font-semibold uppercase tracking-wider">vs yesterday</span>
+                </div>
+              </div>
+              <h2 className="text-6xl md:text-7xl font-extrabold tracking-tighter mb-4 drop-shadow-sm">
                 {formatRM(execData?.revenue?.value ?? 0)}
               </h2>
             </div>
@@ -95,12 +103,15 @@ const OverviewContent: React.FC<{
 
         {/* Rate Widget */}
         <div className="bg-[#FFEACF] dark:bg-[#3E2723] rounded-[2rem] p-8 relative overflow-hidden flex flex-col shadow-sm border border-orange-100 dark:border-orange-900/50 min-h-[320px]">
-          <p className="text-orange-900 dark:text-orange-200 font-bold mb-4 tracking-wide">Completion Rate</p>
+          <p className="text-orange-900 dark:text-orange-200 font-bold mb-4 tracking-wide flex items-center justify-between">
+            Completion Rate
+            <span className="bg-white/50 dark:bg-black/20 text-orange-800 dark:text-orange-300 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Monthly</span>
+          </p>
           <div className="flex items-start gap-2 relative z-10">
             <span className="text-[5.5rem] font-extrabold tracking-tighter text-gray-900 dark:text-white leading-none">{popularityRate}</span>
             <span className="text-3xl font-bold text-gray-900 dark:text-white mt-2 leading-none">%</span>
-            <span className="bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-[10px] font-extrabold px-2 py-1 rounded-full shadow-sm mt-3 ml-2 border border-gray-100 dark:border-slate-700">
-              +4%
+            <span className="bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 text-[10px] font-extrabold px-2 py-1 rounded-full shadow-sm mt-3 ml-2 border border-gray-100 dark:border-slate-700 flex items-center">
+              <TrendingUp size={10} className="mr-0.5" /> +4%
             </span>
           </div>
           
@@ -128,9 +139,12 @@ const OverviewContent: React.FC<{
         {/* Finance Performance */}
         <div className="bg-transparent rounded-[2rem] py-2 flex flex-col min-h-[300px]">
           <div className="flex items-center justify-between mb-8 px-2">
-             <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight">Finance Performance</h3>
-             <div className="flex items-center gap-3">
-               <div className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
+             <div>
+               <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight">Finance Performance</h3>
+               <p className="text-xs text-gray-500 font-semibold mt-1">Comparing peak hour order volumes</p>
+             </div>
+             <div className="flex items-center gap-3 group cursor-pointer">
+               <div className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 group-hover:shadow-md transition-shadow">
                   <div className="w-8 h-8 bg-[#0F766E] text-white rounded-lg flex items-center justify-center font-bold text-sm">$</div>
                   <div>
                     <div className="text-lg font-extrabold text-gray-900 dark:text-white leading-none">{formatRM(execData?.revenue?.value ?? 0)}</div>
@@ -163,13 +177,16 @@ const OverviewContent: React.FC<{
         {/* Top Performers */}
         <div className="bg-transparent rounded-[2rem] py-2 flex flex-col min-h-[300px]">
           <div className="flex justify-between items-center mb-6 px-2">
-            <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight uppercase">TOP Performers</h3>
+            <div>
+              <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight uppercase">TOP Performers</h3>
+              <p className="text-xs text-gray-500 font-semibold mt-1">Highest converting items</p>
+            </div>
           </div>
           <div className="flex flex-col gap-3 flex-1 px-2">
             {(report?.topItems || []).slice(0, 4).map((item: any, idx: number) => (
-              <div key={idx} className="flex items-center justify-between group py-3 border-b border-gray-100 dark:border-slate-800 last:border-0 hover:bg-gray-50 dark:hover:bg-slate-800/50 px-2 -mx-2 rounded-xl transition-colors cursor-pointer">
+              <div key={idx} className="flex items-center justify-between group py-3 border-b border-gray-100 dark:border-slate-800 last:border-0 hover:bg-orange-50 dark:hover:bg-slate-800/50 px-3 -mx-3 rounded-xl transition-all cursor-pointer">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[#FFEACF] dark:bg-slate-800 flex items-center justify-center font-bold text-primary shadow-sm text-sm overflow-hidden">
+                  <div className="w-12 h-12 rounded-full bg-[#FFEACF] dark:bg-slate-800 flex items-center justify-center font-bold text-primary shadow-sm text-sm overflow-hidden group-hover:scale-105 transition-transform">
                     {/* Placeholder Avatar style for items, mimicking the design's avatar list */}
                     <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="avatar" className="w-full h-full object-cover opacity-80 mix-blend-multiply dark:mix-blend-normal dark:invert" />
                   </div>
