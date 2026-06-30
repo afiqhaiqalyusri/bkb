@@ -49,88 +49,88 @@ const OverviewContent: React.FC<{
   const popularityRate = 87; 
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-5 pb-6">
       
       {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Card 1: Primary Brand (Total Sales) */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-2xl p-6 text-white shadow-sm flex flex-col justify-between h-40 relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-          <div className="flex justify-between items-start z-10">
-            <span className="text-sm font-medium text-white/90">Total Revenue</span>
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-orange-600 shadow-sm">
-              <DollarSign size={20} strokeWidth={2.5} />
+        {/* Card 1: Primary Brand (Total Revenue) */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-xl p-5 text-white shadow-sm flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+          <div className="flex justify-between items-start z-10 mb-4">
+            <span className="text-xs font-medium text-white/80">Total Revenue</span>
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <DollarSign size={15} strokeWidth={2.5} />
             </div>
           </div>
           <div className="z-10">
-            <div className="text-3xl font-bold mb-1 flex items-baseline gap-2">
-              {formatRM(execData?.revenue?.value ?? 0)}
-              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/20 rounded-md">+12%</span>
+            <div className="text-2xl font-bold mb-0.5">{formatRM(execData?.revenue?.value ?? 0)}</div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/20 rounded">+12%</span>
+              <span className="text-[10px] text-white/60">vs last month</span>
             </div>
-            <div className="text-xs text-white/70">Last month: {formatRM((execData?.revenue?.value ?? 0) * 0.88)}</div>
           </div>
         </motion.div>
 
         {/* Card 2: Orders */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between h-40">
-          <div className="flex justify-between items-start">
-            <span className="text-sm font-medium text-gray-500">Total Orders</span>
-            <div className="w-10 h-10 bg-[#111111] rounded-full flex items-center justify-center text-white shadow-sm">
-              <ShoppingBag size={18} strokeWidth={2.5} />
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <span className="text-xs font-medium text-gray-500">Total Orders</span>
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+              <ShoppingBag size={14} strokeWidth={2.5} className="text-white" />
             </div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-gray-900 mb-1 flex items-baseline gap-2">
-              {execData?.orders?.value ?? 0}
-              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-md">+5.2%</span>
+            <div className="text-2xl font-bold text-gray-900 mb-0.5">{execData?.orders?.value ?? 0}</div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded">+5.2%</span>
+              <span className="text-[10px] text-gray-400">vs last month</span>
             </div>
-            <div className="text-xs text-gray-400">Last month: {Math.floor((execData?.orders?.value ?? 0) * 0.95)}</div>
           </div>
         </motion.div>
 
         {/* Card 3: Customers */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between h-40">
-          <div className="flex justify-between items-start">
-            <span className="text-sm font-medium text-gray-500">Customers</span>
-            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shadow-sm">
-              <Users size={18} strokeWidth={2.5} />
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <span className="text-xs font-medium text-gray-500">Customers</span>
+            <div className="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center">
+              <Users size={14} strokeWidth={2.5} className="text-orange-500" />
             </div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-gray-900 mb-1 flex items-baseline gap-2">
-              {execData?.customers?.value ?? 0}
-              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-red-50 text-red-600 rounded-md">-1.5%</span>
+            <div className="text-2xl font-bold text-gray-900 mb-0.5">{execData?.customers?.value ?? 0}</div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-red-50 text-red-500 rounded">-1.5%</span>
+              <span className="text-[10px] text-gray-400">vs last month</span>
             </div>
-            <div className="text-xs text-gray-400">Last month: {Math.floor((execData?.customers?.value ?? 0) * 1.015)}</div>
           </div>
         </motion.div>
 
         {/* Card 4: Avg Order Value */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between h-40">
-          <div className="flex justify-between items-start">
-            <span className="text-sm font-medium text-gray-500">Avg Order Value</span>
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shadow-sm">
-              <TrendingUp size={18} strokeWidth={2.5} />
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <span className="text-xs font-medium text-gray-500">Avg Order Value</span>
+            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+              <TrendingUp size={14} strokeWidth={2.5} className="text-blue-500" />
             </div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-gray-900 mb-1 flex items-baseline gap-2">
-              {formatRM(35.50)}
-              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-md">+4.1%</span>
+            <div className="text-2xl font-bold text-gray-900 mb-0.5">{formatRM(35.50)}</div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded">+4.1%</span>
+              <span className="text-[10px] text-gray-400">vs last month</span>
             </div>
-            <div className="text-xs text-gray-400">Last month: {formatRM(34.10)}</div>
           </div>
         </motion.div>
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Performance Overview Chart */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-8 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col h-[400px]">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-lg font-bold text-gray-900 tracking-tight">Performance Overview</h3>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="lg:col-span-8 bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex flex-col h-[320px]">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">Performance Overview</h3>
             <button className="text-xs font-semibold bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg border border-gray-200">This Week ⌄</button>
           </div>
           <div className="flex-1 w-full min-h-0">
@@ -138,16 +138,15 @@ const OverviewContent: React.FC<{
                 <AppEmptyState title="No data available" icon={BarChart3} />
              ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={32}>
+                  <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={28}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                    <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} dy={10} fontWeight={500} />
+                    <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} dy={8} fontWeight={500} />
                     <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} fontWeight={500} />
-                    <Tooltip 
+                    <Tooltip
                       cursor={{ fill: '#f9fafb' }}
-                      contentStyle={{ background: '#fff', border: '1px solid #f3f4f6', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', color: '#111', fontSize: '12px', fontWeight: 'bold' }}
+                      contentStyle={{ background: '#fff', border: '1px solid #f3f4f6', borderRadius: '10px', boxShadow: '0 4px 20px rgb(0 0 0 / 0.08)', color: '#111', fontSize: '12px', fontWeight: 'bold' }}
                     />
-                    {/* Simulating active/inactive bar styling natively using cell formatting, but for standard Recharts, a solid color with some opacity works */}
-                    <Bar dataKey="Orders" fill="#FF6B00" radius={[6, 6, 6, 6]} className="opacity-80 hover:opacity-100" />
+                    <Bar dataKey="Orders" fill="#FF6B00" radius={[5, 5, 5, 5]} />
                   </BarChart>
                 </ResponsiveContainer>
              )}
@@ -155,96 +154,91 @@ const OverviewContent: React.FC<{
         </motion.div>
 
         {/* Sales Growth Gauge */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-4 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col h-[400px]">
-          <div className="flex justify-between items-center mb-10">
-            <h3 className="text-lg font-bold text-gray-900 tracking-tight">Sales Growth</h3>
-            <button className="text-gray-400 hover:text-gray-900">•••</button>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }} className="lg:col-span-4 bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex flex-col h-[320px]">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">Sales Growth</h3>
+            <button className="text-gray-400 hover:text-gray-900 text-lg leading-none">•••</button>
           </div>
           
           <div className="flex-1 flex flex-col items-center justify-center">
-            {/* Half Doughnut using SVG */}
-            <div className="relative w-48 h-24 overflow-hidden mb-4">
+            <div className="relative w-44 h-22 overflow-hidden mb-3">
                <svg className="w-full h-full" viewBox="0 0 100 50">
-                 {/* Background Arc */}
-                 <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f3f4f6" strokeWidth="15" strokeLinecap="round" />
-                 {/* Foreground Arc (Active) */}
-                 <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#FF6B00" strokeWidth="15" strokeLinecap="round" strokeDasharray="125" strokeDashoffset={125 - (125 * popularityRate / 100)} />
+                 <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f3f4f6" strokeWidth="13" strokeLinecap="round" />
+                 <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#FF6B00" strokeWidth="13" strokeLinecap="round" strokeDasharray="125" strokeDashoffset={125 - (125 * popularityRate / 100)} />
                </svg>
                <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center">
-                 <span className="text-3xl font-extrabold text-gray-900">{popularityRate}%</span>
-                 <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Sales Growth</span>
+                 <span className="text-2xl font-extrabold text-gray-900">{popularityRate}%</span>
+                 <span className="text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Sales Growth</span>
                </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 mt-auto pt-6 border-t border-gray-50">
+          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-50">
              <div>
-               <div className="text-[11px] text-gray-500 font-medium mb-1">Number of Sales</div>
-               <div className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                 {execData?.orders?.value ?? 0} <span className="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded-full font-bold">+5%</span>
+               <div className="text-[10px] text-gray-400 font-medium mb-0.5">Number of Sales</div>
+               <div className="text-base font-bold text-gray-900 flex items-center gap-1.5">
+                 {execData?.orders?.value ?? 0} <span className="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold">+5%</span>
                </div>
              </div>
              <div>
-               <div className="text-[11px] text-gray-500 font-medium mb-1">Total Revenue</div>
-               <div className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                 {formatRM(execData?.revenue?.value ?? 0)} <span className="bg-gray-100 text-gray-700 text-[9px] px-1.5 py-0.5 rounded-full font-bold">+12%</span>
+               <div className="text-[10px] text-gray-400 font-medium mb-0.5">Total Revenue</div>
+               <div className="text-base font-bold text-gray-900 flex items-center gap-1.5">
+                 {formatRM(execData?.revenue?.value ?? 0)} <span className="bg-gray-100 text-gray-600 text-[9px] px-1.5 py-0.5 rounded font-bold">+12%</span>
                </div>
              </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Top Performers / Recent Orders (Table) */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-bold text-gray-900 tracking-tight">Top Performers</h3>
-          <div className="flex items-center gap-3">
+      {/* Top Performers Table */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">Top Performers</h3>
+          <div className="flex items-center gap-2">
              <div className="relative">
-               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-               <input type="text" placeholder="Search products..." className="pl-9 pr-4 py-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50 text-gray-900 outline-none focus:ring-1 focus:ring-[#FF6B00]" />
+               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+               <input type="text" placeholder="Search products..." className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50 text-gray-900 outline-none focus:ring-1 focus:ring-[#FF6B00] w-40" />
              </div>
              <button className="text-xs font-semibold bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg border border-gray-200 flex items-center gap-1">Sort by ⌄</button>
           </div>
         </div>
         
-        <div className="w-full">
-           <table className="w-full text-left border-collapse">
-             <thead>
-               <tr>
-                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Product Info</th>
-                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Category</th>
-                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Status</th>
-                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Units Sold</th>
-                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Revenue</th>
-               </tr>
-             </thead>
-             <tbody>
-               {(report?.topItems || []).slice(0, 5).map((item: any, idx: number) => (
-                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
-                   <td className="py-3 px-2 border-b border-gray-50 last:border-0">
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center p-1 overflow-hidden">
-                          <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="avatar" className="w-full h-full mix-blend-multiply opacity-80" />
-                        </div>
-                        <span className="font-bold text-sm text-gray-900">{item.itemName}</span>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Product</th>
+              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Category</th>
+              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Status</th>
+              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Units Sold</th>
+              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(report?.topItems || []).slice(0, 5).map((item: any, idx: number) => (
+              <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                <td className="py-2.5 px-2 border-b border-gray-50">
+                  <div className="flex items-center gap-2.5">
+                     <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                       <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="" className="w-full h-full mix-blend-multiply opacity-80" />
                      </div>
-                   </td>
-                   <td className="py-3 px-2 border-b border-gray-50 last:border-0 text-sm text-gray-600">Main Menu</td>
-                   <td className="py-3 px-2 border-b border-gray-50 last:border-0">
-                     <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase">Active</span>
-                   </td>
-                   <td className="py-3 px-2 border-b border-gray-50 last:border-0 text-sm font-semibold text-gray-900">{item.totalQuantity}</td>
-                   <td className="py-3 px-2 border-b border-gray-50 last:border-0 text-sm font-bold text-gray-900">{formatRM(item.totalRevenue)}</td>
-                 </tr>
-               ))}
-               {(!report?.topItems || report.topItems.length === 0) && (
-                 <tr>
-                   <td colSpan={5} className="py-8 text-center text-sm text-gray-400">No data available</td>
-                 </tr>
-               )}
-             </tbody>
-           </table>
-        </div>
+                     <span className="font-semibold text-[13px] text-gray-900">{item.itemName}</span>
+                  </div>
+                </td>
+                <td className="py-2.5 px-2 border-b border-gray-50 text-[13px] text-gray-500">Main Menu</td>
+                <td className="py-2.5 px-2 border-b border-gray-50">
+                  <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Active</span>
+                </td>
+                <td className="py-2.5 px-2 border-b border-gray-50 text-[13px] font-semibold text-gray-900">{item.totalQuantity}</td>
+                <td className="py-2.5 px-2 border-b border-gray-50 text-[13px] font-bold text-gray-900">{formatRM(item.totalRevenue)}</td>
+              </tr>
+            ))}
+            {(!report?.topItems || report.topItems.length === 0) && (
+              <tr>
+                <td colSpan={5} className="py-8 text-center text-sm text-gray-400">No data available</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </motion.div>
     </div>
   );
