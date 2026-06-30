@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Users, TrendingUp, ShoppingBag, Download, Calendar, DollarSign, FileText,
-  BarChart3, Package, AlertCircle, MessageSquare, ShieldCheck, CheckCircle2, ArrowRight
+import { 
+  TrendingUp, BarChart3, Package, CheckCircle2,
+  DollarSign, ShoppingBag, Users, Search, Download, Calendar, FileText,
+  AlertCircle, MessageSquare, ShieldCheck, ArrowRight
 } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { useLocation } from 'react-router-dom';
@@ -48,190 +49,203 @@ const OverviewContent: React.FC<{
   const popularityRate = 87; 
 
   return (
-    <div className="grid grid-cols-12 gap-5 pb-10">
+    <div className="space-y-6 pb-10">
       
-      {/* Hero Widget */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-        className="col-span-12 lg:col-span-8 bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-[20px] p-6 text-white relative overflow-hidden shadow-sm flex flex-col justify-between"
-      >
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-black/10 rounded-full blur-2xl pointer-events-none"></div>
+      {/* KPI Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        <div className="relative z-10">
-          <h2 className="text-[18px] font-bold tracking-tight mb-8">Today's Overview</h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
-            <div>
-              <p className="text-[12px] text-orange-100 font-medium uppercase tracking-wider mb-1">Revenue</p>
-              <div className="text-[32px] font-extrabold leading-none mb-2">{formatRM(execData?.revenue?.value ?? 0)}</div>
-              <div className="text-[12px] text-emerald-300 font-bold flex items-center gap-1"><TrendingUp size={12}/> +12% vs yest</div>
-            </div>
-            <div>
-              <p className="text-[12px] text-orange-100 font-medium uppercase tracking-wider mb-1">Orders</p>
-              <div className="text-[32px] font-extrabold leading-none mb-2">{execData?.orders?.value ?? 0}</div>
-              <div className="text-[12px] text-emerald-300 font-bold flex items-center gap-1"><TrendingUp size={12}/> +5% vs yest</div>
-            </div>
-            <div>
-              <p className="text-[12px] text-orange-100 font-medium uppercase tracking-wider mb-1">Customers</p>
-              <div className="text-[32px] font-extrabold leading-none mb-2">{execData?.customers?.value ?? 0}</div>
-              <div className="text-[12px] text-orange-200 font-bold">Stable</div>
-            </div>
-            <div>
-              <p className="text-[12px] text-orange-100 font-medium uppercase tracking-wider mb-1">Avg Order</p>
-              <div className="text-[32px] font-extrabold leading-none mb-2">{formatRM(35.5)}</div>
-              <div className="text-[12px] text-emerald-300 font-bold flex items-center gap-1"><TrendingUp size={12}/> +2%</div>
+        {/* Card 1: Primary Brand (Total Sales) */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-2xl p-6 text-white shadow-sm flex flex-col justify-between h-40 relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="flex justify-between items-start z-10">
+            <span className="text-sm font-medium text-white/90">Total Revenue</span>
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-orange-600 shadow-sm">
+              <DollarSign size={20} strokeWidth={2.5} />
             </div>
           </div>
-        </div>
-      </motion.div>
+          <div className="z-10">
+            <div className="text-3xl font-bold mb-1 flex items-baseline gap-2">
+              {formatRM(execData?.revenue?.value ?? 0)}
+              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/20 rounded-md">+12%</span>
+            </div>
+            <div className="text-xs text-white/70">Last month: {formatRM((execData?.revenue?.value ?? 0) * 0.88)}</div>
+          </div>
+        </motion.div>
 
-      {/* Rate Widget */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="col-span-12 lg:col-span-4 bg-white dark:bg-[#111111] rounded-[20px] p-6 border border-gray-200 dark:border-white/5 shadow-sm flex flex-col justify-between"
-      >
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-[18px] font-bold text-slate-900 dark:text-white">Completion Rate</h3>
-          <span className="text-[12px] text-gray-500 font-medium bg-gray-100 dark:bg-white/5 px-2 py-1 rounded-md">Monthly</span>
-        </div>
-        
-        <div className="flex items-center gap-6 mt-2">
-          <div className="relative w-28 h-28 flex-shrink-0">
-            <svg className="w-full h-full transform -rotate-90">
-              <circle cx="56" cy="56" r="46" className="stroke-gray-100 dark:stroke-white/5" strokeWidth="12" fill="none" />
-              <circle cx="56" cy="56" r="46" className="stroke-[#0F766E]" strokeWidth="12" fill="none" strokeDasharray="289" strokeDashoffset={289 - (289 * popularityRate / 100)} strokeLinecap="round" />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center flex-col">
-              <span className="text-[24px] font-extrabold text-slate-900 dark:text-white leading-none">{popularityRate}%</span>
+        {/* Card 2: Orders */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between h-40">
+          <div className="flex justify-between items-start">
+            <span className="text-sm font-medium text-gray-500">Total Orders</span>
+            <div className="w-10 h-10 bg-[#111111] rounded-full flex items-center justify-center text-white shadow-sm">
+              <ShoppingBag size={18} strokeWidth={2.5} />
             </div>
           </div>
-          
-          <div className="flex-1">
-            <div className="text-[14px] text-gray-500 font-medium mb-1">vs Last Month</div>
-            <div className="flex items-center text-emerald-500 font-bold text-[14px] mb-3">
-              <TrendingUp size={16} className="mr-1" /> +4%
-            </div>
-            <p className="text-[12px] text-gray-400 leading-tight">Increased efficiency during peak hours.</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Finance Performance */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="col-span-12 lg:col-span-7 bg-white dark:bg-[#111111] rounded-[20px] p-6 border border-gray-200 dark:border-white/5 shadow-sm flex flex-col min-h-[360px]"
-      >
-        <div className="flex justify-between items-center mb-8">
           <div>
-            <h3 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight">Finance Performance</h3>
-            <p className="text-[12px] text-gray-500 font-medium mt-1">Comparing peak hour order volumes</p>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 bg-gray-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-white/5">
-            <div className="w-6 h-6 bg-[#0F766E] text-white rounded flex items-center justify-center font-bold text-[12px]">$</div>
-            <div className="text-[14px] font-bold text-slate-900 dark:text-white">{formatRM(execData?.revenue?.value ?? 0)}</div>
-          </div>
-        </div>
-        
-        <div className="flex-1 w-full h-full min-h-[220px]">
-           {chartData.length === 0 ? (
-              <AppEmptyState title="No data available" icon={BarChart3} />
-           ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={16}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
-                  <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} dy={10} fontWeight={500} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} fontWeight={500} />
-                  <Tooltip 
-                    cursor={{ fill: 'var(--border)', opacity: 0.1 }}
-                    contentStyle={{ background: '#111', border: 'none', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', color: '#fff', fontSize: '12px', fontWeight: 'bold' }} 
-                    itemStyle={{ color: '#fff' }}
-                  />
-                  <Bar dataKey="Orders" fill="#0F766E" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-           )}
-        </div>
-      </motion.div>
-
-      {/* Top Performers */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-        className="col-span-12 lg:col-span-5 bg-white dark:bg-[#111111] rounded-[20px] p-6 border border-gray-200 dark:border-white/5 shadow-sm flex flex-col"
-      >
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h3 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight">Top Performers</h3>
-            <p className="text-[12px] text-gray-500 font-medium mt-1">Highest converting items</p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 flex-1">
-          {(report?.topItems || []).slice(0, 5).map((item: any, idx: number) => (
-            <div key={idx} className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center font-bold text-orange-600 dark:text-orange-400 overflow-hidden text-[14px] group-hover:scale-110 transition-transform">
-                  <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="avatar" className="w-full h-full mix-blend-multiply dark:mix-blend-normal dark:invert opacity-80" />
-                </div>
-                <div>
-                  <div className="font-bold text-[14px] text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors">{item.itemName}</div>
-                  <div className="text-[12px] text-gray-500 font-medium mt-0.5 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#0F766E]"></span>
-                    {item.totalQuantity} sold
-                  </div>
-                </div>
-              </div>
-              <div className="text-[14px] font-bold text-slate-900 dark:text-white">
-                {formatRM(item.totalRevenue)}
-              </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1 flex items-baseline gap-2">
+              {execData?.orders?.value ?? 0}
+              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-md">+5.2%</span>
             </div>
-          ))}
-          {(!report?.topItems || report.topItems.length === 0) && (
-             <div className="flex-1 flex items-center justify-center text-[14px] text-gray-400 font-medium">No sales data</div>
-          )}
-        </div>
-      </motion.div>
+            <div className="text-xs text-gray-400">Last month: {Math.floor((execData?.orders?.value ?? 0) * 0.95)}</div>
+          </div>
+        </motion.div>
 
-      {/* Target Inventory */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-        className="col-span-12 bg-white dark:bg-[#111111] rounded-[20px] p-6 border border-gray-200 dark:border-white/5 shadow-sm"
-      >
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-[18px] font-bold text-slate-900 dark:text-white">Inventory Health</h3>
-          <span className="text-[12px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-2.5 py-1 rounded-md border border-red-100 dark:border-red-900/30">{lowStock.length} Alerts</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {lowStock.length === 0 ? (
-             <div className="col-span-full flex flex-col items-center justify-center py-8 text-gray-400">
-               <CheckCircle2 size={32} className="mb-2 text-[#0F766E] opacity-70" />
-               <span className="text-[14px] font-bold tracking-wide">Stock levels healthy</span>
+        {/* Card 3: Customers */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between h-40">
+          <div className="flex justify-between items-start">
+            <span className="text-sm font-medium text-gray-500">Customers</span>
+            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shadow-sm">
+              <Users size={18} strokeWidth={2.5} />
+            </div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-gray-900 mb-1 flex items-baseline gap-2">
+              {execData?.customers?.value ?? 0}
+              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-red-50 text-red-600 rounded-md">-1.5%</span>
+            </div>
+            <div className="text-xs text-gray-400">Last month: {Math.floor((execData?.customers?.value ?? 0) * 1.015)}</div>
+          </div>
+        </motion.div>
+
+        {/* Card 4: Avg Order Value */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between h-40">
+          <div className="flex justify-between items-start">
+            <span className="text-sm font-medium text-gray-500">Avg Order Value</span>
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shadow-sm">
+              <TrendingUp size={18} strokeWidth={2.5} />
+            </div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-gray-900 mb-1 flex items-baseline gap-2">
+              {formatRM(35.50)}
+              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-md">+4.1%</span>
+            </div>
+            <div className="text-xs text-gray-400">Last month: {formatRM(34.10)}</div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Performance Overview Chart */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-8 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col h-[400px]">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-lg font-bold text-gray-900 tracking-tight">Performance Overview</h3>
+            <button className="text-xs font-semibold bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg border border-gray-200">This Week ⌄</button>
+          </div>
+          <div className="flex-1 w-full min-h-0">
+             {chartData.length === 0 ? (
+                <AppEmptyState title="No data available" icon={BarChart3} />
+             ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={32}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                    <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} dy={10} fontWeight={500} />
+                    <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} fontWeight={500} />
+                    <Tooltip 
+                      cursor={{ fill: '#f9fafb' }}
+                      contentStyle={{ background: '#fff', border: '1px solid #f3f4f6', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', color: '#111', fontSize: '12px', fontWeight: 'bold' }}
+                    />
+                    {/* Simulating active/inactive bar styling natively using cell formatting, but for standard Recharts, a solid color with some opacity works */}
+                    <Bar dataKey="Orders" fill="#FF6B00" radius={[6, 6, 6, 6]} className="opacity-80 hover:opacity-100" />
+                  </BarChart>
+                </ResponsiveContainer>
+             )}
+          </div>
+        </motion.div>
+
+        {/* Sales Growth Gauge */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-4 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col h-[400px]">
+          <div className="flex justify-between items-center mb-10">
+            <h3 className="text-lg font-bold text-gray-900 tracking-tight">Sales Growth</h3>
+            <button className="text-gray-400 hover:text-gray-900">•••</button>
+          </div>
+          
+          <div className="flex-1 flex flex-col items-center justify-center">
+            {/* Half Doughnut using SVG */}
+            <div className="relative w-48 h-24 overflow-hidden mb-4">
+               <svg className="w-full h-full" viewBox="0 0 100 50">
+                 {/* Background Arc */}
+                 <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f3f4f6" strokeWidth="15" strokeLinecap="round" />
+                 {/* Foreground Arc (Active) */}
+                 <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#FF6B00" strokeWidth="15" strokeLinecap="round" strokeDasharray="125" strokeDashoffset={125 - (125 * popularityRate / 100)} />
+               </svg>
+               <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center">
+                 <span className="text-3xl font-extrabold text-gray-900">{popularityRate}%</span>
+                 <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Sales Growth</span>
+               </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mt-auto pt-6 border-t border-gray-50">
+             <div>
+               <div className="text-[11px] text-gray-500 font-medium mb-1">Number of Sales</div>
+               <div className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                 {execData?.orders?.value ?? 0} <span className="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded-full font-bold">+5%</span>
+               </div>
              </div>
-          ) : (
-            lowStock.slice(0, 4).map((item) => (
-              <div key={item.id} className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5 flex flex-col gap-3 hover:-translate-y-1 transition-transform cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.status === 'CRITICAL' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
-                    <Package size={16} />
-                  </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${item.status === 'CRITICAL' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
-                    Restock
-                  </span>
-                </div>
-                <div>
-                   <div className="font-bold text-[14px] text-slate-900 dark:text-white truncate">{item.itemName}</div>
-                   <div className="text-[12px] text-gray-500 font-medium mt-1">
-                     {item.currentStock} / {item.minimumStock} min
-                   </div>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mt-1 overflow-hidden">
-                  <div className={`h-1.5 rounded-full ${item.status === 'CRITICAL' ? 'bg-red-500' : 'bg-amber-500'}`} style={{ width: `${Math.max(5, (item.currentStock / item.minimumStock) * 100)}%` }}></div>
-                </div>
-              </div>
-            ))
-          )}
+             <div>
+               <div className="text-[11px] text-gray-500 font-medium mb-1">Total Revenue</div>
+               <div className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                 {formatRM(execData?.revenue?.value ?? 0)} <span className="bg-gray-100 text-gray-700 text-[9px] px-1.5 py-0.5 rounded-full font-bold">+12%</span>
+               </div>
+             </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Top Performers / Recent Orders (Table) */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-bold text-gray-900 tracking-tight">Top Performers</h3>
+          <div className="flex items-center gap-3">
+             <div className="relative">
+               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+               <input type="text" placeholder="Search products..." className="pl-9 pr-4 py-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50 text-gray-900 outline-none focus:ring-1 focus:ring-[#FF6B00]" />
+             </div>
+             <button className="text-xs font-semibold bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg border border-gray-200 flex items-center gap-1">Sort by ⌄</button>
+          </div>
+        </div>
+        
+        <div className="w-full">
+           <table className="w-full text-left border-collapse">
+             <thead>
+               <tr>
+                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Product Info</th>
+                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Category</th>
+                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Status</th>
+                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Units Sold</th>
+                 <th className="pb-3 pt-2 px-2 text-xs font-medium text-gray-500 border-b border-gray-100">Revenue</th>
+               </tr>
+             </thead>
+             <tbody>
+               {(report?.topItems || []).slice(0, 5).map((item: any, idx: number) => (
+                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
+                   <td className="py-3 px-2 border-b border-gray-50 last:border-0">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center p-1 overflow-hidden">
+                          <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="avatar" className="w-full h-full mix-blend-multiply opacity-80" />
+                        </div>
+                        <span className="font-bold text-sm text-gray-900">{item.itemName}</span>
+                     </div>
+                   </td>
+                   <td className="py-3 px-2 border-b border-gray-50 last:border-0 text-sm text-gray-600">Main Menu</td>
+                   <td className="py-3 px-2 border-b border-gray-50 last:border-0">
+                     <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase">Active</span>
+                   </td>
+                   <td className="py-3 px-2 border-b border-gray-50 last:border-0 text-sm font-semibold text-gray-900">{item.totalQuantity}</td>
+                   <td className="py-3 px-2 border-b border-gray-50 last:border-0 text-sm font-bold text-gray-900">{formatRM(item.totalRevenue)}</td>
+                 </tr>
+               ))}
+               {(!report?.topItems || report.topItems.length === 0) && (
+                 <tr>
+                   <td colSpan={5} className="py-8 text-center text-sm text-gray-400">No data available</td>
+                 </tr>
+               )}
+             </tbody>
+           </table>
         </div>
       </motion.div>
-      
     </div>
   );
 };

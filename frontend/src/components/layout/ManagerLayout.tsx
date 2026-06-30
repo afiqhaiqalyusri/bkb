@@ -35,12 +35,8 @@ const BOTTOM_NAV_ITEMS: NavItem[] = [
   { path: '/manager/settings',  label: 'Settings',     icon: Settings },
 ];
 
-// ─── Sidebar ─────────────────────────────────────────────────────────────────
-interface ManagerSidebarProps {
-  onClose?: () => void;
-}
-
-export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
+// ─── Header Navigation ───────────────────────────────────────────────────────
+const HeaderNavigation: React.FC = () => {
   const location = useLocation();
   const { user } = useAuthStore();
 
@@ -55,72 +51,24 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
   });
 
   return (
-    <aside className="w-20 min-h-full bg-transparent flex flex-col items-center flex-shrink-0 pt-6 pb-6 overflow-y-auto scrollbar-hide">
-      {/* Brand */}
-      <div className="mb-10 flex-shrink-0">
-        <Link to="/manager" className="flex flex-col items-center gap-1 no-underline group" onClick={onClose}>
-          <div className="text-white flex items-center justify-center transition-transform group-hover:scale-105">
-            <BkbLogo size={32} showText={false} color="#fff" />
-          </div>
-        </Link>
-      </div>
-
-      {/* Main Nav */}
-      <nav className="flex-1 flex flex-col gap-4 w-full items-center">
-        {filteredNavItems.map(item => {
-          const Icon = item.icon;
-          const active = isActive(item);
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              title={item.label}
-              className={`flex items-center justify-center transition-all duration-200 group relative w-12 h-12 rounded-xl ${active ? 'bg-white/10' : 'hover:bg-white/5'}`}
-            >
-              {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full" />}
-              <div className={`flex items-center justify-center transition-all duration-300 ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`}>
-                <Icon size={18} strokeWidth={active ? 2.5 : 2} className={active ? '' : 'group-hover:scale-110 transition-transform'} />
-              </div>
-              {item.badge !== undefined && item.badge > 0 && (
-                <span className="absolute top-1 right-1 bg-orange-500 text-white text-[8px] font-bold px-1.5 rounded-full border border-slate-900">
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-
-        {/* Separator */}
-        <div className="w-6 h-px bg-slate-700 my-2 flex-shrink-0" />
-
-        {BOTTOM_NAV_ITEMS.map(item => {
-          const Icon = item.icon;
-          const active = isActive(item);
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              title={item.label}
-              className={`flex items-center justify-center transition-all duration-200 group relative w-12 h-12 rounded-xl ${active ? 'bg-white/10' : 'hover:bg-white/5'}`}
-            >
-              {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full" />}
-              <div className={`flex items-center justify-center transition-all duration-300 ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`}>
-                <Icon size={18} strokeWidth={active ? 2.5 : 2} className={active ? '' : 'group-hover:scale-110 transition-transform'} />
-              </div>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* User Profile avatar at bottom */}
-      <div className="mt-8 flex-shrink-0">
-        <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center border-2 border-slate-600 text-white font-bold text-sm shadow-md">
-          {user?.name ? user.name.charAt(0).toUpperCase() : 'M'}
-        </div>
-      </div>
-    </aside>
+    <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
+      {filteredNavItems.map(item => {
+        const active = isActive(item);
+        return (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-2 ${
+              active 
+                ? 'bg-[#111111] text-white shadow-sm' 
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 };
 
@@ -147,8 +95,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   tabs,
   headerAction,
 }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { clearAuth } = useAuthStore();
+  const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -176,15 +123,15 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   const renderTabs = () => {
     if (!tabs || tabs.length === 0) return null;
     return (
-      <div className="flex items-center justify-center gap-8 flex-1">
+      <div className="flex items-center gap-2">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={tab.onClick}
-            className={`text-[11px] font-bold uppercase tracking-widest transition-colors pb-1 border-b-2 ${
+            className={`text-[13px] font-bold px-4 py-2 rounded-lg transition-colors border ${
               tab.active 
-                ? 'border-white text-white' 
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'bg-gray-900 text-white border-gray-900 shadow-sm' 
+                : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >
             {tab.label}
@@ -195,120 +142,83 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   };
 
   return (
-    <div className="h-screen w-full bg-[#0B1120] flex text-white font-sans p-4 lg:p-6 overflow-hidden box-border" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="h-screen w-full bg-[#F3F4F6] flex p-3 lg:p-6 overflow-hidden box-border font-sans text-gray-900" style={{ fontFamily: "'Inter', sans-serif" }}>
       
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:flex">
-        <ManagerSidebar />
-      </div>
-
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-slate-900/90 z-[200] flex backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        >
-          <div onClick={e => e.stopPropagation()} className="z-[201] bg-slate-800 h-full">
-            <ManagerSidebar onClose={() => setSidebarOpen(false)} />
-          </div>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full relative">
+      {/* Massive White Floating Canvas */}
+      <div className="flex-1 bg-white rounded-[32px] shadow-sm flex flex-col min-w-0 h-full relative overflow-hidden border border-gray-100">
         
-        {/* Top Header (Dark Area) */}
-        <header className="h-14 flex items-center justify-between px-4 lg:px-6 flex-shrink-0 z-10 w-full mb-4">
+        {/* Top Header */}
+        <header className="h-20 flex items-center justify-between px-6 lg:px-10 flex-shrink-0 z-10 w-full border-b border-gray-50 bg-white">
           
-          <div className="flex items-center gap-4 flex-1">
-            {/* Mobile Menu Button */}
-            <button
-              className="lg:hidden p-2 -ml-2 rounded-lg text-white hover:bg-slate-700 transition-colors"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
-
-            {/* Back Button / Title */}
-            <div className="hidden lg:flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.history.back()}>
-              <div className="w-6 h-6 rounded-full bg-white text-slate-800 flex items-center justify-center">
-                <ChevronLeft size={14} strokeWidth={3} />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-white">Back</span>
+          {/* Left: Brand */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF6B00] to-[#E65100] flex items-center justify-center shadow-sm">
+               <BkbLogo size={20} showText={false} color="#fff" />
             </div>
-            
-            {/* If no tabs, we can show the title here */}
-            {(!tabs || tabs.length === 0) && (
-              <span className="lg:hidden text-sm font-bold uppercase tracking-wider ml-2">{title}</span>
-            )}
+            <span className="text-xl font-bold tracking-tight text-gray-900 hidden lg:block">BKB Admin</span>
           </div>
 
-          {/* Central Tabs */}
-          <div className="hidden md:flex flex-1 justify-center">
-             {renderTabs()}
+          {/* Center: Main Navigation */}
+          <div className="hidden lg:flex flex-1 justify-center max-w-3xl mx-8">
+            <HeaderNavigation />
           </div>
 
-          {/* Right Actions */}
-          <div className="flex items-center justify-end gap-4 lg:gap-6 flex-1">
-            <button className="text-slate-300 hover:text-white transition-colors">
-              <Search size={18} />
-            </button>
-            <button className="text-slate-300 hover:text-white transition-colors relative">
-              <Bell size={18} />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-slate-800"></span>
-            </button>
-
-            {/* Simulated Team Members */}
-            <div className="hidden lg:flex items-center gap-3">
-              <div className="flex -space-x-2">
-                <div className="w-6 h-6 rounded-full bg-orange-500 border-2 border-slate-800 flex items-center justify-center text-[8px] font-bold">M</div>
-                <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-slate-800 flex items-center justify-center text-[8px] font-bold">S</div>
-                <div className="w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-800 flex items-center justify-center text-[8px] font-bold">K</div>
-              </div>
-              <span className="text-[10px] font-semibold text-slate-300">12 members</span>
-            </div>
-
-            <button 
-              onClick={handleLogout}
-              className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
-              title="Log out"
-            >
+          {/* Right: Actions & Profile */}
+          <div className="flex items-center justify-end gap-3 lg:gap-5 flex-shrink-0">
+            <button onClick={handleLogout} title="Log out" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
               <LogOut size={18} />
             </button>
+            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors relative">
+              <Bell size={18} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+              <Settings size={18} />
+            </button>
+
+            {/* Profile */}
+            <div className="hidden sm:flex items-center gap-3 ml-2 border-l border-gray-200 pl-5">
+              <div className="text-right">
+                <div className="text-sm font-bold text-gray-900">{user?.name || 'Administrator'}</div>
+                <div className="text-xs text-gray-500 font-medium">{user?.email || 'admin@bkb.com'}</div>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center border-2 border-white shadow-sm font-bold text-orange-600">
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Mobile Tabs */}
-        <div className="md:hidden w-full px-4 mb-3">
-           {renderTabs()}
+        {/* Mobile Navigation (Scrollable) */}
+        <div className="lg:hidden w-full px-4 py-2 border-b border-gray-50 bg-white">
+          <HeaderNavigation />
         </div>
 
-        {/* White Rounded Canvas */}
-        <div className="flex-1 bg-[#FAFAFA] text-gray-900 dark:bg-[#111111] dark:text-gray-100 rounded-[20px] shadow-sm border border-gray-200 dark:border-white/5 flex flex-col overflow-hidden relative">
-          
-          {/* Header inside the white canvas for Page Title & Action */}
-          <div className="px-6 lg:px-8 pt-8 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4 flex-shrink-0 border-b border-gray-100 dark:border-white/5">
-            <div>
-              <h1 className="text-[36px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
-                {title}
-              </h1>
-              {subtitle && (
-                <p className="text-[14px] text-gray-500 dark:text-slate-400 mt-2 font-medium">
-                  {subtitle}
-                </p>
-              )}
-            </div>
-            {headerAction && <div>{headerAction}</div>}
+        {/* Inner Header (Page Title & Tabs) */}
+        <div className="px-6 lg:px-10 pt-8 pb-4 flex flex-col lg:flex-row lg:items-end justify-between gap-6 flex-shrink-0 bg-white">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-sm text-gray-500 font-medium">
+                {subtitle}
+              </p>
+            )}
           </div>
-
-          {/* Scrollable Main Content */}
-          <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-            <div className="w-full">
-              {children}
-            </div>
-          </main>
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+             {renderTabs()}
+             {headerAction && <div>{headerAction}</div>}
+          </div>
         </div>
 
+        {/* Scrollable Main Content */}
+        <main className="flex-1 overflow-y-auto p-6 lg:p-10 bg-white">
+          <div className="w-full max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
       </div>
 
       <style>{`

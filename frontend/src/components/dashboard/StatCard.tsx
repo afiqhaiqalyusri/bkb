@@ -21,25 +21,25 @@ export const StatCard: React.FC<StatCardProps> = ({
   iconColor = 'var(--primary)',
 }) => {
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div className="bg-white rounded-[24px] p-6 lg:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200">
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-1">{title}</p>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</h3>
+          <p className="text-sm font-medium text-gray-500 mb-2">{title}</p>
+          <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight">{value}</h3>
           
           {trend !== undefined && (
-            <div className="mt-3 flex items-center gap-2">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex items-center ${
+            <div className="mt-4 flex items-center gap-2">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center ${
                 trend > 0 
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                  ? 'bg-emerald-50 text-emerald-600' 
                   : trend < 0 
-                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
-                    : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
+                    ? 'bg-red-50 text-red-600' 
+                    : 'bg-gray-50 text-gray-600'
               }`}>
                 {trend > 0 ? '+' : ''}{trend}%
               </span>
               {trendLabel && (
-                <span className="text-xs text-gray-400 dark:text-slate-500">{trendLabel}</span>
+                <span className="text-[11px] font-medium text-gray-400">{trendLabel}</span>
               )}
             </div>
           )}

@@ -24,9 +24,9 @@ export function AppTable<T>({
   onRowClick
 }: AppTableProps<T>) {
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-[var(--bkb-border)] bg-[var(--bkb-card-bg)]">
+    <div className="w-full overflow-x-auto">
       <table className="w-full text-sm text-left border-collapse">
-        <thead className="text-xs text-[var(--bkb-gray-400)] uppercase bg-[rgba(0,0,0,0.02)] border-b border-[var(--bkb-border)]">
+        <thead className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-100">
           <tr>
             {columns.map((col, index) => (
               <th
@@ -45,7 +45,7 @@ export function AppTable<T>({
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-6 py-12 text-center text-[var(--bkb-gray-400)]">
+              <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-400 font-medium">
                 {emptyMessage}
               </td>
             </tr>
@@ -55,15 +55,15 @@ export function AppTable<T>({
                 key={keyExtractor(item)}
                 onClick={() => onRowClick && onRowClick(item)}
                 className={`
-                  border-b border-[var(--bkb-border)] last:border-0 
-                  transition-colors duration-150
-                  ${onRowClick ? 'cursor-pointer hover:bg-[rgba(0,0,0,0.015)]' : 'hover:bg-[rgba(0,0,0,0.01)]'}
+                  border-b border-gray-50 last:border-0 
+                  transition-colors duration-150 group
+                  ${onRowClick ? 'cursor-pointer hover:bg-gray-50/50' : 'hover:bg-gray-50/50'}
                 `}
               >
                 {columns.map((col, colIndex) => (
                   <td
                     key={colIndex}
-                    className="px-6 py-4 text-[var(--bkb-text)]"
+                    className="px-6 py-4 text-gray-900 group-hover:text-gray-900 transition-colors font-medium"
                     style={{ textAlign: col.align || 'left' }}
                   >
                     {col.render
