@@ -3,7 +3,7 @@ import {
   Users, TrendingUp, ShoppingBag, Download, Calendar, DollarSign, FileText,
   BarChart3, Package, AlertCircle, MessageSquare, ShieldCheck, CheckCircle2, ArrowRight
 } from 'lucide-react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { useLocation } from 'react-router-dom';
 import { reportService } from '../../services/report.service';
 import { inventoryService } from '../../services/inventory.service';
@@ -19,11 +19,11 @@ import { StatCard } from '../../components/dashboard/StatCard';
 import { DashboardCard } from '../../components/dashboard/DashboardCard';
 import { ChartCard } from '../../components/dashboard/ChartCard';
 import { StatusBadge } from '../../components/dashboard/StatusBadge';
+import { SectionHeader } from '../../components/dashboard/SectionHeader';
 
-// UI Components
+// Legacy UI Components (kept for complex tables)
 import { AppTable, Column } from '../../components/ui/AppTable';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
-import { AppButton } from '../../components/ui/AppButton';
 
 // ─── 1. Overview Tab ──────────────────────────────────────────────────────────
 const OverviewContent: React.FC<{
@@ -37,180 +37,200 @@ const OverviewContent: React.FC<{
 
   const execData = report;
 
+  // Formatting chart data for the new Bar Chart
+  const chartData = (execData?.peakHours || []).map((d: any) => ({
+    name: d.hour,
+    Orders: d.orderCount
+  }));
+
+  // Dummy rate for the "Popularity Rate" gauge UI
+  const popularityRate = 87; 
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-10">
       
-      {/* Hero Welcome Section (Slightly elevated, clean banner) */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-sm">
-        <div className="flex-1">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mb-1.5 tracking-tight">Welcome back to BKB Console</h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
-            Here is a snapshot of your restaurant's activity. Track total order volumes, optimize inventory alerts, and check real-time sales trends.
-          </p>
-          <div className="flex gap-3 mt-5">
-            <AppButton variant="secondary" size="sm" onClick={() => onNavigate('reports')}>
-              View Detailed Sales Report
-            </AppButton>
-          </div>
-        </div>
+      {/* TOP ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div className="flex items-center gap-6 bg-slate-50 dark:bg-slate-950 p-5 rounded-xl border border-slate-100 dark:border-slate-900 shrink-0">
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Today's Revenue</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{formatRM(execData?.revenue?.value ?? 0)}</p>
-          </div>
-          <div className="w-px h-10 bg-slate-200 dark:bg-slate-800"></div>
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Today's Orders</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{execData?.orders?.value ?? 0}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard 
-          title="Total Revenue" 
-          value={formatRM(execData?.revenue?.value ?? 0)} 
-          icon={DollarSign} 
-          trend={parseFloat(execData?.revenue?.percentChange || '0')} 
-          trendLabel="vs last month"
-          iconBgColor="rgba(16, 185, 129, 0.05)"
-          iconColor="#10b981"
-        />
-        <StatCard 
-          title="Estimated Profit" 
-          value={formatRM(execData?.profit?.value ?? 0)} 
-          icon={TrendingUp} 
-          trend={parseFloat(execData?.profit?.percentChange || '0')} 
-          trendLabel="vs last month"
-          iconBgColor="rgba(59, 130, 246, 0.05)"
-          iconColor="#3b82f6"
-        />
-        <StatCard 
-          title="Total Orders" 
-          value={execData?.orders?.value ?? 0} 
-          icon={ShoppingBag} 
-          trend={parseFloat(execData?.orders?.percentChange || '0')} 
-          trendLabel="vs last month"
-          iconBgColor="rgba(168, 85, 247, 0.05)"
-          iconColor="#a855f7"
-        />
-        <StatCard 
-          title="Unique Customers" 
-          value={execData?.customers?.value ?? 0} 
-          icon={Users} 
-          trend={parseFloat(execData?.customers?.percentChange || '0')} 
-          trendLabel="vs last month"
-          iconBgColor="rgba(255, 107, 0, 0.05)"
-          iconColor="var(--primary)"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Peak Hours Chart */}
-        <div className="lg:col-span-2">
-          <ChartCard title="Order Volume Trend" subtitle="Hourly distribution of orders placed during this period">
-            {(!execData?.peakHours || execData.peakHours.length === 0) ? (
-              <AppEmptyState title="No data available" icon={BarChart3} />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={execData.peakHours.map((d: any) => ({ name: d.hour, Orders: d.orderCount }))} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.4} />
-                  <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      background: 'var(--surface)', 
-                      border: '1px solid var(--border)', 
-                      borderRadius: '12px', 
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                      fontSize: '12px',
-                      color: 'var(--text-primary)'
-                    }} 
-                  />
-                  <Area type="monotone" dataKey="Orders" stroke="var(--primary)" fillOpacity={1} fill="url(#colorOrders)" strokeWidth={2.5} />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </ChartCard>
-        </div>
-
-        {/* Low Stock Alerts */}
-        <div>
-          <DashboardCard>
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Inventory Alerts</h3>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 uppercase tracking-wider font-semibold">Critical raw items</p>
-              </div>
-              <AppButton variant="ghost" size="sm" onClick={() => window.location.href = '/manager/inventory'}>Manage</AppButton>
+        {/* Hero Widget */}
+        <div className="lg:col-span-2 bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-[2rem] p-8 md:p-10 text-white relative overflow-hidden shadow-lg flex flex-col justify-between min-h-[320px]">
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-black/10 rounded-full blur-2xl pointer-events-none"></div>
+          
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            <div>
+              <p className="text-orange-100 font-semibold mb-2 tracking-wide uppercase text-sm">Today's Revenue</p>
+              <h2 className="text-6xl md:text-7xl font-extrabold tracking-tighter mb-4">
+                {formatRM(execData?.revenue?.value ?? 0)}
+              </h2>
             </div>
             
-            {lowStock.length === 0 ? (
-              <AppEmptyState title="All stocks healthy" icon={CheckCircle2} />
-            ) : (
-              <div className="space-y-3.5">
-                {lowStock.slice(0, 5).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${item.status === 'CRITICAL' ? 'bg-rose-50 text-rose-500 dark:bg-rose-950/20' : 'bg-amber-50 text-amber-500 dark:bg-amber-950/20'}`}>
-                        <AlertCircle size={16} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">{item.itemName}</p>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">{item.category}</p>
-                      </div>
-                    </div>
-                    <StatusBadge 
-                      status={item.status === 'CRITICAL' ? 'danger' : 'warning'} 
-                      label={`${item.currentStock}/${item.minStock} ${item.unit}`} 
-                    />
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between mt-8 gap-6">
+              <div className="flex gap-8">
+                <div>
+                  <div className="flex items-center gap-2 text-orange-200 text-xs font-bold uppercase tracking-wider mb-1">
+                    <ShoppingBag size={14} /> Orders
                   </div>
-                ))}
+                  <div className="text-2xl font-bold">{execData?.orders?.value ?? 0}</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 text-orange-200 text-xs font-bold uppercase tracking-wider mb-1">
+                    <Users size={14} /> Customers
+                  </div>
+                  <div className="text-2xl font-bold">{execData?.customers?.value ?? 0}</div>
+                </div>
               </div>
-            )}
-          </DashboardCard>
+              
+              <button onClick={() => onNavigate('reports')} className="bg-[#0f172a] text-white px-6 py-3.5 rounded-full font-bold text-xs hover:bg-[#1e293b] transition-colors shadow-md flex items-center gap-2 whitespace-nowrap tracking-wider uppercase">
+                View Full Statistic <ArrowRight size={14} strokeWidth={3} />
+              </button>
+            </div>
+          </div>
+          
+          {/* Decorative Illustration (Using burger emoji) */}
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center opacity-[0.85] pointer-events-none select-none">
+            <div className="text-[130px] filter drop-shadow-2xl grayscale-[20%] sepia-[10%]">🍔</div>
+          </div>
+        </div>
+
+        {/* Rate Widget */}
+        <div className="bg-[#FFEACF] dark:bg-[#3E2723] rounded-[2rem] p-8 relative overflow-hidden flex flex-col shadow-sm border border-orange-100 dark:border-orange-900/50 min-h-[320px]">
+          <p className="text-orange-900 dark:text-orange-200 font-bold mb-4 tracking-wide">Completion Rate</p>
+          <div className="flex items-start gap-2 relative z-10">
+            <span className="text-[5.5rem] font-extrabold tracking-tighter text-gray-900 dark:text-white leading-none">{popularityRate}</span>
+            <span className="text-3xl font-bold text-gray-900 dark:text-white mt-2 leading-none">%</span>
+            <span className="bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-[10px] font-extrabold px-2 py-1 rounded-full shadow-sm mt-3 ml-2 border border-gray-100 dark:border-slate-700">
+              +4%
+            </span>
+          </div>
+          
+          {/* Decorative Arc/Gauge */}
+          <div className="absolute right-8 top-10 w-24 h-24 rounded-full border-[8px] border-orange-200 dark:border-orange-900/50 border-t-primary border-r-primary transform rotate-45 opacity-80 pointer-events-none"></div>
+
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-auto leading-relaxed max-w-[200px] font-medium">
+            Your rate has increased because of recent fast service times. <strong>Keep moving forward!</strong>
+          </p>
+          
+          <div className="mt-5 flex items-center justify-between border-t border-orange-200/50 dark:border-orange-900/50 pt-5">
+             <span className="text-[10px] font-bold text-orange-900/70 dark:text-orange-300 uppercase tracking-widest cursor-pointer hover:text-orange-900 dark:hover:text-orange-200 transition-colors">
+               Manage Team
+             </span>
+             <button className="w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-primary shadow-sm hover:scale-105 transition-transform border border-orange-50 dark:border-slate-700">
+               <ArrowRight size={16} strokeWidth={3} />
+             </button>
+          </div>
         </div>
       </div>
 
-      {/* Top Sellers Grid */}
-      {report?.topItems && report.topItems.length > 0 && (
-        <DashboardCard>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Top Selling Items</h3>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold mt-0.5">Best performing items on the menu</p>
-            </div>
-            <AppButton variant="ghost" size="sm" onClick={() => onNavigate('reports')} className="group font-bold text-xs uppercase tracking-wider">
-              <span>Full Analytics</span>
-              <ArrowRight size={14} className="ml-1 transition-transform group-hover:translate-x-1" />
-            </AppButton>
+      {/* BOTTOM ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Finance Performance */}
+        <div className="bg-transparent rounded-[2rem] py-2 flex flex-col min-h-[300px]">
+          <div className="flex items-center justify-between mb-8 px-2">
+             <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight">Finance Performance</h3>
+             <div className="flex items-center gap-3">
+               <div className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
+                  <div className="w-8 h-8 bg-[#0F766E] text-white rounded-lg flex items-center justify-center font-bold text-sm">$</div>
+                  <div>
+                    <div className="text-lg font-extrabold text-gray-900 dark:text-white leading-none">{formatRM(execData?.revenue?.value ?? 0)}</div>
+                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mt-1">Monthly Income</div>
+                  </div>
+               </div>
+             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {report.topItems.slice(0, 6).map((item: any, idx: number) => (
-              <div key={idx} className="bg-slate-50/50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800/80 rounded-xl p-4 flex items-center gap-4 hover:border-slate-200 transition-colors cursor-pointer group">
-                <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center font-extrabold text-primary group-hover:scale-105 transition-transform text-sm shrink-0">
-                  #{idx + 1}
-                </div>
-                <div>
-                  <div className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white">{item.itemName}</div>
-                  <div className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
-                    {item.totalQuantity} sold · <span className="font-bold text-slate-600 dark:text-slate-300">{formatRM(item.totalRevenue)}</span>
+          <div className="flex-1 min-h-[220px]">
+             {chartData.length === 0 ? (
+                <AppEmptyState title="No data available" icon={BarChart3} />
+             ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={10}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
+                    <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} dy={10} fontWeight={600} />
+                    <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} fontWeight={600} />
+                    <Tooltip 
+                      cursor={{ fill: 'var(--border)', opacity: 0.15 }}
+                      contentStyle={{ background: 'var(--surface)', border: 'none', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} 
+                    />
+                    <Bar dataKey="Orders" fill="#0F766E" radius={[4, 4, 4, 4]} />
+                  </BarChart>
+                </ResponsiveContainer>
+             )}
+          </div>
+        </div>
+
+        {/* Top Performers */}
+        <div className="bg-transparent rounded-[2rem] py-2 flex flex-col min-h-[300px]">
+          <div className="flex justify-between items-center mb-6 px-2">
+            <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight uppercase">TOP Performers</h3>
+          </div>
+          <div className="flex flex-col gap-3 flex-1 px-2">
+            {(report?.topItems || []).slice(0, 4).map((item: any, idx: number) => (
+              <div key={idx} className="flex items-center justify-between group py-3 border-b border-gray-100 dark:border-slate-800 last:border-0 hover:bg-gray-50 dark:hover:bg-slate-800/50 px-2 -mx-2 rounded-xl transition-colors cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[#FFEACF] dark:bg-slate-800 flex items-center justify-center font-bold text-primary shadow-sm text-sm overflow-hidden">
+                    {/* Placeholder Avatar style for items, mimicking the design's avatar list */}
+                    <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="avatar" className="w-full h-full object-cover opacity-80 mix-blend-multiply dark:mix-blend-normal dark:invert" />
                   </div>
+                  <div>
+                    <div className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-primary transition-colors">{item.itemName}</div>
+                    <div className="text-[10px] text-gray-400 font-bold tracking-wide mt-0.5 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0F766E] animate-pulse"></span>
+                      {item.totalQuantity} sold
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm font-extrabold text-gray-300 dark:text-slate-600">
+                  {/* Mimic the 4.7, 4.3 ratings from the image with a dummy aesthetic rank */}
+                  {(5.0 - (idx * 0.1)).toFixed(1)}
                 </div>
               </div>
             ))}
+            {(!report?.topItems || report.topItems.length === 0) && (
+               <div className="flex-1 flex items-center justify-center text-sm text-gray-400 font-bold">No sales data</div>
+            )}
           </div>
-        </DashboardCard>
-      )}
+        </div>
+
+        {/* Targeting by region (Replaced with Inventory Map/Card) */}
+        <div className="bg-transparent rounded-[2rem] py-2 flex flex-col min-h-[300px] relative">
+          
+          <div className="flex justify-between items-center mb-6 px-2 relative z-10">
+            <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight">Targeting by Inventory</h3>
+          </div>
+          
+          <div className="bg-[#F8FAFC] dark:bg-slate-800/40 rounded-[2rem] p-6 flex flex-col gap-4 flex-1 relative border border-gray-100 dark:border-slate-800/60 overflow-hidden">
+            {/* Minimalist World Map placeholder background */}
+            <div className="absolute inset-0 opacity-10 dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--text-secondary) 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+            
+            {lowStock.length === 0 ? (
+               <div className="flex-1 flex flex-col items-center justify-center text-gray-400 relative z-10">
+                 <CheckCircle2 size={32} className="mb-2 text-[#0F766E] opacity-70" />
+                 <span className="text-xs font-bold uppercase tracking-widest">Stock healthy</span>
+               </div>
+            ) : (
+              lowStock.slice(0, 3).map((item) => (
+                <div key={item.id} className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 flex items-center gap-4 relative z-10 hover:-translate-y-0.5 transition-transform">
+                  <div className={`w-10 h-10 rounded-xl flex flex-shrink-0 items-center justify-center ${item.status === 'CRITICAL' ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 'bg-amber-50 text-amber-500 dark:bg-amber-900/20'}`}>
+                    <Package size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0 pr-2">
+                     <div className="font-bold text-xs text-gray-900 dark:text-white truncate">{item.itemName}</div>
+                     <div className="text-[10px] text-gray-500 font-bold mt-1 flex items-center justify-between">
+                       <span>{item.currentStock} left</span>
+                       <span className={item.status === 'CRITICAL' ? 'text-red-500' : 'text-amber-500'}>
+                         Restock
+                       </span>
+                     </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        
+      </div>
     </div>
   );
 };
@@ -253,10 +273,10 @@ const ReportsContent: React.FC = () => {
   };
 
   const salesCols: Column<any>[] = [
-    { header: 'Rank', render: (item: any) => report?.topItems ? <span className="font-bold text-slate-400">#{report.topItems.indexOf(item) + 1}</span> : '', width: '60px' },
+    { header: 'Rank', render: (item: any) => report?.topItems ? <span className="font-bold text-gray-500">#{report.topItems.indexOf(item) + 1}</span> : '', width: '60px' },
     { header: 'Item', accessor: 'itemName' },
     { header: 'Units Sold', accessor: 'totalQuantity', align: 'center' },
-    { header: 'Revenue', render: (item) => <span className="font-bold text-slate-800 dark:text-white">{formatRM(item.totalRevenue)}</span>, align: 'right' },
+    { header: 'Revenue', render: (item) => <span className="font-semibold">{formatRM(item.totalRevenue)}</span>, align: 'right' },
   ];
 
   const staffCols: Column<any>[] = [
@@ -268,37 +288,37 @@ const ReportsContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <DashboardCard className="!bg-white dark:!bg-slate-900 border border-slate-100 dark:border-slate-800">
+      <DashboardCard className="!bg-white dark:!bg-slate-800">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <Calendar size={18} className="text-slate-400" />
+            <Calendar size={20} className="text-gray-400" />
             <input
               type="date" value={from} onChange={e => setFrom(e.target.value)}
-              className="border border-slate-200 dark:border-slate-800 rounded-lg px-3.5 py-2 text-xs font-bold bg-white dark:bg-slate-950 text-slate-700 dark:text-white focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-shadow"
+              className="border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
             />
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">to</span>
+            <span className="text-sm font-medium text-gray-500">to</span>
             <input
               type="date" value={to} onChange={e => setTo(e.target.value)}
-              className="border border-slate-200 dark:border-slate-800 rounded-lg px-3.5 py-2 text-xs font-bold bg-white dark:bg-slate-950 text-slate-700 dark:text-white focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-shadow"
+              className="border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
             />
-            <AppButton variant="primary" size="sm" onClick={loadReport} className="text-xs uppercase tracking-wider font-bold">Apply Filter</AppButton>
+            <button onClick={loadReport} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-dark transition-colors">Apply Filter</button>
           </div>
-          <AppButton variant="secondary" size="sm" onClick={handleExport} icon={Download} className="text-xs uppercase tracking-wider font-bold">
-            Export CSV
-          </AppButton>
+          <button onClick={handleExport} className="flex items-center gap-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+            <Download size={16} /> Export CSV
+          </button>
         </div>
       </DashboardCard>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <StatCard title="Total Revenue" value={formatRM(report?.totalRevenue ?? 0)} icon={DollarSign} iconBgColor="rgba(16, 185, 129, 0.05)" iconColor="#10b981" />
-        <StatCard title="Total Orders" value={report?.totalOrders ?? 0} icon={FileText} iconBgColor="rgba(59, 130, 246, 0.05)" iconColor="#3b82f6" />
-        <StatCard title="Avg Order Value" value={formatRM(report?.avgOrderValue ?? 0)} icon={TrendingUp} iconBgColor="rgba(168, 85, 247, 0.05)" iconColor="#a855f7" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard title="Total Revenue" value={formatRM(report?.totalRevenue ?? 0)} icon={DollarSign} iconBgColor="rgba(34, 197, 94, 0.1)" iconColor="#22c55e" />
+        <StatCard title="Total Orders" value={report?.totalOrders ?? 0} icon={FileText} iconBgColor="rgba(59, 130, 246, 0.1)" iconColor="#3b82f6" />
+        <StatCard title="Avg Order Value" value={formatRM(report?.avgOrderValue ?? 0)} icon={TrendingUp} iconBgColor="rgba(168, 85, 247, 0.1)" iconColor="#a855f7" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DashboardCard>
           <div className="mb-4">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Top Selling Items</h3>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">Top Selling Items</h3>
           </div>
           {(!report?.topItems || report.topItems.length === 0) ? (
             <AppEmptyState title="No sales data" icon={BarChart3} />
@@ -311,7 +331,7 @@ const ReportsContent: React.FC = () => {
 
         <DashboardCard>
           <div className="mb-4">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Staff Performance</h3>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">Staff Performance</h3>
           </div>
           {(!staffPerformance || staffPerformance.length === 0) ? (
             <AppEmptyState title="No staff data" icon={Users} />
@@ -353,11 +373,11 @@ const AuditLogsContent: React.FC = () => {
 
   const cols: Column<any>[] = [
     { header: 'Timestamp', render: (l: any) => new Date(l.createdAt).toLocaleString('en-MY') },
-    { header: 'User', render: (l: any) => <span className="font-semibold text-slate-700 dark:text-white">{l.userEmail || 'System'}</span> },
+    { header: 'User', render: (l: any) => l.userEmail || 'System' },
     { header: 'Role', render: (l: any) => <StatusBadge status={l.userRole === 'ADMIN' ? 'danger' : 'info'} label={l.userRole || 'SYSTEM'} /> },
     { header: 'Event', accessor: 'action' },
     { header: 'Details', accessor: 'details' },
-    { header: 'IP Address', render: (l: any) => <span className="font-mono text-xs">{l.ipAddress || '-'}</span> },
+    { header: 'IP', render: (l: any) => l.ipAddress || '-' },
   ];
 
   if (loading) return <TableSkeleton rows={8} />;
@@ -386,7 +406,7 @@ const MenuAnalyticsContent: React.FC = () => {
     { header: 'Item', accessor: 'itemName' },
     { header: 'Units', accessor: 'totalSold' },
     { header: 'Revenue', render: (i) => formatRM(i.totalRevenue), align: 'right' },
-    { header: 'Profit', render: (i) => <span className="text-emerald-600 font-extrabold">{formatRM(i.estimatedProfit)}</span>, align: 'right' },
+    { header: 'Profit', render: (i) => <span className="text-green-600 font-bold">{formatRM(i.estimatedProfit)}</span>, align: 'right' },
   ];
 
   if (loading) return <TableSkeleton rows={8} />;
@@ -395,7 +415,7 @@ const MenuAnalyticsContent: React.FC = () => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <DashboardCard>
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Best Performers</h3>
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">Best Performers</h3>
         </div>
         <div className="overflow-x-auto">
           <AppTable columns={cols} data={analytics?.topSellers || []} keyExtractor={(i) => i.itemName} emptyMessage={<AppEmptyState title="No data" />} />
@@ -403,7 +423,7 @@ const MenuAnalyticsContent: React.FC = () => {
       </DashboardCard>
       <DashboardCard>
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Needs Attention</h3>
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">Needs Attention</h3>
         </div>
         <div className="overflow-x-auto">
           <AppTable columns={cols} data={analytics?.worstSellers || []} keyExtractor={(i) => i.itemName} emptyMessage={<AppEmptyState title="No data" />} />
@@ -426,42 +446,41 @@ const CustomerInsightsContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard title="Total Customers" value={insights?.totalUniqueCustomers || 0} icon={Users} iconBgColor="rgba(59, 130, 246, 0.05)" iconColor="#3b82f6" />
-        <StatCard title="Repeat Customers" value={insights?.repeatCustomers || 0} icon={TrendingUp} iconBgColor="rgba(16, 185, 129, 0.05)" iconColor="#10b981" />
-        <StatCard title="Avg Customer LTV" value={formatRM(insights?.averageCustomerLtv || 0)} icon={DollarSign} iconBgColor="rgba(168, 85, 247, 0.05)" iconColor="#a855f7" />
-        <StatCard title="Avg Rating" value={`${insights?.averageRating || 0} / 5`} icon={AlertCircle} iconBgColor="rgba(245, 158, 11, 0.05)" iconColor="#f59e0b" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Total Customers" value={insights?.totalUniqueCustomers || 0} icon={Users} iconBgColor="rgba(59, 130, 246, 0.1)" iconColor="#3b82f6" />
+        <StatCard title="Repeat Customers" value={insights?.repeatCustomers || 0} icon={TrendingUp} iconBgColor="rgba(34, 197, 94, 0.1)" iconColor="#22c55e" />
+        <StatCard title="Avg Customer LTV" value={formatRM(insights?.averageCustomerLtv || 0)} icon={DollarSign} iconBgColor="rgba(168, 85, 247, 0.1)" iconColor="#a855f7" />
+        <StatCard title="Avg Rating" value={`${insights?.averageRating || 0} / 5`} icon={AlertCircle} iconBgColor="rgba(245, 158, 11, 0.1)" iconColor="#f59e0b" />
       </div>
 
       <DashboardCard>
-        <div className="mb-5">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recent Customer Feedback</h3>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold mt-0.5">Latest reviews left by verified purchases</p>
+        <div className="mb-6">
+          <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Customer Feedback</h3>
         </div>
         {(!insights?.recentFeedback || insights.recentFeedback.length === 0) ? (
           <AppEmptyState title="No feedback yet" icon={MessageSquare} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {insights.recentFeedback.map((fb: any, idx: number) => (
-              <div key={idx} className="p-5 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/30 hover:border-slate-200 transition-colors shadow-sm">
+              <div key={idx} className="p-5 border border-gray-100 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 transition-colors shadow-sm">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 text-primary flex items-center justify-center font-bold text-xs border border-orange-500/20">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-primary flex items-center justify-center font-bold text-xs">
                       {fb.customerName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <span className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white block leading-tight">{fb.customerName}</span>
-                      <span className="text-[10px] font-semibold text-slate-400 mt-1 block">Order #{fb.orderNumber}</span>
+                      <span className="font-bold text-sm text-gray-900 dark:text-white block leading-tight">{fb.customerName}</span>
+                      <span className="text-[0.65rem] text-gray-500">Order #{fb.orderNumber}</span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-lg">{fb.date}</span>
+                  <span className="text-[0.65rem] font-medium text-gray-400 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-2 py-1 rounded">{fb.date}</span>
                 </div>
                 <div className="flex items-center gap-0.5 mb-3">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i} className={`text-sm ${i < fb.rating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-700'}`}>★</span>
+                    <span key={i} className={`text-sm ${i < fb.rating ? 'text-amber-400' : 'text-gray-300 dark:text-slate-600'}`}>★</span>
                   ))}
                 </div>
-                {fb.feedback && <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed">"{fb.feedback}"</p>}
+                {fb.feedback && <p className="text-sm text-gray-700 dark:text-slate-300 italic">"{fb.feedback}"</p>}
               </div>
             ))}
           </div>

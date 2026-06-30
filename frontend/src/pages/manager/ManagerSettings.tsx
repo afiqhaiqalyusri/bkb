@@ -1,38 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
 import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { orderService } from '../../services/order.service';
 import { securityLogger } from '../../utils/securityLogger';
-import { LogOut, Palette, Store, CreditCard, Settings, Database, Server, AlertTriangle, Save, Tag, MonitorSmartphone, QrCode } from 'lucide-react';
+import { LogOut, Palette, Sun, Moon, Briefcase, CreditCard, Settings, Database, Server, Store, Zap, Clock, AlertTriangle, XCircle, CheckCircle, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useConfirmation } from '../../components/ConfirmationProvider';
 import { authService } from '../../services/auth.service';
 import { globalSettingsService } from '../../services/manager.service';
 import { FullScreenLoader } from '../../components/ui/FullScreenLoader';
 
-// New Settings Components
-import { SettingsCard } from '../../components/settings/SettingsCard';
-import { SettingsRow } from '../../components/settings/SettingsRow';
-import { SettingsToggle } from '../../components/settings/SettingsToggle';
-import { SettingsSelect } from '../../components/settings/SettingsSelect';
+import { AppCard } from '../../components/ui/AppCard';
+import { AppButton } from '../../components/ui/AppButton';
+import { AppPageHeader } from '../../components/ui/AppPageHeader';
 
 export const ManagerSettings: React.FC = () => {
-  const location = useLocation();
-  const [activeTab, setActiveTab] = useState('general');
   const { user, isAuthenticated, clearAuth } = useAuthStore();
   const refreshToken = useAuthStore.getState().refreshToken;
   const { confirm } = useConfirmation();
-  const [loggingOut, setLoggingOut] = useState(false);
+  const [loggingOut, setLoggingOut] = React.useState(false);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tabParam = params.get('tab');
-    if (tabParam) setActiveTab(tabParam.toLowerCase());
-  }, [location]);
-
-  // Logout Handler
   const handleLogout = async () => {
     const confirmed = await confirm({
       title: 'Confirm Logout',
@@ -50,10 +38,9 @@ export const ManagerSettings: React.FC = () => {
     window.location.replace('/');
   };
 
-  // ─── Theme State ─────────────────────────────────────────────────────────────
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => (document.documentElement.getAttribute('data-theme') as 'light' | 'dark') || 'light');
+  const [theme, setTheme] = React.useState<'light' | 'dark'>(() => (document.documentElement.getAttribute('data-theme') as 'light' | 'dark') || 'light');
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleTheme = () => setTheme((document.documentElement.getAttribute('data-theme') as 'light' | 'dark') || 'light');
     window.addEventListener('theme-change', handleTheme);
     return () => window.removeEventListener('theme-change', handleTheme);
@@ -67,26 +54,9 @@ export const ManagerSettings: React.FC = () => {
     window.dispatchEvent(new Event('theme-change'));
   };
 
-  // ─── Settings State ────────────────────────────────────────────────────────
-  const [restaurantOpen, setRestaurantOpen] = useState(true);
-  const [sstRate, setSstRate] = useState(() => Number(localStorage.getItem('bkb-sst-rate') || '6.0'));
-  const [pointsRatio, setPointsRatio] = useState(() => Number(localStorage.getItem('bkb-points-ratio') || '10.0'));
-  const [maintenanceMode, setMaintenanceMode] = useState(() => localStorage.getItem('bkb-maint-mode') === 'true');
-  const [verboseLogs, setVerboseLogs] = useState(() => localStorage.getItem('bkb-verbose-logs') === 'true');
-  const [backingUp, setBackingUp] = useState(false);
+  const [restaurantOpen, setRestaurantOpen] = React.useState(true);
 
-  // Payment State
-  const [payDUITNOW, setPayDUITNOW] = useState(() => localStorage.getItem('bkb-pay-enabled-DUITNOW') !== 'false');
-  const [payTNG, setPayTNG] = useState(() => localStorage.getItem('bkb-pay-enabled-TNG') !== 'false');
-  const [paySHOPEEPAY, setPaySHOPEEPAY] = useState(() => localStorage.getItem('bkb-pay-enabled-SHOPEEPAY') !== 'false');
-  const [payGRABPAY, setPayGRABPAY] = useState(() => localStorage.getItem('bkb-pay-enabled-GRABPAY') !== 'false');
-  const [payBOOST, setPayBOOST] = useState(() => localStorage.getItem('bkb-pay-enabled-BOOST') !== 'false');
-  const [payCASH, setPayCASH] = useState(() => localStorage.getItem('bkb-pay-enabled-CASH') !== 'false');
-
-  const [simDelay, setSimDelay] = useState(() => Number(localStorage.getItem('bkb-sim-delay') || '2'));
-  const [simFailure, setSimFailure] = useState(() => Number(localStorage.getItem('bkb-sim-failure-rate') || '0'));
-
-  useEffect(() => {
+  React.useEffect(() => {
     orderService.getStoreStatus().then(res => setRestaurantOpen(res.data)).catch(() => {});
     
     globalSettingsService.getAll().then(res => {
@@ -113,15 +83,29 @@ export const ManagerSettings: React.FC = () => {
     }).catch(console.error);
   }, []);
 
-  // ─── Action Handlers ───────────────────────────────────────────────────────
+  const [sstRate, setSstRate] = React.useState(() => Number(localStorage.getItem('bkb-sst-rate') || '6.0'));
+  const [pointsRatio, setPointsRatio] = React.useState(() => Number(localStorage.getItem('bkb-points-ratio') || '10.0'));
+  const [maintenanceMode, setMaintenanceMode] = React.useState(() => localStorage.getItem('bkb-maint-mode') === 'true');
+  const [verboseLogs, setVerboseLogs] = React.useState(() => localStorage.getItem('bkb-verbose-logs') === 'true');
+  const [backingUp, setBackingUp] = React.useState(false);
+
+  const [payDUITNOW, setPayDUITNOW] = React.useState(() => localStorage.getItem('bkb-pay-enabled-DUITNOW') !== 'false');
+  const [payTNG, setPayTNG] = React.useState(() => localStorage.getItem('bkb-pay-enabled-TNG') !== 'false');
+  const [paySHOPEEPAY, setPaySHOPEEPAY] = React.useState(() => localStorage.getItem('bkb-pay-enabled-SHOPEEPAY') !== 'false');
+  const [payGRABPAY, setPayGRABPAY] = React.useState(() => localStorage.getItem('bkb-pay-enabled-GRABPAY') !== 'false');
+  const [payBOOST, setPayBOOST] = React.useState(() => localStorage.getItem('bkb-pay-enabled-BOOST') !== 'false');
+  const [payCASH, setPayCASH] = React.useState(() => localStorage.getItem('bkb-pay-enabled-CASH') !== 'false');
+
+  const [simDelay, setSimDelay] = React.useState(() => Number(localStorage.getItem('bkb-sim-delay') || '2'));
+  const [simFailure, setSimFailure] = React.useState(() => Number(localStorage.getItem('bkb-sim-failure-rate') || '0'));
+
   const handleBackup = async () => {
     const confirmed = await confirm({ title: 'Database Backup', message: 'Trigger a database backup now?', confirmLabel: 'Backup Now', cancelLabel: 'Cancel', type: 'info' });
     if (!confirmed) return;
     setBackingUp(true);
     toast.loading('Initializing database backup...', { id: 'db-backup' });
     setTimeout(() => {
-      setBackingUp(false); 
-      localStorage.setItem('bkb-last-backup', new Date().toLocaleString());
+      setBackingUp(false); localStorage.setItem('bkb-last-backup', new Date().toLocaleString());
       if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Database Backup', 'Initiated manual database backup.');
       toast.success('Database backup created successfully!', { id: 'db-backup' });
     }, 2000);
@@ -136,250 +120,236 @@ export const ManagerSettings: React.FC = () => {
     toast.success(`${channelName} ${val ? 'Enabled' : 'Disabled'}`);
   };
 
-  const isManagerOrAdmin = isAuthenticated && user && (user.role === 'MANAGER' || user.role === 'ADMIN');
-
-  // ─── Layout Tabs configuration ──────────────────────────────────────────────
-  const allTabs = [
-    { id: 'general', label: 'General' },
-    ...(isManagerOrAdmin ? [
-      { id: 'restaurant', label: 'Restaurant' },
-      { id: 'payments', label: 'Payments' },
-      { id: 'system', label: 'System' },
-    ] : []),
-    { id: 'danger', label: 'Danger Zone' },
-  ];
+  const ToggleSwitch: React.FC<{ checked: boolean; onChange: () => void }> = ({ checked, onChange }) => (
+    <div onClick={onChange} className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${checked ? 'bg-[var(--primary)]' : 'bg-[var(--border)]'}`}>
+      <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+    </div>
+  );
 
   return (
-    <ManagerLayout 
-      title="Settings" 
-      subtitle="Manage platform configuration and preferences"
-      tabs={allTabs.map(t => ({
-        id: t.id,
-        label: t.label,
-        active: activeTab === t.id,
-        onClick: () => setActiveTab(t.id),
-      }))}
-    >
+    <ManagerLayout title="Settings" subtitle="Configure platform settings, theme and backups">
       {loggingOut && <FullScreenLoader message="Logging out..." subtitle="Securing your session..." />}
       
-      {/* ─── GENERAL TAB ──────────────────────────────────────────────────────── */}
-      {activeTab === 'general' && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-12">
-          <SettingsCard title="Appearance" description="Customize the console look and feel for your workspace." icon={Palette} iconColorClass="text-purple-500">
-            <SettingsRow title="Console Theme" description="Switch between light and dark themes." isLast>
-              <div className="flex bg-gray-100 dark:bg-slate-900 p-1 rounded-lg border border-gray-200 dark:border-slate-700">
-                <button 
-                  onClick={() => changeTheme('light')} 
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${theme === 'light' ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'}`}
-                >
-                  Light
-                </button>
-                <button 
-                  onClick={() => changeTheme('dark')} 
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${theme === 'dark' ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white'}`}
-                >
-                  Dark
-                </button>
-              </div>
-            </SettingsRow>
-          </SettingsCard>
-        </div>
-      )}
+      <div className="flex flex-col gap-6 max-w-2xl pb-12">
+        <AppCard title="Appearance Settings" subtitle="Customize the console look and feel for your workspace." icon={Palette}>
+          <div className="flex items-center justify-between p-4 bg-[var(--background)] rounded-lg border border-[var(--border)]">
+            <div>
+              <div className="font-bold text-sm text-[var(--text-primary)]">Console Theme</div>
+              <div className="text-xs text-[var(--text-secondary)] mt-1">Switch between light and dark themes.</div>
+            </div>
+            <div className="flex bg-[var(--surface)] p-1 rounded-lg border border-[var(--border)]">
+              <button onClick={() => changeTheme('light')} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${theme === 'light' ? 'bg-[var(--text-primary)] text-[var(--background)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
+                <Sun size={14} /> Light
+              </button>
+              <button onClick={() => changeTheme('dark')} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${theme === 'dark' ? 'bg-[var(--text-primary)] text-[var(--background)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
+                <Moon size={14} /> Dark
+              </button>
+            </div>
+          </div>
+        </AppCard>
 
-      {/* ─── RESTAURANT TAB ───────────────────────────────────────────────────── */}
-      {activeTab === 'restaurant' && isManagerOrAdmin && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-12">
-          <SettingsCard title="Store Operations" description="Manage your global store visibility and hours." icon={Store} iconColorClass="text-blue-500">
-            <SettingsRow title="Restaurant Status" description={`Store is currently ${restaurantOpen ? 'OPEN' : 'CLOSED'}`} isLast>
-              <SettingsToggle 
-                checked={restaurantOpen} 
-                onChange={async () => {
+        {isAuthenticated && user && (user.role === 'MANAGER' || user.role === 'ADMIN') && (
+          <AppCard title="Store & Operations Settings" subtitle="Configure global service variables and store operations." icon={Briefcase}>
+            <div className="flex flex-col">
+              <div className="flex justify-between items-center py-4 border-b border-[var(--border)]">
+                <div>
+                  <div className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2"><Store size={16} /> Restaurant Operations</div>
+                  <div className="text-xs text-[var(--text-secondary)] mt-1">Store is currently {restaurantOpen ? 'OPEN' : 'CLOSED'}</div>
+                </div>
+                <ToggleSwitch checked={restaurantOpen} onChange={async () => {
                   const val = !restaurantOpen;
                   const confirmed = await confirm({ title: 'Restaurant Operations', message: `Set store operations to ${val ? 'OPEN' : 'CLOSED'}?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
                   if (!confirmed) return;
                   try {
                     await orderService.updateStoreStatus(val);
-                    setRestaurantOpen(val); 
-                    localStorage.setItem('bkb-store-open', String(val));
+                    setRestaurantOpen(val); localStorage.setItem('bkb-store-open', String(val));
                     if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Store Status Update', `Operations toggled to ${val ? 'OPEN' : 'CLOSED'}`);
                     toast.success(`Store operations set to ${val ? 'OPEN' : 'CLOSED'}`);
                   } catch { toast.error('Failed to update store operations'); }
-                }} 
-              />
-            </SettingsRow>
-          </SettingsCard>
+                }} />
+              </div>
 
-          <SettingsCard title="Financials & Loyalty" description="Configure taxes and reward point ratios." icon={Tag} iconColorClass="text-green-500">
-            <SettingsRow title="SST Service Tax Rate" description="Applied tax percentage on all checkouts">
-              <div className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900 p-1.5 rounded-lg border border-gray-200 dark:border-slate-700">
-                <button className="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded shadow-sm text-gray-600 dark:text-gray-300 font-bold hover:text-primary transition-colors"
-                  onClick={async () => {
+              <div className="flex justify-between items-center py-4 border-b border-[var(--border)]">
+                <div>
+                  <div className="font-bold text-sm text-[var(--text-primary)]">SST Service Tax Rate</div>
+                  <div className="text-xs text-[var(--text-secondary)] mt-1">Applied tax percentage on checkouts</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <AppButton variant="outline" size="sm" onClick={async () => {
                     const val = Math.max(0, sstRate - 0.5);
-                    const confirmed = await confirm({ title: 'Confirm Change', message: `Change the SST rate to ${val.toFixed(1)}%?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
+                    const confirmed = await confirm({ title: 'Confirm SST Tax Rate Change', message: `Change the SST rate to ${val.toFixed(1)}%?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
                     if (!confirmed) return;
                     setSstRate(val); localStorage.setItem('bkb-sst-rate', String(val));
                     globalSettingsService.updateAll([{ settingKey: 'SST_RATE', settingValue: String(val), description: 'SST Service Tax Rate' }]).catch(console.error);
-                  }}
-                >-</button>
-                <span className="font-bold text-sm w-12 text-center text-gray-900 dark:text-white">{sstRate.toFixed(1)}%</span>
-                <button className="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded shadow-sm text-gray-600 dark:text-gray-300 font-bold hover:text-primary transition-colors"
-                  onClick={async () => {
+                    if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'SST Tax Rate Update', `Tax rate set to ${val.toFixed(1)}%`);
+                  }}>-</AppButton>
+                  <span className="font-bold text-sm w-12 text-center text-[var(--text-primary)]">{sstRate.toFixed(1)}%</span>
+                  <AppButton variant="outline" size="sm" onClick={async () => {
                     const val = Math.min(20, sstRate + 0.5);
-                    const confirmed = await confirm({ title: 'Confirm Change', message: `Change the SST rate to ${val.toFixed(1)}%?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
+                    const confirmed = await confirm({ title: 'Confirm SST Tax Rate Change', message: `Change the SST rate to ${val.toFixed(1)}%?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
                     if (!confirmed) return;
                     setSstRate(val); localStorage.setItem('bkb-sst-rate', String(val));
                     globalSettingsService.updateAll([{ settingKey: 'SST_RATE', settingValue: String(val), description: 'SST Service Tax Rate' }]).catch(console.error);
-                  }}
-                >+</button>
+                    if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'SST Tax Rate Update', `Tax rate set to ${val.toFixed(1)}%`);
+                  }}>+</AppButton>
+                </div>
               </div>
-            </SettingsRow>
 
-            <SettingsRow title="Loyalty Point Ratio" description="Minimum RM spent per loyalty point earned" isLast>
-              <div className="flex items-center gap-3 bg-gray-50 dark:bg-slate-900 p-1.5 rounded-lg border border-gray-200 dark:border-slate-700">
-                <button className="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded shadow-sm text-gray-600 dark:text-gray-300 font-bold hover:text-primary transition-colors"
-                  onClick={async () => {
+              <div className="flex justify-between items-center py-4">
+                <div>
+                  <div className="font-bold text-sm text-[var(--text-primary)]">Loyalty Point Ratio</div>
+                  <div className="text-xs text-[var(--text-secondary)] mt-1">Minimum RM spent per loyalty point earned</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <AppButton variant="outline" size="sm" onClick={async () => {
                     const val = Math.max(1, pointsRatio - 1);
-                    const confirmed = await confirm({ title: 'Confirm Change', message: `Change the loyalty point ratio to RM ${val}?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
+                    const confirmed = await confirm({ title: 'Confirm Loyalty Ratio Change', message: `Change the loyalty point ratio to RM ${val}?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
                     if (!confirmed) return;
                     setPointsRatio(val); localStorage.setItem('bkb-points-ratio', String(val));
                     globalSettingsService.updateAll([{ settingKey: 'LOYALTY_RATIO', settingValue: String(val), description: 'Minimum RM spent per loyalty point earned' }]).catch(console.error);
-                  }}
-                >-</button>
-                <span className="font-bold text-sm w-16 text-center text-gray-900 dark:text-white">RM {pointsRatio}</span>
-                <button className="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded shadow-sm text-gray-600 dark:text-gray-300 font-bold hover:text-primary transition-colors"
-                  onClick={async () => {
+                    if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Loyalty Point Ratio Update', `Loyalty points earning ratio set to RM ${val} per point`);
+                  }}>-</AppButton>
+                  <span className="font-bold text-sm w-16 text-center text-[var(--text-primary)]">RM {pointsRatio}</span>
+                  <AppButton variant="outline" size="sm" onClick={async () => {
                     const val = Math.min(100, pointsRatio + 1);
-                    const confirmed = await confirm({ title: 'Confirm Change', message: `Change the loyalty point ratio to RM ${val}?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
+                    const confirmed = await confirm({ title: 'Confirm Loyalty Ratio Change', message: `Change the loyalty point ratio to RM ${val}?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
                     if (!confirmed) return;
                     setPointsRatio(val); localStorage.setItem('bkb-points-ratio', String(val));
                     globalSettingsService.updateAll([{ settingKey: 'LOYALTY_RATIO', settingValue: String(val), description: 'Minimum RM spent per loyalty point earned' }]).catch(console.error);
-                  }}
-                >+</button>
+                    if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Loyalty Point Ratio Update', `Loyalty points earning ratio set to RM ${val} per point`);
+                  }}>+</AppButton>
+                </div>
               </div>
-            </SettingsRow>
-          </SettingsCard>
+            </div>
+          </AppCard>
+        )}
+
+        {isAuthenticated && user && (user.role === 'MANAGER' || user.role === 'ADMIN') && (
+          <>
+            <AppCard title="Payment Gateway & QR Settings" subtitle="Configure active payment methods and simulated scan behavior." icon={CreditCard}>
+              <div className="flex flex-col">
+                <div className="font-bold text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2">Enabled Channels</div>
+                <div className="flex flex-col border-b border-[var(--border)] pb-2 mb-2">
+                  {[
+                    { key: 'DUITNOW', label: 'DuitNow QR', state: payDUITNOW, setter: setPayDUITNOW },
+                    { key: 'TNG', label: "Touch 'n Go eWallet", state: payTNG, setter: setPayTNG },
+                    { key: 'SHOPEEPAY', label: 'ShopeePay', state: paySHOPEEPAY, setter: setPaySHOPEEPAY },
+                    { key: 'GRABPAY', label: 'GrabPay', state: payGRABPAY, setter: setPayGRABPAY },
+                    { key: 'BOOST', label: 'Boost', state: payBOOST, setter: setPayBOOST },
+                    { key: 'CASH', label: 'Cash at Counter', state: payCASH, setter: setPayCASH },
+                  ].map(chan => (
+                    <div key={chan.key} className="flex justify-between items-center py-2.5">
+                      <span className="font-semibold text-sm text-[var(--text-primary)]">{chan.label}</span>
+                      <ToggleSwitch checked={chan.state} onChange={() => handleTogglePayment(chan.key, chan.state, chan.setter, chan.label)} />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-between items-center py-4 border-b border-[var(--border)]">
+                  <div>
+                    <div className="font-bold text-sm text-[var(--text-primary)]">Simulated Scan Delay</div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-1">Delay before payment is marked authorized</div>
+                  </div>
+                  <select
+                    value={simDelay}
+                    onChange={e => {
+                      const val = Number(e.target.value); setSimDelay(val); localStorage.setItem('bkb-sim-delay', String(val));
+                      globalSettingsService.updateAll([{ settingKey: 'SIM_DELAY', settingValue: String(val), description: 'Simulated scan delay in seconds' }]).catch(console.error);
+                      if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Payment Config Update', `Simulated scan delay set to ${val} seconds`);
+                    }}
+                    className="px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] font-semibold"
+                  >
+                    <option value={1}>Instant (1s)</option>
+                    <option value={2}>Fast (2s)</option>
+                    <option value={3}>Normal (3s)</option>
+                    <option value={5}>Slow (5s)</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-between items-center py-4">
+                  <div>
+                    <div className="font-bold text-sm text-[var(--text-primary)]">Simulated Scan Failure Rate</div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-1">Probability of a random transaction rejection</div>
+                  </div>
+                  <select
+                    value={simFailure}
+                    onChange={e => {
+                      const val = Number(e.target.value); setSimFailure(val); localStorage.setItem('bkb-sim-failure-rate', String(val));
+                      globalSettingsService.updateAll([{ settingKey: 'SIM_FAILURE_RATE', settingValue: String(val), description: 'Simulated scan failure rate (%)' }]).catch(console.error);
+                      if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Payment Config Update', `Simulated scan failure rate set to ${val}%`);
+                    }}
+                    className="px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] font-semibold"
+                  >
+                    <option value={0}>0% (Always Succeeds)</option>
+                    <option value={10}>10% Failure Chance</option>
+                    <option value={25}>25% Failure Chance</option>
+                    <option value={50}>50% Failure Chance</option>
+                  </select>
+                </div>
+              </div>
+            </AppCard>
+
+            <AppCard title="System Administrator Controls" subtitle="Manage databases, logging, and security configurations." icon={Settings}>
+              <div className="flex flex-col">
+                <div className="flex justify-between items-center py-4 border-b border-[var(--border)]">
+                  <div>
+                    <div className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2"><AlertTriangle size={16} className="text-[var(--danger)]" /> Maintenance Mode</div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-1">Blocks customer checkouts globally</div>
+                  </div>
+                  <ToggleSwitch checked={maintenanceMode} onChange={async () => {
+                    const val = !maintenanceMode;
+                    const confirmed = await confirm({ title: 'Maintenance Mode Change', message: `${val ? 'ENABLE' : 'DISABLE'} maintenance mode?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
+                    if (!confirmed) return;
+                    setMaintenanceMode(val); localStorage.setItem('bkb-maint-mode', String(val));
+                    globalSettingsService.updateAll([{ settingKey: 'MAINTENANCE_MODE', settingValue: String(val), description: 'Maintenance Mode Flag' }]).catch(console.error);
+                    if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Maintenance Mode Update', `Maintenance Mode set to ${val ? 'ENABLED' : 'DISABLED'}`);
+                    toast.success(`Maintenance Mode ${val ? 'ENABLED' : 'DISABLED'}`);
+                  }} />
+                </div>
+
+                <div className="flex justify-between items-center py-4 border-b border-[var(--border)]">
+                  <div>
+                    <div className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2"><Database size={16} /> Backup Database</div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-1">{localStorage.getItem('bkb-last-backup') ? `Last backup: ${localStorage.getItem('bkb-last-backup')}` : 'No backups created yet'}</div>
+                  </div>
+                  <AppButton variant="primary" icon={Save} disabled={backingUp} onClick={handleBackup}>
+                    {backingUp ? 'Backing up...' : 'Backup Now'}
+                  </AppButton>
+                </div>
+
+                <div className="flex justify-between items-center py-4">
+                  <div>
+                    <div className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2"><Server size={16} /> Verbose Server Logs</div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-1">Write extensive debug trace in backend logs</div>
+                  </div>
+                  <ToggleSwitch checked={verboseLogs} onChange={async () => {
+                    const val = !verboseLogs;
+                    const confirmed = await confirm({ title: 'Verbose Server Logs Change', message: `${val ? 'ENABLE' : 'DISABLE'} verbose server logging?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
+                    if (!confirmed) return;
+                    setVerboseLogs(val); localStorage.setItem('bkb-verbose-logs', String(val));
+                    globalSettingsService.updateAll([{ settingKey: 'VERBOSE_LOGS', settingValue: String(val), description: 'Verbose Logs Flag' }]).catch(console.error);
+                    if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Server Logging Config', `Verbose Logging set to ${val ? 'ENABLED' : 'DISABLED'}`);
+                    toast.success(`Verbose logging ${val ? 'ENABLED' : 'DISABLED'}`);
+                  }} />
+                </div>
+              </div>
+            </AppCard>
+          </>
+        )}
+
+        <div className="bg-[var(--danger)]/5 border border-[var(--danger)]/20 rounded-xl p-6">
+          <div>
+            <h3 className="font-bold text-lg m-0 text-[var(--danger)] flex items-center gap-2"><LogOut size={18} /> Terminate Session</h3>
+            <p className="text-xs text-[var(--text-secondary)] mt-1 mb-4">Exit your current active console session securely.</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex justify-center items-center gap-2 py-3 rounded-lg border border-[var(--danger)] text-[var(--danger)] font-bold text-sm transition-colors hover:bg-[var(--danger)] hover:text-white"
+          >
+            <LogOut size={16} /> Logout from Console
+          </button>
         </div>
-      )}
-
-      {/* ─── PAYMENTS TAB ─────────────────────────────────────────────────────── */}
-      {activeTab === 'payments' && isManagerOrAdmin && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-12">
-          <SettingsCard title="Enabled Payment Channels" description="Toggle active payment methods for checkout." icon={CreditCard} iconColorClass="text-amber-500">
-            {[
-              { key: 'DUITNOW', label: 'DuitNow QR', state: payDUITNOW, setter: setPayDUITNOW },
-              { key: 'TNG', label: "Touch 'n Go eWallet", state: payTNG, setter: setPayTNG },
-              { key: 'SHOPEEPAY', label: 'ShopeePay', state: paySHOPEEPAY, setter: setPaySHOPEEPAY },
-              { key: 'GRABPAY', label: 'GrabPay', state: payGRABPAY, setter: setPayGRABPAY },
-              { key: 'BOOST', label: 'Boost', state: payBOOST, setter: setPayBOOST },
-              { key: 'CASH', label: 'Cash at Counter', state: payCASH, setter: setPayCASH },
-            ].map((chan, idx, arr) => (
-              <SettingsRow key={chan.key} title={chan.label} isLast={idx === arr.length - 1}>
-                <SettingsToggle checked={chan.state} onChange={() => handleTogglePayment(chan.key, chan.state, chan.setter, chan.label)} />
-              </SettingsRow>
-            ))}
-          </SettingsCard>
-
-          <SettingsCard title="Simulation Engine" description="Configure simulated payment gateway behaviors for testing." icon={MonitorSmartphone} iconColorClass="text-indigo-500">
-            <SettingsRow title="Simulated Scan Delay" description="Artificial delay before payment is authorized">
-              <SettingsSelect
-                value={simDelay}
-                onChange={e => {
-                  const val = Number(e.target.value); setSimDelay(val); localStorage.setItem('bkb-sim-delay', String(val));
-                  globalSettingsService.updateAll([{ settingKey: 'SIM_DELAY', settingValue: String(val), description: 'Simulated scan delay in seconds' }]).catch(console.error);
-                }}
-                options={[
-                  { label: 'Instant (1s)', value: 1 },
-                  { label: 'Fast (2s)', value: 2 },
-                  { label: 'Normal (3s)', value: 3 },
-                  { label: 'Slow (5s)', value: 5 },
-                ]}
-              />
-            </SettingsRow>
-            <SettingsRow title="Scan Failure Rate" description="Probability of a random transaction rejection" isLast>
-              <SettingsSelect
-                value={simFailure}
-                onChange={e => {
-                  const val = Number(e.target.value); setSimFailure(val); localStorage.setItem('bkb-sim-failure-rate', String(val));
-                  globalSettingsService.updateAll([{ settingKey: 'SIM_FAILURE_RATE', settingValue: String(val), description: 'Simulated scan failure rate (%)' }]).catch(console.error);
-                }}
-                options={[
-                  { label: '0% (Always Succeeds)', value: 0 },
-                  { label: '10% Failure Chance', value: 10 },
-                  { label: '25% Failure Chance', value: 25 },
-                  { label: '50% Failure Chance', value: 50 },
-                ]}
-              />
-            </SettingsRow>
-          </SettingsCard>
-        </div>
-      )}
-
-      {/* ─── SYSTEM TAB ───────────────────────────────────────────────────────── */}
-      {activeTab === 'system' && isManagerOrAdmin && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-12">
-          <SettingsCard title="System Controls" description="Manage maintenance modes and logging configurations." icon={Settings} iconColorClass="text-gray-500">
-            <SettingsRow title="Maintenance Mode" description="Blocks customer checkouts globally">
-              <SettingsToggle 
-                checked={maintenanceMode} 
-                danger
-                onChange={async () => {
-                  const val = !maintenanceMode;
-                  const confirmed = await confirm({ title: 'Maintenance Mode', message: `${val ? 'ENABLE' : 'DISABLE'} maintenance mode?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
-                  if (!confirmed) return;
-                  setMaintenanceMode(val); localStorage.setItem('bkb-maint-mode', String(val));
-                  globalSettingsService.updateAll([{ settingKey: 'MAINTENANCE_MODE', settingValue: String(val), description: 'Maintenance Mode Flag' }]).catch(console.error);
-                  if (user?.email) securityLogger.logSecurityEvent(user.email, user.role, 'Maintenance Mode', `Maintenance Mode set to ${val ? 'ENABLED' : 'DISABLED'}`);
-                  toast.success(`Maintenance Mode ${val ? 'ENABLED' : 'DISABLED'}`);
-                }} 
-              />
-            </SettingsRow>
-            <SettingsRow title="Verbose Server Logs" description="Write extensive debug trace in backend logs" isLast>
-              <SettingsToggle 
-                checked={verboseLogs} 
-                onChange={async () => {
-                  const val = !verboseLogs;
-                  const confirmed = await confirm({ title: 'Verbose Logs', message: `${val ? 'ENABLE' : 'DISABLE'} verbose server logging?`, confirmLabel: 'Confirm Change', cancelLabel: 'Cancel', type: 'warning' });
-                  if (!confirmed) return;
-                  setVerboseLogs(val); localStorage.setItem('bkb-verbose-logs', String(val));
-                  globalSettingsService.updateAll([{ settingKey: 'VERBOSE_LOGS', settingValue: String(val), description: 'Verbose Logs Flag' }]).catch(console.error);
-                  toast.success(`Verbose logging ${val ? 'ENABLED' : 'DISABLED'}`);
-                }} 
-              />
-            </SettingsRow>
-          </SettingsCard>
-
-          <SettingsCard title="Database & Backups" description="Manage database backups and retention." icon={Database} iconColorClass="text-teal-500">
-            <SettingsRow title="Manual Backup" description={localStorage.getItem('bkb-last-backup') ? `Last backup: ${localStorage.getItem('bkb-last-backup')}` : 'No backups created yet'} isLast>
-              <button
-                onClick={handleBackup}
-                disabled={backingUp}
-                className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-bold py-2 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
-              >
-                <Save size={16} />
-                {backingUp ? 'Backing up...' : 'Backup Now'}
-              </button>
-            </SettingsRow>
-          </SettingsCard>
-        </div>
-      )}
-
-      {/* ─── DANGER ZONE TAB ──────────────────────────────────────────────────── */}
-      {activeTab === 'danger' && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-12">
-          <SettingsCard title="Danger Zone" description="Irreversible and destructive actions." icon={AlertTriangle} danger>
-            <SettingsRow title="Terminate Session" description="Exit your current active console session securely." isLast>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 bg-red-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-red-700 transition-colors shadow-sm"
-              >
-                <LogOut size={16} />
-                Log Out Now
-              </button>
-            </SettingsRow>
-          </SettingsCard>
-        </div>
-      )}
-
+      </div>
     </ManagerLayout>
   );
 };

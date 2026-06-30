@@ -20,36 +20,30 @@ export const AppStatCard: React.FC<AppStatCardProps> = ({
   colorClass = 'text-[var(--primary)]'
 }) => {
   return (
-    <AppCard hoverable>
+    <AppCard className="transition-transform duration-200 hover:-translate-y-1">
       <div className="flex justify-between items-start">
-        <div className="flex-1 pr-2">
-          <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+        <div>
+          <p className="text-xs font-semibold text-[var(--bkb-gray-400)] uppercase tracking-wider mb-1">
             {title}
           </p>
-          <h4 className="text-2xl font-extrabold text-[var(--bkb-text)] leading-none tracking-tight">
+          <h4 className="text-2xl font-bold text-[var(--bkb-text)] m-0">
             {value}
           </h4>
           
           {trend !== undefined && (
-            <div className="flex items-center gap-1.5 mt-3">
-              <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                trend > 0 
-                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' 
-                  : trend < 0 
-                    ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400' 
-                    : 'bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-              }`}>
-                {trend > 0 ? (
-                  <TrendingUp size={10} className="stroke-[3]" />
-                ) : trend < 0 ? (
-                  <TrendingDown size={10} className="stroke-[3]" />
-                ) : (
-                  <Minus size={10} className="stroke-[3]" />
-                )}
+            <div className="flex items-center gap-1 mt-3">
+              {trend > 0 ? (
+                <TrendingUp size={14} className="text-[var(--bkb-success)]" />
+              ) : trend < 0 ? (
+                <TrendingDown size={14} className="text-[var(--danger)]" />
+              ) : (
+                <Minus size={14} className="text-[var(--bkb-gray-400)]" />
+              )}
+              <span className={`text-xs font-medium ${trend > 0 ? 'text-[var(--bkb-success)]' : trend < 0 ? 'text-[var(--danger)]' : 'text-[var(--bkb-gray-400)]'}`}>
                 {Math.abs(trend)}%
               </span>
               {trendLabel && (
-                <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                <span className="text-xs text-[var(--bkb-gray-400)] ml-1">
                   {trendLabel}
                 </span>
               )}
@@ -57,8 +51,8 @@ export const AppStatCard: React.FC<AppStatCardProps> = ({
           )}
         </div>
         
-        <div className={`p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 flex items-center justify-center shrink-0`}>
-          <Icon size={20} className={colorClass} />
+        <div className={`p-3 rounded-lg bg-opacity-10 ${colorClass.replace('text-', 'bg-')} bg-[var(--bkb-border)]`}>
+          <Icon size={22} className={colorClass} />
         </div>
       </div>
     </AppCard>
