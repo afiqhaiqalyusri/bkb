@@ -12,6 +12,7 @@ import { formatRM } from '../../utils/formatCurrency';
 import { KPISkeleton, TableSkeleton } from '../../components/ui/SkeletonLoader';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 // Layout & Dashboard Components
 import { ManagerLayout } from '../../components/layout/ManagerLayout';
@@ -47,207 +48,190 @@ const OverviewContent: React.FC<{
   const popularityRate = 87; 
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="grid grid-cols-12 gap-5 pb-10">
       
-      {/* TOP ROW */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Hero Widget */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+        className="col-span-12 lg:col-span-8 bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-[20px] p-6 text-white relative overflow-hidden shadow-sm flex flex-col justify-between"
+      >
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-black/10 rounded-full blur-2xl pointer-events-none"></div>
         
-        {/* Hero Widget */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-[2rem] p-8 md:p-10 text-white relative overflow-hidden shadow-lg flex flex-col justify-between min-h-[320px]">
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-black/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="relative z-10">
+          <h2 className="text-[18px] font-bold tracking-tight mb-8">Today's Overview</h2>
           
-          <div className="relative z-10 flex flex-col h-full justify-between">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-orange-100 font-semibold tracking-wide uppercase text-sm">Today's Revenue</p>
-                <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-lg backdrop-blur-sm border border-white/10">
-                  <span className="text-emerald-300 font-bold text-xs flex items-center">
-                    <TrendingUp size={12} className="mr-1" /> +12%
+              <p className="text-[12px] text-orange-100 font-medium uppercase tracking-wider mb-1">Revenue</p>
+              <div className="text-[32px] font-extrabold leading-none mb-2">{formatRM(execData?.revenue?.value ?? 0)}</div>
+              <div className="text-[12px] text-emerald-300 font-bold flex items-center gap-1"><TrendingUp size={12}/> +12% vs yest</div>
+            </div>
+            <div>
+              <p className="text-[12px] text-orange-100 font-medium uppercase tracking-wider mb-1">Orders</p>
+              <div className="text-[32px] font-extrabold leading-none mb-2">{execData?.orders?.value ?? 0}</div>
+              <div className="text-[12px] text-emerald-300 font-bold flex items-center gap-1"><TrendingUp size={12}/> +5% vs yest</div>
+            </div>
+            <div>
+              <p className="text-[12px] text-orange-100 font-medium uppercase tracking-wider mb-1">Customers</p>
+              <div className="text-[32px] font-extrabold leading-none mb-2">{execData?.customers?.value ?? 0}</div>
+              <div className="text-[12px] text-orange-200 font-bold">Stable</div>
+            </div>
+            <div>
+              <p className="text-[12px] text-orange-100 font-medium uppercase tracking-wider mb-1">Avg Order</p>
+              <div className="text-[32px] font-extrabold leading-none mb-2">{formatRM(35.5)}</div>
+              <div className="text-[12px] text-emerald-300 font-bold flex items-center gap-1"><TrendingUp size={12}/> +2%</div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Rate Widget */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        className="col-span-12 lg:col-span-4 bg-white dark:bg-[#111111] rounded-[20px] p-6 border border-gray-200 dark:border-white/5 shadow-sm flex flex-col justify-between"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-[18px] font-bold text-slate-900 dark:text-white">Completion Rate</h3>
+          <span className="text-[12px] text-gray-500 font-medium bg-gray-100 dark:bg-white/5 px-2 py-1 rounded-md">Monthly</span>
+        </div>
+        
+        <div className="flex items-center gap-6 mt-2">
+          <div className="relative w-28 h-28 flex-shrink-0">
+            <svg className="w-full h-full transform -rotate-90">
+              <circle cx="56" cy="56" r="46" className="stroke-gray-100 dark:stroke-white/5" strokeWidth="12" fill="none" />
+              <circle cx="56" cy="56" r="46" className="stroke-[#0F766E]" strokeWidth="12" fill="none" strokeDasharray="289" strokeDashoffset={289 - (289 * popularityRate / 100)} strokeLinecap="round" />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center flex-col">
+              <span className="text-[24px] font-extrabold text-slate-900 dark:text-white leading-none">{popularityRate}%</span>
+            </div>
+          </div>
+          
+          <div className="flex-1">
+            <div className="text-[14px] text-gray-500 font-medium mb-1">vs Last Month</div>
+            <div className="flex items-center text-emerald-500 font-bold text-[14px] mb-3">
+              <TrendingUp size={16} className="mr-1" /> +4%
+            </div>
+            <p className="text-[12px] text-gray-400 leading-tight">Increased efficiency during peak hours.</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Finance Performance */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+        className="col-span-12 lg:col-span-7 bg-white dark:bg-[#111111] rounded-[20px] p-6 border border-gray-200 dark:border-white/5 shadow-sm flex flex-col min-h-[360px]"
+      >
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h3 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight">Finance Performance</h3>
+            <p className="text-[12px] text-gray-500 font-medium mt-1">Comparing peak hour order volumes</p>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 bg-gray-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-white/5">
+            <div className="w-6 h-6 bg-[#0F766E] text-white rounded flex items-center justify-center font-bold text-[12px]">$</div>
+            <div className="text-[14px] font-bold text-slate-900 dark:text-white">{formatRM(execData?.revenue?.value ?? 0)}</div>
+          </div>
+        </div>
+        
+        <div className="flex-1 w-full h-full min-h-[220px]">
+           {chartData.length === 0 ? (
+              <AppEmptyState title="No data available" icon={BarChart3} />
+           ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={16}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
+                  <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} dy={10} fontWeight={500} />
+                  <YAxis stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} fontWeight={500} />
+                  <Tooltip 
+                    cursor={{ fill: 'var(--border)', opacity: 0.1 }}
+                    contentStyle={{ background: '#111', border: 'none', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', color: '#fff', fontSize: '12px', fontWeight: 'bold' }} 
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Bar dataKey="Orders" fill="#0F766E" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+           )}
+        </div>
+      </motion.div>
+
+      {/* Top Performers */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        className="col-span-12 lg:col-span-5 bg-white dark:bg-[#111111] rounded-[20px] p-6 border border-gray-200 dark:border-white/5 shadow-sm flex flex-col"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h3 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight">Top Performers</h3>
+            <p className="text-[12px] text-gray-500 font-medium mt-1">Highest converting items</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 flex-1">
+          {(report?.topItems || []).slice(0, 5).map((item: any, idx: number) => (
+            <div key={idx} className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center font-bold text-orange-600 dark:text-orange-400 overflow-hidden text-[14px] group-hover:scale-110 transition-transform">
+                  <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="avatar" className="w-full h-full mix-blend-multiply dark:mix-blend-normal dark:invert opacity-80" />
+                </div>
+                <div>
+                  <div className="font-bold text-[14px] text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors">{item.itemName}</div>
+                  <div className="text-[12px] text-gray-500 font-medium mt-0.5 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0F766E]"></span>
+                    {item.totalQuantity} sold
+                  </div>
+                </div>
+              </div>
+              <div className="text-[14px] font-bold text-slate-900 dark:text-white">
+                {formatRM(item.totalRevenue)}
+              </div>
+            </div>
+          ))}
+          {(!report?.topItems || report.topItems.length === 0) && (
+             <div className="flex-1 flex items-center justify-center text-[14px] text-gray-400 font-medium">No sales data</div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Target Inventory */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+        className="col-span-12 bg-white dark:bg-[#111111] rounded-[20px] p-6 border border-gray-200 dark:border-white/5 shadow-sm"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-[18px] font-bold text-slate-900 dark:text-white">Inventory Health</h3>
+          <span className="text-[12px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-2.5 py-1 rounded-md border border-red-100 dark:border-red-900/30">{lowStock.length} Alerts</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {lowStock.length === 0 ? (
+             <div className="col-span-full flex flex-col items-center justify-center py-8 text-gray-400">
+               <CheckCircle2 size={32} className="mb-2 text-[#0F766E] opacity-70" />
+               <span className="text-[14px] font-bold tracking-wide">Stock levels healthy</span>
+             </div>
+          ) : (
+            lowStock.slice(0, 4).map((item) => (
+              <div key={item.id} className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5 flex flex-col gap-3 hover:-translate-y-1 transition-transform cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.status === 'CRITICAL' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                    <Package size={16} />
+                  </div>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${item.status === 'CRITICAL' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                    Restock
                   </span>
-                  <span className="text-orange-100/70 text-[10px] font-semibold uppercase tracking-wider">vs yesterday</span>
-                </div>
-              </div>
-              <h2 className="text-6xl md:text-7xl font-extrabold tracking-tighter mb-4 drop-shadow-sm">
-                {formatRM(execData?.revenue?.value ?? 0)}
-              </h2>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between mt-8 gap-6">
-              <div className="flex gap-8">
-                <div>
-                  <div className="flex items-center gap-2 text-orange-200 text-xs font-bold uppercase tracking-wider mb-1">
-                    <ShoppingBag size={14} /> Orders
-                  </div>
-                  <div className="text-2xl font-bold">{execData?.orders?.value ?? 0}</div>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 text-orange-200 text-xs font-bold uppercase tracking-wider mb-1">
-                    <Users size={14} /> Customers
-                  </div>
-                  <div className="text-2xl font-bold">{execData?.customers?.value ?? 0}</div>
+                   <div className="font-bold text-[14px] text-slate-900 dark:text-white truncate">{item.itemName}</div>
+                   <div className="text-[12px] text-gray-500 font-medium mt-1">
+                     {item.currentStock} / {item.minimumStock} min
+                   </div>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mt-1 overflow-hidden">
+                  <div className={`h-1.5 rounded-full ${item.status === 'CRITICAL' ? 'bg-red-500' : 'bg-amber-500'}`} style={{ width: `${Math.max(5, (item.currentStock / item.minimumStock) * 100)}%` }}></div>
                 </div>
               </div>
-              
-              <button onClick={() => onNavigate('reports')} className="bg-[#0f172a] text-white px-6 py-3.5 rounded-full font-bold text-xs hover:bg-[#1e293b] transition-colors shadow-md flex items-center gap-2 whitespace-nowrap tracking-wider uppercase">
-                View Full Statistic <ArrowRight size={14} strokeWidth={3} />
-              </button>
-            </div>
-          </div>
-          
-          {/* Decorative Illustration (Using burger emoji) */}
-          <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center opacity-[0.85] pointer-events-none select-none">
-            <div className="text-[130px] filter drop-shadow-2xl grayscale-[20%] sepia-[10%]">🍔</div>
-          </div>
+            ))
+          )}
         </div>
-
-        {/* Rate Widget */}
-        <div className="bg-[#FFEACF] dark:bg-[#3E2723] rounded-[2rem] p-8 relative overflow-hidden flex flex-col shadow-sm border border-orange-100 dark:border-orange-900/50 min-h-[320px]">
-          <p className="text-orange-900 dark:text-orange-200 font-bold mb-4 tracking-wide flex items-center justify-between">
-            Completion Rate
-            <span className="bg-white/50 dark:bg-black/20 text-orange-800 dark:text-orange-300 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Monthly</span>
-          </p>
-          <div className="flex items-start gap-2 relative z-10">
-            <span className="text-[5.5rem] font-extrabold tracking-tighter text-gray-900 dark:text-white leading-none">{popularityRate}</span>
-            <span className="text-3xl font-bold text-gray-900 dark:text-white mt-2 leading-none">%</span>
-            <span className="bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 text-[10px] font-extrabold px-2 py-1 rounded-full shadow-sm mt-3 ml-2 border border-gray-100 dark:border-slate-700 flex items-center">
-              <TrendingUp size={10} className="mr-0.5" /> +4%
-            </span>
-          </div>
-          
-          {/* Decorative Arc/Gauge */}
-          <div className="absolute right-8 top-10 w-24 h-24 rounded-full border-[8px] border-orange-200 dark:border-orange-900/50 border-t-primary border-r-primary transform rotate-45 opacity-80 pointer-events-none"></div>
-
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-auto leading-relaxed max-w-[200px] font-medium">
-            Your rate has increased because of recent fast service times. <strong>Keep moving forward!</strong>
-          </p>
-          
-          <div className="mt-5 flex items-center justify-between border-t border-orange-200/50 dark:border-orange-900/50 pt-5">
-             <span className="text-[10px] font-bold text-orange-900/70 dark:text-orange-300 uppercase tracking-widest cursor-pointer hover:text-orange-900 dark:hover:text-orange-200 transition-colors">
-               Manage Team
-             </span>
-             <button className="w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-primary shadow-sm hover:scale-105 transition-transform border border-orange-50 dark:border-slate-700">
-               <ArrowRight size={16} strokeWidth={3} />
-             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* BOTTOM ROW */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Finance Performance */}
-        <div className="bg-transparent rounded-[2rem] py-2 flex flex-col min-h-[300px]">
-          <div className="flex items-center justify-between mb-8 px-2">
-             <div>
-               <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight">Finance Performance</h3>
-               <p className="text-xs text-gray-500 font-semibold mt-1">Comparing peak hour order volumes</p>
-             </div>
-             <div className="flex items-center gap-3 group cursor-pointer">
-               <div className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 group-hover:shadow-md transition-shadow">
-                  <div className="w-8 h-8 bg-[#0F766E] text-white rounded-lg flex items-center justify-center font-bold text-sm">$</div>
-                  <div>
-                    <div className="text-lg font-extrabold text-gray-900 dark:text-white leading-none">{formatRM(execData?.revenue?.value ?? 0)}</div>
-                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mt-1">Monthly Income</div>
-                  </div>
-               </div>
-             </div>
-          </div>
-          
-          <div className="flex-1 min-h-[220px]">
-             {chartData.length === 0 ? (
-                <AppEmptyState title="No data available" icon={BarChart3} />
-             ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={10}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
-                    <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} dy={10} fontWeight={600} />
-                    <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} fontWeight={600} />
-                    <Tooltip 
-                      cursor={{ fill: 'var(--border)', opacity: 0.15 }}
-                      contentStyle={{ background: 'var(--surface)', border: 'none', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} 
-                    />
-                    <Bar dataKey="Orders" fill="#0F766E" radius={[4, 4, 4, 4]} />
-                  </BarChart>
-                </ResponsiveContainer>
-             )}
-          </div>
-        </div>
-
-        {/* Top Performers */}
-        <div className="bg-transparent rounded-[2rem] py-2 flex flex-col min-h-[300px]">
-          <div className="flex justify-between items-center mb-6 px-2">
-            <div>
-              <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight uppercase">TOP Performers</h3>
-              <p className="text-xs text-gray-500 font-semibold mt-1">Highest converting items</p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-3 flex-1 px-2">
-            {(report?.topItems || []).slice(0, 4).map((item: any, idx: number) => (
-              <div key={idx} className="flex items-center justify-between group py-3 border-b border-gray-100 dark:border-slate-800 last:border-0 hover:bg-orange-50 dark:hover:bg-slate-800/50 px-3 -mx-3 rounded-xl transition-all cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[#FFEACF] dark:bg-slate-800 flex items-center justify-center font-bold text-primary shadow-sm text-sm overflow-hidden group-hover:scale-105 transition-transform">
-                    {/* Placeholder Avatar style for items, mimicking the design's avatar list */}
-                    <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="avatar" className="w-full h-full object-cover opacity-80 mix-blend-multiply dark:mix-blend-normal dark:invert" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-primary transition-colors">{item.itemName}</div>
-                    <div className="text-[10px] text-gray-400 font-bold tracking-wide mt-0.5 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#0F766E] animate-pulse"></span>
-                      {item.totalQuantity} sold
-                    </div>
-                  </div>
-                </div>
-                <div className="text-sm font-extrabold text-gray-300 dark:text-slate-600">
-                  {/* Mimic the 4.7, 4.3 ratings from the image with a dummy aesthetic rank */}
-                  {(5.0 - (idx * 0.1)).toFixed(1)}
-                </div>
-              </div>
-            ))}
-            {(!report?.topItems || report.topItems.length === 0) && (
-               <div className="flex-1 flex items-center justify-center text-sm text-gray-400 font-bold">No sales data</div>
-            )}
-          </div>
-        </div>
-
-        {/* Targeting by region (Replaced with Inventory Map/Card) */}
-        <div className="bg-transparent rounded-[2rem] py-2 flex flex-col min-h-[300px] relative">
-          
-          <div className="flex justify-between items-center mb-6 px-2 relative z-10">
-            <h3 className="font-extrabold text-gray-900 dark:text-white tracking-tight">Targeting by Inventory</h3>
-          </div>
-          
-          <div className="bg-[#F8FAFC] dark:bg-slate-800/40 rounded-[2rem] p-6 flex flex-col gap-4 flex-1 relative border border-gray-100 dark:border-slate-800/60 overflow-hidden">
-            {/* Minimalist World Map placeholder background */}
-            <div className="absolute inset-0 opacity-10 dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--text-secondary) 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
-            
-            {lowStock.length === 0 ? (
-               <div className="flex-1 flex flex-col items-center justify-center text-gray-400 relative z-10">
-                 <CheckCircle2 size={32} className="mb-2 text-[#0F766E] opacity-70" />
-                 <span className="text-xs font-bold uppercase tracking-widest">Stock healthy</span>
-               </div>
-            ) : (
-              lowStock.slice(0, 3).map((item) => (
-                <div key={item.id} className="bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 flex items-center gap-4 relative z-10 hover:-translate-y-0.5 transition-transform">
-                  <div className={`w-10 h-10 rounded-xl flex flex-shrink-0 items-center justify-center ${item.status === 'CRITICAL' ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 'bg-amber-50 text-amber-500 dark:bg-amber-900/20'}`}>
-                    <Package size={20} />
-                  </div>
-                  <div className="flex-1 min-w-0 pr-2">
-                     <div className="font-bold text-xs text-gray-900 dark:text-white truncate">{item.itemName}</div>
-                     <div className="text-[10px] text-gray-500 font-bold mt-1 flex items-center justify-between">
-                       <span>{item.currentStock} left</span>
-                       <span className={item.status === 'CRITICAL' ? 'text-red-500' : 'text-amber-500'}>
-                         Restock
-                       </span>
-                     </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-        
-      </div>
+      </motion.div>
+      
     </div>
   );
 };

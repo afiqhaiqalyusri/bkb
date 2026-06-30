@@ -55,19 +55,18 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
   });
 
   return (
-    <aside className="w-24 min-h-full bg-transparent flex flex-col items-center flex-shrink-0 pt-4 pb-4 overflow-y-auto scrollbar-hide">
+    <aside className="w-20 min-h-full bg-transparent flex flex-col items-center flex-shrink-0 pt-6 pb-6 overflow-y-auto scrollbar-hide">
       {/* Brand */}
-      <div className="mb-8 flex-shrink-0">
-        <Link to="/manager" className="flex flex-col items-center gap-2 no-underline" onClick={onClose}>
-          <div className="text-white flex items-center justify-center drop-shadow-md">
-            <BkbLogo size={36} showText={false} color="#fff" />
+      <div className="mb-10 flex-shrink-0">
+        <Link to="/manager" className="flex flex-col items-center gap-1 no-underline group" onClick={onClose}>
+          <div className="text-white flex items-center justify-center transition-transform group-hover:scale-105">
+            <BkbLogo size={32} showText={false} color="#fff" />
           </div>
-          <span className="text-[10px] font-bold text-white tracking-widest uppercase">BKB</span>
         </Link>
       </div>
 
       {/* Main Nav */}
-      <nav className="flex-1 flex flex-col gap-6 w-full items-center">
+      <nav className="flex-1 flex flex-col gap-4 w-full items-center">
         {filteredNavItems.map(item => {
           const Icon = item.icon;
           const active = isActive(item);
@@ -76,16 +75,15 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
               key={item.path}
               to={item.path}
               onClick={onClose}
-              className={`flex flex-col items-center gap-1.5 transition-all duration-200 group relative w-full ${active ? '' : 'opacity-50 hover:opacity-100'}`}
+              title={item.label}
+              className={`flex items-center justify-center transition-all duration-200 group relative w-12 h-12 rounded-xl ${active ? 'bg-white/10' : 'hover:bg-white/5'}`}
             >
-              <div className={`w-11 h-11 flex items-center justify-center rounded-full transition-all duration-300 ${active ? 'bg-white text-slate-800 shadow-md' : 'text-white'}`}>
+              {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full" />}
+              <div className={`flex items-center justify-center transition-all duration-300 ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`}>
                 <Icon size={18} strokeWidth={active ? 2.5 : 2} className={active ? '' : 'group-hover:scale-110 transition-transform'} />
               </div>
-              <span className={`text-[9px] uppercase tracking-wider font-bold ${active ? 'text-white' : 'text-slate-300'}`}>
-                {item.label}
-              </span>
               {item.badge !== undefined && item.badge > 0 && (
-                <span className="absolute top-0 right-4 bg-primary text-white text-[9px] font-bold px-1.5 rounded-full border-2 border-slate-800">
+                <span className="absolute top-1 right-1 bg-orange-500 text-white text-[8px] font-bold px-1.5 rounded-full border border-slate-900">
                   {item.badge}
                 </span>
               )}
@@ -94,7 +92,7 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
         })}
 
         {/* Separator */}
-        <div className="w-8 h-px bg-slate-600/50 my-1 flex-shrink-0" />
+        <div className="w-6 h-px bg-slate-700 my-2 flex-shrink-0" />
 
         {BOTTOM_NAV_ITEMS.map(item => {
           const Icon = item.icon;
@@ -104,14 +102,13 @@ export const ManagerSidebar: React.FC<ManagerSidebarProps> = ({ onClose }) => {
               key={item.path}
               to={item.path}
               onClick={onClose}
-              className={`flex flex-col items-center gap-1.5 transition-all duration-200 group relative w-full ${active ? '' : 'opacity-50 hover:opacity-100'}`}
+              title={item.label}
+              className={`flex items-center justify-center transition-all duration-200 group relative w-12 h-12 rounded-xl ${active ? 'bg-white/10' : 'hover:bg-white/5'}`}
             >
-              <div className={`w-11 h-11 flex items-center justify-center rounded-full transition-all duration-300 ${active ? 'bg-white text-slate-800 shadow-md' : 'text-white'}`}>
+              {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full" />}
+              <div className={`flex items-center justify-center transition-all duration-300 ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`}>
                 <Icon size={18} strokeWidth={active ? 2.5 : 2} className={active ? '' : 'group-hover:scale-110 transition-transform'} />
               </div>
-              <span className={`text-[9px] uppercase tracking-wider font-bold ${active ? 'text-white' : 'text-slate-300'}`}>
-                {item.label}
-              </span>
             </Link>
           );
         })}
@@ -198,7 +195,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   };
 
   return (
-    <div className="h-screen w-full bg-slate-800 flex text-white font-sans p-2 lg:p-4 overflow-hidden box-border" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="h-screen w-full bg-[#0B1120] flex text-white font-sans p-4 lg:p-6 overflow-hidden box-border" style={{ fontFamily: "'Inter', sans-serif" }}>
       
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex">
@@ -221,7 +218,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
         
         {/* Top Header (Dark Area) */}
-        <header className="h-[64px] flex items-center justify-between px-4 lg:px-6 flex-shrink-0 z-10 w-full mb-2">
+        <header className="h-14 flex items-center justify-between px-4 lg:px-6 flex-shrink-0 z-10 w-full mb-4">
           
           <div className="flex items-center gap-4 flex-1">
             {/* Mobile Menu Button */}
@@ -287,16 +284,16 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
         </div>
 
         {/* White Rounded Canvas */}
-        <div className="flex-1 bg-white text-gray-900 dark:bg-slate-900 dark:text-gray-100 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden relative">
+        <div className="flex-1 bg-[#FAFAFA] text-gray-900 dark:bg-[#111111] dark:text-gray-100 rounded-[20px] shadow-sm border border-gray-200 dark:border-white/5 flex flex-col overflow-hidden relative">
           
           {/* Header inside the white canvas for Page Title & Action */}
-          <div className="px-8 lg:px-10 pt-8 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4 flex-shrink-0">
+          <div className="px-6 lg:px-8 pt-8 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4 flex-shrink-0 border-b border-gray-100 dark:border-white/5">
             <div>
-              <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
+              <h1 className="text-[36px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium">
+                <p className="text-[14px] text-gray-500 dark:text-slate-400 mt-2 font-medium">
                   {subtitle}
                 </p>
               )}
@@ -305,7 +302,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
           </div>
 
           {/* Scrollable Main Content */}
-          <main className="flex-1 overflow-y-auto p-8 lg:p-10 pt-4">
+          <main className="flex-1 overflow-y-auto p-6 lg:p-8">
             <div className="w-full">
               {children}
             </div>
