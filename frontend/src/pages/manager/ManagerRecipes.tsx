@@ -27,29 +27,26 @@ import { formatRM } from '../../utils/formatCurrency';
 interface IngredientFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: RecipeIngredientRequest) => Promise<void>;
+  onAdd: (data: RecipeIngredientRequest[]) => Promise<void>;
+  onEdit: (data: RecipeIngredientRequest) => Promise<void>;
   inventoryItems: InventoryItem[];
   editingIngredient: RecipeIngredientItem | null;
   saving: boolean;
 }
 
 const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
-  isOpen, onClose, onSave, inventoryItems, editingIngredient, saving
+  isOpen, onClose, onAdd, onEdit, inventoryItems, editingIngredient, saving
 }) => {
-  const [inventoryId, setInventoryId] = useState<number>(0);
-  const [quantity, setQuantity] = useState<number>(1);
-  const [isOptional, setIsOptional] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Record<number, { quantity: number; isOptional: boolean }>>({});
   const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (editingIngredient) {
-      setInventoryId(editingIngredient.inventoryId);
-      setQuantity(editingIngredient.quantity);
-      setIsOptional(editingIngredient.isOptional);
+      setSelectedItems({
+        [editingIngredient.inventoryId]: { quantity: editingIngredient.quantity, isOptional: editingIngredient.isOptional }
+      });
     } else {
-      setInventoryId(0);
-      setQuantity(1);
-      setIsOptional(false);
+      setSelectedItems({});
     }
     setSearch('');
   }, [editingIngredient, isOpen]);
@@ -59,33 +56,70 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
     (i.category || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inventoryId) { toast.error('Please select an inventory item'); return; }
-    if (quantity <= 0) { toast.error('Quantity must be greater than 0'); return; }
-    await onSave({ inventoryId, quantity, isOptional });
+  const toggleItem = (itemId: number) => {
+    if (editingIngredient) return; // Cannot toggle when editing a specific ingredient
+    setSelectedItems(prev => {
+      const next = { ...prev };
+      if (next[itemId]) {
+        delete next[itemId];
+      } else {
+        next[itemId] = { quantity: 1, isOptional: false };
+      }
+      return next;
+    });
   };
 
-  const selectedItem = inventoryItems.find(i => i.id === inventoryId);
+  const updateItem = (itemId: number, field: 'quantity' | 'isOptional', value: number | boolean) => {
+    setSelectedItems(prev => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], [field]: value }
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const keys = Object.keys(selectedItems);
+    if (keys.length === 0) {
+      toast.error('Please select at least one inventory item');
+      return;
+    }
+    for (const key of keys) {
+      if (selectedItems[Number(key)].quantity <= 0) {
+        toast.error('Quantities must be greater than 0');
+        return;
+      }
+    }
+    
+    if (editingIngredient) {
+      const data = selectedItems[editingIngredient.inventoryId];
+      await onEdit({ inventoryId: editingIngredient.inventoryId, ...data });
+    } else {
+      const payload = keys.map(k => ({
+        inventoryId: Number(k),
+        ...selectedItems[Number(k)]
+      }));
+      await onAdd(payload);
+    }
+  };
 
   return (
     <AppModal
       isOpen={isOpen}
       onClose={onClose}
-      title={editingIngredient ? 'Edit Recipe Ingredient' : 'Add Ingredient to Recipe'}
-      subtitle="Link an inventory item to this recipe with a required quantity."
+      title={editingIngredient ? 'Edit Recipe Ingredient' : 'Add Ingredients to Recipe'}
+      subtitle={editingIngredient ? 'Update the quantity or optional status' : 'Select one or more inventory items to add'}
       icon={<Package size={18} className="text-[var(--primary)]" />}
       size="md"
       onSubmit={handleSubmit}
       actions={[
         { label: 'Cancel', variant: 'outline', onClick: onClose },
-        { label: editingIngredient ? 'Save Changes' : 'Add Ingredient', variant: 'primary', isLoading: saving, type: 'submit', onClick: () => {} },
+        { label: editingIngredient ? 'Save Changes' : 'Add Ingredients', variant: 'primary', isLoading: saving, type: 'submit', onClick: () => {} },
       ]}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Inventory Item Selector */}
-        <AppFormField label="Inventory Item" required>
-          <div style={{ position: 'relative', marginBottom: 10 }}>
+        {!editingIngredient && (
+          <div style={{ position: 'relative' }}>
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none" />
             <input
               type="text"
@@ -95,17 +129,22 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
               className="w-full pl-9 pr-4 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
             />
           </div>
-          <div className="max-h-[200px] overflow-y-auto border border-[var(--border)] rounded-xl bg-[var(--background)] shadow-sm">
-            {filtered.length === 0 ? (
-              <div className="p-4 text-sm text-[var(--text-secondary)] text-center">
-                No inventory items found
-              </div>
-            ) : (
-              filtered.map(item => (
+        )}
+        
+        <div className={`overflow-y-auto border border-[var(--border)] rounded-xl bg-[var(--background)] shadow-sm ${editingIngredient ? '' : 'max-h-[160px]'}`}>
+          {filtered.length === 0 ? (
+            <div className="p-4 text-sm text-[var(--text-secondary)] text-center">
+              No inventory items found
+            </div>
+          ) : (
+            filtered.map(item => {
+              if (editingIngredient && item.id !== editingIngredient.inventoryId) return null;
+              const isSelected = !!selectedItems[item.id];
+              return (
                 <div
                   key={item.id}
-                  onClick={() => { setInventoryId(item.id); setSearch(''); }}
-                  className={`flex items-center justify-between p-3 cursor-pointer border-b border-[var(--border)] transition-colors hover:bg-[var(--surface)] last:border-0 ${inventoryId === item.id ? 'bg-[var(--primary)]/10' : ''}`}
+                  onClick={() => toggleItem(item.id)}
+                  className={`flex items-center justify-between p-3 border-b border-[var(--border)] transition-colors last:border-0 ${editingIngredient ? '' : 'cursor-pointer hover:bg-[var(--surface)]'} ${isSelected ? 'bg-[var(--primary)]/5' : ''}`}
                 >
                   <div>
                     <div className="font-semibold text-sm text-[var(--text-primary)]">
@@ -115,48 +154,48 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
                       {item.category} · {item.unit} · Stock: {item.currentStock}
                     </div>
                   </div>
-                  {inventoryId === item.id && <Check size={16} className="text-[var(--primary)] shrink-0" />}
+                  {isSelected && <Check size={16} className="text-[var(--primary)] shrink-0" />}
                 </div>
-              ))
-            )}
-          </div>
-          {selectedItem && (
-            <div className="mt-3 p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-lg text-xs text-[var(--primary)] flex items-center gap-2">
-              <Package size={14} />
-              <span>Selected: <strong>{selectedItem.itemName}</strong> ({selectedItem.unit})</span>
-            </div>
+              );
+            })
           )}
-        </AppFormField>
-
-        {/* Quantity */}
-        <AppFormField label="Required Quantity per Serving" required hint={selectedItem ? `Unit: ${selectedItem.unit}` : 'Select an inventory item first'}>
-          <input
-            type="number"
-            value={quantity}
-            onChange={e => setQuantity(parseFloat(e.target.value) || 0)}
-            min="0.01"
-            step="0.01"
-            className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
-          />
-        </AppFormField>
-
-        {/* Optional Toggle */}
-        <div className="flex items-center gap-3 p-4 bg-[var(--background)] border border-[var(--border)] rounded-xl">
-          <label className="flex items-center gap-3 cursor-pointer flex-1">
-            <input 
-              type="checkbox"
-              checked={isOptional}
-              onChange={() => setIsOptional(v => !v)}
-              className="w-5 h-5 accent-[var(--primary)] rounded cursor-pointer"
-            />
-            <div>
-              <div className="text-sm font-bold text-[var(--text-primary)]">Optional Ingredient</div>
-              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-                Optional ingredients won't cause the item to be unavailable if out of stock
-              </div>
-            </div>
-          </label>
         </div>
+
+        {/* Quantities Section */}
+        {Object.keys(selectedItems).length > 0 && (
+          <div className="flex flex-col gap-3 mt-2">
+            <h4 className="font-bold text-sm text-[var(--text-primary)]">Configure Quantities</h4>
+            <div className="max-h-[250px] overflow-y-auto pr-1 flex flex-col gap-2">
+              {Object.keys(selectedItems).map(idStr => {
+                const id = Number(idStr);
+                const item = inventoryItems.find(i => i.id === id);
+                const data = selectedItems[id];
+                if (!item) return null;
+                return (
+                  <div key={id} className="p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl flex flex-col sm:flex-row gap-3 sm:items-center justify-between animate-fade-in">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm text-[var(--text-primary)]">{item.itemName}</span>
+                      <span className="text-xs text-[var(--text-secondary)]">Unit: {item.unit}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="number" min="0.01" step="0.01" 
+                        value={data.quantity} 
+                        onChange={e => updateItem(id, 'quantity', parseFloat(e.target.value) || 0)}
+                        className="w-24 px-2 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded text-sm text-center focus:outline-none focus:border-[var(--primary)]"
+                        placeholder="Qty"
+                      />
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input type="checkbox" checked={data.isOptional} onChange={e => updateItem(id, 'isOptional', e.target.checked)} className="w-4 h-4 accent-[var(--primary)]" />
+                        <span className="text-xs font-medium text-[var(--text-secondary)]">Optional</span>
+                      </label>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </AppModal>
   );
@@ -257,16 +296,20 @@ export const ManagerRecipes: React.FC = () => {
   });
 
   // Add ingredient
-  const handleAddIngredient = async (data: RecipeIngredientRequest) => {
+  const handleAddIngredient = async (data: RecipeIngredientRequest[]) => {
     if (!selectedItem) return;
     setSaving(true);
     try {
-      const res = await recipeService.addIngredient(selectedItem.id, data);
-      setRecipe(res.data);
+      let finalRecipe = recipe;
+      for (const req of data) {
+        const res = await recipeService.addIngredient(selectedItem.id, req);
+        finalRecipe = res.data;
+      }
+      setRecipe(finalRecipe);
       setShowIngredientModal(false);
-      toast.success('Ingredient added to recipe');
+      toast.success(`Added ${data.length} ingredient(s)`);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to add ingredient');
+      toast.error(err?.response?.data?.message || 'Failed to add ingredients');
     } finally {
       setSaving(false);
     }
@@ -549,7 +592,8 @@ export const ManagerRecipes: React.FC = () => {
       <IngredientFormModal
         isOpen={showIngredientModal}
         onClose={() => { setShowIngredientModal(false); setEditingIngredient(null); }}
-        onSave={editingIngredient ? handleEditIngredient : handleAddIngredient}
+        onAdd={handleAddIngredient}
+        onEdit={handleEditIngredient}
         inventoryItems={inventoryItems}
         editingIngredient={editingIngredient}
         saving={saving}
