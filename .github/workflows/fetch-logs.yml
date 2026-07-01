@@ -1,0 +1,17 @@
+﻿name: Fetch Backend Logs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fetch-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Fetch Logs
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_HOST }}
+          username: ${{ secrets.AZURE_USERNAME }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          script: |
+            docker logs bkb_backend --tail 100
