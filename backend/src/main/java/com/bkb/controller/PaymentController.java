@@ -33,7 +33,7 @@ public class PaymentController {
         String orderIdStr = payload.get("order_id");
         if (orderIdStr != null && !orderIdStr.trim().isEmpty()) {
             try {
-                com.bkb.payload.response.OrderResponse order = orderService.getOrderById(Long.parseLong(orderIdStr));
+                com.bkb.dto.response.OrderResponse order = orderService.getOrderById(Long.parseLong(orderIdStr));
                 if (order != null && order.getGuestToken() != null) {
                     responseData.put("guestToken", order.getGuestToken());
                 }
