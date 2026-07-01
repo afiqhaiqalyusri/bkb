@@ -36,8 +36,8 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/manager/feedback',       label: 'Feedback',   icon: MessageSquare },
   { path: '/manager/loyalty',        label: 'Loyalty',    icon: Award },
   { path: '/manager/advertisements', label: 'Advertisements', icon: Megaphone },
-  { path: '/manager/reports',        label: 'Reports',    icon: BarChart2 },
-  { path: '/manager/analytics',      label: 'Analytics',  icon: PieChart },
+  { path: '/manager?tab=reports',    label: 'Reports',    icon: BarChart2 },
+  { path: '/manager?tab=overview',   label: 'Analytics',  icon: PieChart },
   { path: '/manager/settings',       label: 'Settings',   icon: Settings },
 ];
 

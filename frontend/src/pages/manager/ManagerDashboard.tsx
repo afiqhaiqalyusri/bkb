@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp, BarChart3, Package, CheckCircle2,
   DollarSign, ShoppingBag, Users, Search, Download, Calendar, FileText,
-  AlertCircle, MessageSquare, ShieldCheck, ArrowRight
+  AlertCircle, MessageSquare, ShieldCheck, ArrowRight,
+  Activity, AlertTriangle, BarChart2
 } from 'lucide-react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { 
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  BarChart, Bar, AreaChart, Area 
+} from 'recharts';
 import { useLocation } from 'react-router-dom';
 import { reportService } from '../../services/report.service';
 import { inventoryService } from '../../services/inventory.service';
@@ -26,330 +30,384 @@ import { SectionHeader } from '../../components/dashboard/SectionHeader';
 // Legacy UI Components (kept for complex tables)
 import { AppTable, Column } from '../../components/ui/AppTable';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
+import { AppPageHeader } from '../../components/ui/AppPageHeader';
+import { AppStatCard } from '../../components/ui/AppStatCard';
+import { AppCard } from '../../components/ui/AppCard';
+import { AppButton } from '../../components/ui/AppButton';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 
-// ─── 1. Overview Tab ──────────────────────────────────────────────────────────
-const OverviewContent: React.FC<{
-  report: any;
-  lowStock: any[];
-  onRefresh: () => void;
-  loading: boolean;
-  onNavigate: (tab: string) => void;
-}> = ({ report, lowStock, loading, onNavigate }) => {
-  if (loading) return <div className="space-y-6"><KPISkeleton count={4} /></div>;
+// ─── 1. Overview Tab (New Analytics) ─────────────────────────────────────────
+const OverviewContent: React.FC = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [salesData, setSalesData] = useState<any>(null);
 
-  const execData = report;
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        
+        const fromStr = thirtyDaysAgo.toISOString().split('T')[0];
+        const toStr = today.toISOString().split('T')[0];
 
-  // Formatting chart data for the new Bar Chart
-  const chartData = (execData?.peakHours || []).map((d: any) => ({
-    name: d.hour,
-    Orders: d.orderCount
-  }));
+        const [dashRes, salesRes] = await Promise.all([
+          reportService.getExecutiveDashboard(fromStr, toStr),
+          reportService.getDailySales(fromStr, toStr)
+        ]);
 
-  // Dummy rate for the "Popularity Rate" gauge UI
-  const popularityRate = 87; 
+        setDashboardData(dashRes.data);
+        setSalesData(salesRes.data);
+      } catch (err) {
+        console.error('Failed to load analytics', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, []);
+
+  const formatPercent = (val: number | undefined) => {
+    if (val === undefined || val === null) return 0;
+    return Number(val);
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-[var(--surface)] border border-[var(--border)] p-3 rounded-lg shadow-lg">
+          <p className="font-bold text-[var(--text-primary)] mb-1">{label}</p>
+          <p className="text-sm font-medium text-[var(--primary)]">
+            Revenue: {formatRM(payload[0].value)}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomBarTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-[var(--surface)] border border-[var(--border)] p-3 rounded-lg shadow-lg">
+          <p className="font-bold text-[var(--text-primary)] mb-1">{label}</p>
+          <p className="text-sm font-medium text-emerald-500">
+            Sold: {payload[0].payload.totalQuantity} items
+          </p>
+          <p className="text-sm font-medium text-[var(--primary)]">
+            Revenue: {formatRM(payload[0].payload.totalRevenue)}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
-    <div className="space-y-5 pb-6">
-      
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* Card 1: Primary Brand (Total Revenue) */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-[#FF6B00] to-[#E65100] rounded-xl p-4 text-white shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-          <div className="flex justify-between items-start z-10">
-            <span className="text-xs font-medium text-white/90">Total Revenue</span>
-            <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
-              <DollarSign size={14} strokeWidth={2.5} />
-            </div>
-          </div>
-          <div className="z-10 relative mt-3">
-            <div className="text-2xl font-bold mb-0.5 tracking-tight">{formatRM(execData?.revenue?.value ?? 0)}</div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/20 rounded">+12%</span>
-              <span className="text-[10px] text-white/70">vs last month</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Card 2: Orders */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-medium text-gray-500">Total Orders</span>
-            <div className="w-7 h-7 bg-gray-50 border border-gray-100 rounded-md flex items-center justify-center">
-              <ShoppingBag size={14} strokeWidth={2.5} className="text-gray-600" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-gray-900 mb-0.5 tracking-tight">{execData?.orders?.value ?? 0}</div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded">+5.2%</span>
-              <span className="text-[10px] text-gray-400">vs last month</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Card 3: Customers */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-medium text-gray-500">Customers</span>
-            <div className="w-7 h-7 bg-orange-50 border border-orange-100/50 rounded-md flex items-center justify-center">
-              <Users size={14} strokeWidth={2.5} className="text-orange-500" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-gray-900 mb-0.5 tracking-tight">{execData?.customers?.value ?? 0}</div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-red-50 text-red-500 rounded">-1.5%</span>
-              <span className="text-[10px] text-gray-400">vs last month</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Card 4: Avg Order Value */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-medium text-gray-500">Avg Order</span>
-            <div className="w-7 h-7 bg-blue-50 border border-blue-100/50 rounded-md flex items-center justify-center">
-              <TrendingUp size={14} strokeWidth={2.5} className="text-blue-500" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-gray-900 mb-0.5 tracking-tight">{formatRM(35.50)}</div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded">+4.1%</span>
-              <span className="text-[10px] text-gray-400">vs last month</span>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        {/* Performance Overview Chart */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="lg:col-span-8 bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex flex-col h-[320px]">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">Performance Overview</h3>
-            <button className="text-xs font-semibold bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg border border-gray-200">This Week ⌄</button>
-          </div>
-          <div className="flex-1 w-full min-h-0">
-             {chartData.length === 0 ? (
-                <AppEmptyState title="No data available" icon={BarChart3} />
-             ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={28}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                    <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} dy={8} fontWeight={500} />
-                    <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} fontWeight={500} />
-                    <Tooltip
-                      cursor={{ fill: '#f9fafb' }}
-                      contentStyle={{ background: '#fff', border: '1px solid #f3f4f6', borderRadius: '10px', boxShadow: '0 4px 20px rgb(0 0 0 / 0.08)', color: '#111', fontSize: '12px', fontWeight: 'bold' }}
-                    />
-                    <Bar dataKey="Orders" fill="#FF6B00" radius={[5, 5, 5, 5]} />
-                  </BarChart>
-                </ResponsiveContainer>
-             )}
-          </div>
-        </motion.div>
-
-        {/* Sales Growth Gauge */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }} className="lg:col-span-4 bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex flex-col h-[320px]">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">Sales Growth</h3>
-            <button className="text-gray-400 hover:text-gray-900 text-lg leading-none">•••</button>
-          </div>
-          
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="relative w-44 h-22 overflow-hidden mb-3">
-               <svg className="w-full h-full" viewBox="0 0 100 50">
-                 <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f3f4f6" strokeWidth="13" strokeLinecap="round" />
-                 <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#FF6B00" strokeWidth="13" strokeLinecap="round" strokeDasharray="125" strokeDashoffset={125 - (125 * popularityRate / 100)} />
-               </svg>
-               <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center">
-                 <span className="text-2xl font-extrabold text-gray-900">{popularityRate}%</span>
-                 <span className="text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Sales Growth</span>
-               </div>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-50">
-             <div>
-               <div className="text-[10px] text-gray-400 font-medium mb-0.5">Number of Sales</div>
-               <div className="text-base font-bold text-gray-900 flex items-center gap-1.5">
-                 {execData?.orders?.value ?? 0} <span className="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold">+5%</span>
-               </div>
-             </div>
-             <div>
-               <div className="text-[10px] text-gray-400 font-medium mb-0.5">Total Revenue</div>
-               <div className="text-base font-bold text-gray-900 flex items-center gap-1.5">
-                 {formatRM(execData?.revenue?.value ?? 0)} <span className="bg-gray-100 text-gray-600 text-[9px] px-1.5 py-0.5 rounded font-bold">+12%</span>
-               </div>
-             </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Top Performers Table */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">Top Performers</h3>
-          <div className="flex items-center gap-2">
-             <div className="relative">
-               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-               <input type="text" placeholder="Search products..." className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50 text-gray-900 outline-none focus:ring-1 focus:ring-[#FF6B00] w-40" />
-             </div>
-             <button className="text-xs font-semibold bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg border border-gray-200 flex items-center gap-1">Sort by ⌄</button>
-          </div>
+    <div className="flex flex-col gap-6 w-full animate-fade-in pb-6">
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <LoadingSpinner size="lg" />
         </div>
-        
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr>
-              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Product</th>
-              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Category</th>
-              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Status</th>
-              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Units Sold</th>
-              <th className="pb-2 pt-1 px-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(report?.topItems || []).slice(0, 5).map((item: any, idx: number) => (
-              <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                <td className="py-2.5 px-2 border-b border-gray-50">
-                  <div className="flex items-center gap-2.5">
-                     <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                       <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${item.itemName}&backgroundColor=transparent`} alt="" className="w-full h-full mix-blend-multiply opacity-80" />
-                     </div>
-                     <span className="font-semibold text-[13px] text-gray-900">{item.itemName}</span>
+      ) : error ? (
+        <AppCard className="py-12">
+          <AppEmptyState 
+            title="Failed to load analytics" 
+            description="There was a problem fetching the data from the server. Please try again." 
+            icon={AlertTriangle} 
+          />
+        </AppCard>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <AppStatCard 
+              title="Revenue (30d)" 
+              value={dashboardData?.revenue?.value || 'RM 0.00'} 
+              icon={DollarSign} 
+              colorClass="text-emerald-500"
+              trend={formatPercent(dashboardData?.revenue?.percentChange)}
+            />
+            <AppStatCard 
+              title="Total Orders" 
+              value={dashboardData?.orders?.value || '0'} 
+              icon={TrendingUp} 
+              colorClass="text-blue-500"
+              trend={formatPercent(dashboardData?.orders?.percentChange)}
+            />
+            <AppStatCard 
+              title="Active Customers" 
+              value={dashboardData?.customers?.value || '0'} 
+              icon={Users} 
+              colorClass="text-purple-500"
+              trend={formatPercent(dashboardData?.customers?.percentChange)}
+            />
+            <AppStatCard 
+              title="Profit" 
+              value={dashboardData?.profit?.value || 'RM 0.00'} 
+              icon={Activity} 
+              colorClass="text-[var(--primary)]"
+              trend={formatPercent(dashboardData?.profit?.percentChange)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+            <AppCard title="Revenue Trend" subtitle="Daily revenue over the selected period" className="min-h-[400px] flex flex-col">
+              <div className="flex-1 w-full mt-4 min-h-[300px]">
+                {salesData?.dailyRevenue?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={salesData.dailyRevenue} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                      <XAxis 
+                        dataKey="date" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} 
+                        tickFormatter={(val) => {
+                          const d = new Date(val);
+                          return `${d.getDate()}/${d.getMonth()+1}`;
+                        }}
+                      />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                        tickFormatter={(val) => `RM${val}`}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="var(--primary)" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorRevenue)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <AppEmptyState title="No Revenue Data" description="No transactions recorded for this period." icon={DollarSign} />
                   </div>
-                </td>
-                <td className="py-2.5 px-2 border-b border-gray-50 text-[13px] text-gray-500">Main Menu</td>
-                <td className="py-2.5 px-2 border-b border-gray-50">
-                  <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Active</span>
-                </td>
-                <td className="py-2.5 px-2 border-b border-gray-50 text-[13px] font-semibold text-gray-900">{item.totalQuantity}</td>
-                <td className="py-2.5 px-2 border-b border-gray-50 text-[13px] font-bold text-gray-900">{formatRM(item.totalRevenue)}</td>
-              </tr>
-            ))}
-            {(!report?.topItems || report.topItems.length === 0) && (
-              <tr>
-                <td colSpan={5} className="py-8 text-center text-sm text-gray-400">No data available</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </motion.div>
+                )}
+              </div>
+            </AppCard>
+            
+            <AppCard title="Top Selling Items" subtitle="Highest volume products" className="min-h-[400px] flex flex-col">
+              <div className="flex-1 w-full mt-4 min-h-[300px]">
+                {dashboardData?.topItems?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dashboardData.topItems.slice(0, 5)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+                      <XAxis 
+                        dataKey="itemName" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                        tickFormatter={(val) => val.length > 15 ? val.substring(0, 15) + '...' : val}
+                      />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                      />
+                      <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'var(--border)', opacity: 0.4 }} />
+                      <Bar dataKey="totalQuantity" fill="var(--primary)" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <AppEmptyState title="No Sales Data" description="No products were sold during this period." icon={TrendingUp} />
+                  </div>
+                )}
+              </div>
+            </AppCard>
+          </div>
+          
+          {dashboardData?.lowStockAlerts?.length > 0 && (
+            <AppCard title="Critical Stock Alerts" className="mt-2 border-red-200 dark:border-red-900/30">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+                {dashboardData.lowStockAlerts.map((alert: any, idx: number) => (
+                  <div key={idx} className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg p-4 flex items-start gap-3">
+                    <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={18} />
+                    <div>
+                      <div className="font-bold text-red-700 dark:text-red-400 text-sm">{alert.itemName}</div>
+                      <div className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">
+                        Current Stock: <span className="font-bold">{alert.currentStock}</span> (Min: {alert.minStock})
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </AppCard>
+          )}
+        </>
+      )}
     </div>
   );
 };
 
-// ─── 2. Reports Tab ───────────────────────────────────────────────────────────
+// ─── 2. Reports Tab (New Generate Reports) ────────────────────────────────────
 const ReportsContent: React.FC = () => {
-  const getTodayStr = () => new Date().toISOString().split('T')[0];
-  const getMonthStartStr = () => new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  const [fromDate, setFromDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split('T')[0];
+  });
+  
+  const [toDate, setToDate] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
 
-  const [from, setFrom] = useState(getMonthStartStr());
-  const [to, setTo] = useState(getTodayStr());
-  const [report, setReport] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [staffPerformance, setStaffPerformance] = useState<any[]>([]);
+  const [exporting, setExporting] = useState(false);
 
-  useEffect(() => { loadReport(); }, []);
-
-  const loadReport = () => {
-    setLoading(true);
-    Promise.all([
-      reportService.getDailySales(from, to),
-      reportService.getStaffPerformance(from, to)
-    ]).then(([salesRes, staffRes]) => {
-      setReport(salesRes.data);
-      setStaffPerformance(staffRes.data || []);
-    }).catch(() => toast.error('Failed to load reports')).finally(() => setLoading(false));
+  const handleExport = async (type: string) => {
+    if (!fromDate || !toDate) {
+      toast.error('Please select both start and end dates');
+      return;
+    }
+    
+    setExporting(true);
+    try {
+      const response = await reportService.exportCsv(fromDate, toDate);
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `bkb-${type}-report-${fromDate}-to-${toDate}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Report exported successfully');
+    } catch (err) {
+      console.error('Export error:', err);
+      toast.error('Failed to export report');
+    } finally {
+      setExporting(false);
+    }
   };
-
-  const handleExport = () => {
-    reportService.exportCsv(from, to).then(res => {
-      const blob = new Blob([res.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `bkb-sales-report.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
-  };
-
-  const salesCols: Column<any>[] = [
-    { header: 'Rank', render: (item: any) => report?.topItems ? <span className="font-bold text-gray-500">#{report.topItems.indexOf(item) + 1}</span> : '', width: '60px' },
-    { header: 'Item', accessor: 'itemName' },
-    { header: 'Units Sold', accessor: 'totalQuantity', align: 'center' },
-    { header: 'Revenue', render: (item) => <span className="font-semibold">{formatRM(item.totalRevenue)}</span>, align: 'right' },
-  ];
-
-  const staffCols: Column<any>[] = [
-    { header: 'Staff Member', accessor: 'staffName' },
-    { header: 'Orders Completed', accessor: 'ordersCompleted', align: 'right' },
-  ];
-
-  if (loading) return <TableSkeleton rows={5} />;
 
   return (
-    <div className="space-y-6">
-      <DashboardCard className="!bg-white dark:!bg-slate-800">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Calendar size={20} className="text-gray-400" />
-            <input
-              type="date" value={from} onChange={e => setFrom(e.target.value)}
-              className="border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
-            />
-            <span className="text-sm font-medium text-gray-500">to</span>
-            <input
-              type="date" value={to} onChange={e => setTo(e.target.value)}
-              className="border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
-            />
-            <button onClick={loadReport} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-dark transition-colors">Apply Filter</button>
+    <div className="flex flex-col gap-6 w-full animate-fade-in pb-6">
+      <AppCard className="!p-4 mb-2 border-l-4 border-l-[var(--primary)]">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-[var(--text-primary)]">Global Report Date Range</h3>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Select the period for your generated reports</p>
           </div>
-          <button onClick={handleExport} className="flex items-center gap-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-            <Download size={16} /> Export CSV
-          </button>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-1.5 focus-within:border-[var(--primary)] transition-colors w-full md:w-auto">
+              <Calendar size={14} className="text-[var(--text-secondary)]" />
+              <input 
+                type="date" 
+                value={fromDate} 
+                onChange={e => setFromDate(e.target.value)}
+                className="bg-transparent text-sm focus:outline-none text-[var(--text-primary)]"
+              />
+            </div>
+            <span className="text-[var(--text-secondary)] font-medium text-sm">to</span>
+            <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-1.5 focus-within:border-[var(--primary)] transition-colors w-full md:w-auto">
+              <Calendar size={14} className="text-[var(--text-secondary)]" />
+              <input 
+                type="date" 
+                value={toDate} 
+                onChange={e => setToDate(e.target.value)}
+                className="bg-transparent text-sm focus:outline-none text-[var(--text-primary)]"
+              />
+            </div>
+          </div>
         </div>
-      </DashboardCard>
+      </AppCard>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Total Revenue" value={formatRM(report?.totalRevenue ?? 0)} icon={DollarSign} iconBgColor="rgba(34, 197, 94, 0.1)" iconColor="#22c55e" />
-        <StatCard title="Total Orders" value={report?.totalOrders ?? 0} icon={FileText} iconBgColor="rgba(59, 130, 246, 0.1)" iconColor="#3b82f6" />
-        <StatCard title="Avg Order Value" value={formatRM(report?.avgOrderValue ?? 0)} icon={TrendingUp} iconBgColor="rgba(168, 85, 247, 0.1)" iconColor="#a855f7" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardCard>
-          <div className="mb-4">
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">Top Selling Items</h3>
-          </div>
-          {(!report?.topItems || report.topItems.length === 0) ? (
-            <AppEmptyState title="No sales data" icon={BarChart3} />
-          ) : (
-            <div className="overflow-x-auto">
-              <AppTable columns={salesCols} data={report.topItems} keyExtractor={(item) => item.itemName} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Sales Report Card */}
+        <AppCard className="flex flex-col h-full hover:border-[var(--primary)]/30 transition-colors">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <BarChart2 size={24} />
             </div>
-          )}
-        </DashboardCard>
-
-        <DashboardCard>
-          <div className="mb-4">
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">Staff Performance</h3>
-          </div>
-          {(!staffPerformance || staffPerformance.length === 0) ? (
-            <AppEmptyState title="No staff data" icon={Users} />
-          ) : (
-            <div className="overflow-x-auto">
-              <AppTable columns={staffCols} data={staffPerformance} keyExtractor={(item) => item.staffName} />
+            <div>
+              <h3 className="font-bold text-lg text-[var(--text-primary)]">Sales Report</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Revenue & transactions</p>
             </div>
-          )}
-        </DashboardCard>
+          </div>
+          <p className="text-sm text-[var(--text-secondary)] mb-6 flex-1">
+            Comprehensive breakdown of daily, weekly, and monthly revenue, including best-selling items and peak hours.
+          </p>
+          <AppButton 
+            variant="primary" 
+            className="w-full" 
+            icon={Download} 
+            onClick={() => handleExport('sales')}
+            isLoading={exporting}
+          >
+            Export CSV
+          </AppButton>
+        </AppCard>
+
+        {/* Inventory Report Card */}
+        <AppCard className="flex flex-col h-full hover:border-[var(--primary)]/30 transition-colors">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+              <FileText size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-[var(--text-primary)]">Inventory Usage</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Stock & waste tracking</p>
+            </div>
+          </div>
+          <p className="text-sm text-[var(--text-secondary)] mb-6 flex-1">
+            Detailed tracking of ingredient usage against sales volume, identifying discrepancies and waste patterns.
+          </p>
+          <AppButton 
+            variant="primary" 
+            className="w-full" 
+            icon={Download} 
+            onClick={() => handleExport('inventory')}
+            isLoading={exporting}
+          >
+            Export CSV
+          </AppButton>
+        </AppCard>
+
+        {/* Staff Performance Card */}
+        <AppCard className="flex flex-col h-full hover:border-[var(--primary)]/30 transition-colors">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+              <FileText size={24} />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-[var(--text-primary)]">Staff Performance</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Efficiency & shifts</p>
+            </div>
+          </div>
+          <p className="text-sm text-[var(--text-secondary)] mb-6 flex-1">
+            Metrics on order preparation times, shift coverage, and overall efficiency across different kitchen stations.
+          </p>
+          <AppButton 
+            variant="primary" 
+            className="w-full" 
+            icon={Download} 
+            onClick={() => handleExport('staff')}
+            isLoading={exporting}
+          >
+            Export CSV
+          </AppButton>
+        </AppCard>
       </div>
     </div>
   );
@@ -474,22 +532,22 @@ const CustomerInsightsContent: React.FC = () => {
               <div key={idx} className="p-5 border border-gray-100 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 transition-colors shadow-sm">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-primary flex items-center justify-center font-bold text-xs">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-[var(--primary)] flex items-center justify-center font-bold text-xs">
                       {fb.customerName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <span className="font-bold text-sm text-gray-900 dark:text-white block leading-tight">{fb.customerName}</span>
-                      <span className="text-[0.65rem] text-gray-500">Order #{fb.orderNumber}</span>
+                      <span className="font-bold text-sm text-[var(--text-primary)] block leading-tight">{fb.customerName}</span>
+                      <span className="text-[0.65rem] text-[var(--text-secondary)]">Order #{fb.orderNumber}</span>
                     </div>
                   </div>
-                  <span className="text-[0.65rem] font-medium text-gray-400 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-2 py-1 rounded">{fb.date}</span>
+                  <span className="text-[0.65rem] font-medium text-[var(--text-secondary)] bg-[var(--background)] border border-[var(--border)] px-2 py-1 rounded">{fb.date}</span>
                 </div>
                 <div className="flex items-center gap-0.5 mb-3">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <span key={i} className={`text-sm ${i < fb.rating ? 'text-amber-400' : 'text-gray-300 dark:text-slate-600'}`}>★</span>
                   ))}
                 </div>
-                {fb.feedback && <p className="text-sm text-gray-700 dark:text-slate-300 italic">"{fb.feedback}"</p>}
+                {fb.feedback && <p className="text-sm text-[var(--text-secondary)] italic">"{fb.feedback}"</p>}
               </div>
             ))}
           </div>
@@ -504,9 +562,6 @@ export const ManagerDashboard: React.FC = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
   const { user } = useAuthStore();
-  const [report, setReport] = useState<any>(null);
-  const [lowStock, setLowStock] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -514,23 +569,9 @@ export const ManagerDashboard: React.FC = () => {
     if (tabParam) setActiveTab(tabParam.toLowerCase());
   }, [location]);
 
-  const loadData = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-    Promise.all([
-      reportService.getExecutiveDashboard(monthStart, today),
-      inventoryService.getLowStock(),
-    ]).then(([repRes, lowRes]) => {
-      setReport(repRes.data);
-      setLowStock(lowRes.data);
-    }).finally(() => setLoading(false));
-  };
-
-  useEffect(() => { loadData(); }, []);
-
   const allTabs = [
     { id: 'overview',  label: 'Executive Overview' },
-    { id: 'reports',   label: 'Sales Reports' },
+    { id: 'reports',   label: 'Generate Reports' },
     { id: 'menu',      label: 'Menu Analytics' },
     { id: 'insights',  label: 'Customer Insights' },
     ...(user?.role === 'ADMIN' ? [{ id: 'logs', label: 'Audit Logs' }] : []),
@@ -539,7 +580,7 @@ export const ManagerDashboard: React.FC = () => {
   return (
     <ManagerLayout
       title="Dashboard"
-      subtitle="Overview of your restaurant's performance"
+      subtitle="Overview of your restaurant's performance and reporting tools"
       tabs={allTabs.map(t => ({
         id: t.id,
         label: t.label,
@@ -547,7 +588,7 @@ export const ManagerDashboard: React.FC = () => {
         onClick: () => setActiveTab(t.id),
       }))}
     >
-      {activeTab === 'overview'  && <OverviewContent report={report} lowStock={lowStock} onRefresh={loadData} loading={loading} onNavigate={setActiveTab} />}
+      {activeTab === 'overview'  && <OverviewContent />}
       {activeTab === 'reports'   && <ReportsContent />}
       {activeTab === 'menu'      && <MenuAnalyticsContent />}
       {activeTab === 'insights'  && <CustomerInsightsContent />}
