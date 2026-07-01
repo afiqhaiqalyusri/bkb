@@ -339,6 +339,10 @@ export const BurgerStackGame: React.FC<BurgerStackGameProps> = ({ orderId, order
         spawnTimerRef.current = 0;
       }
 
+      const maxStack = 8;
+      const stackCount = Math.min(stackRef.current.length, maxStack);
+      const hitPointY = CATCHER_Y - (stackCount * 22);
+
       // Update ingredients
       const toRemove: number[] = [];
       for (let i = 0; i < ingredientsRef.current.length; i++) {
@@ -346,12 +350,12 @@ export const BurgerStackGame: React.FC<BurgerStackGameProps> = ({ orderId, order
         ing.y += ing.speed;
         ing.rotation += ing.rotationSpeed;
 
-        // Collision with catcher
+        // Collision with catcher or stack
         if (
-          ing.y + ing.size / 2 >= CATCHER_Y &&
+          ing.y + ing.size / 2 >= hitPointY &&
           ing.y - ing.size / 2 <= CATCHER_Y + CATCHER_H &&
-          ing.x >= catcherXRef.current - 10 &&
-          ing.x <= catcherXRef.current + CATCHER_W + 10
+          ing.x >= catcherXRef.current - 15 &&
+          ing.x <= catcherXRef.current + CATCHER_W + 15
         ) {
           toRemove.push(i);
           if (ing.isBomb) {
