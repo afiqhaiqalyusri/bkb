@@ -4,6 +4,6 @@ export const getImageUrl = (url: string | undefined): string => {
     return url;
   }
   // Assume relative URL means from backend
-  const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8081';
+  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8081';
   return `${baseUrl}${url}`;
 };
