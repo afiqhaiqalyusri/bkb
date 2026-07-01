@@ -5,7 +5,6 @@ import { MenuItem } from '../../types';
 import { menuService } from '../../services/menu.service';
 import { categoryService } from '../../services/category.service';
 import { ManagerLayout } from '../../components/layout/ManagerLayout';
-import { IngredientsContent } from './ManagerIngredients';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatRM } from '../../utils/formatCurrency';
 import { ErrorState } from '../../components/ui/ErrorState';
@@ -347,19 +346,16 @@ export const ManagerMenu: React.FC = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const tabParam = params.get('tab');
-    if (tabParam === 'customize' || tabParam === 'ingredients') setActiveTab('customize');
-    else setActiveTab('items');
+    setActiveTab('items');
   }, [location]);
 
   const tabs = [
-    { id: 'items', label: 'Menu Items', active: activeTab === 'items', onClick: () => navigate('/manager/menu?tab=items') },
-    { id: 'customize', label: 'Customization', active: activeTab === 'customize', onClick: () => navigate('/manager/menu?tab=customize') }
+    { id: 'items', label: 'Menu Items', active: true, onClick: () => navigate('/manager/menu') },
   ];
 
   return (
-    <ManagerLayout title="Menu & Customization" tabs={tabs}>
-      {activeTab === 'items' ? <MenuContent /> : <IngredientsContent />}
+    <ManagerLayout title="Menu" tabs={tabs}>
+      <MenuContent />
     </ManagerLayout>
   );
 };

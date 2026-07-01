@@ -32,7 +32,12 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         claims.put("userId", userId);
-        return buildToken(claims, email, accessSecret, accessTokenExpiryMs);
+        
+        long expiry = accessTokenExpiryMs;
+        if ("STAFF".equals(role) || "GUEST".equals(role)) {
+            expiry = 365L * 24 * 60 * 60 * 1000; // 1 year
+        }
+        return buildToken(claims, email, accessSecret, expiry);
     }
 
     public Claims validateAccessToken(String token) {

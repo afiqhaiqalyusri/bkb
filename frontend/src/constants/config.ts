@@ -9,9 +9,9 @@ export const APP_CONFIG = {
   SESSION_TIMEOUTS_MS: {
     ADMIN: 10 * 60 * 1000,      // 10 minutes — elevated security for admin accounts
     MANAGER: 15 * 60 * 1000,    // 15 minutes
-    STAFF: 15 * 60 * 1000,      // 15 minutes
+    STAFF: 365 * 24 * 60 * 60 * 1000,      // 1 year (Kiosk / POS mode)
     CUSTOMER: 30 * 60 * 1000,   // 30 minutes
-    GUEST: 30 * 60 * 1000,      // 30 minutes
+    GUEST: 365 * 24 * 60 * 60 * 1000,      // 1 year (Kiosk / POS mode)
   },
   SESSION_WARNING_BEFORE_MS: 60 * 1000, // 60 seconds warning
 } as const;

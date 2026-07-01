@@ -278,7 +278,7 @@ export const MenuPage: React.FC = () => {
   const [outages, setOutages] = useState<Record<string, boolean>>({});
 
   const { addItem, itemCount, total } = useCartStore();
-  const { user } = useAuthStore();
+  const { user, clearAuth } = useAuthStore();
 
   const loadData = () => {
     setLoading(true);
@@ -379,7 +379,12 @@ export const MenuPage: React.FC = () => {
                   </h1>
                 </div>
                 <button
-                  onClick={() => navigate('/')}
+                  onClick={() => {
+                    if (user?.role === 'GUEST') {
+                      clearAuth();
+                    }
+                    navigate('/');
+                  }}
                   style={{
                     background: 'transparent',
                     color: 'var(--text-primary)',
