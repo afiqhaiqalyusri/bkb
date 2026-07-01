@@ -13,7 +13,7 @@ import java.util.List;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<OrderItem> findByOrderId(Long orderId);
 
-    @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * COALESCE(oi.unitCost, 0.0)) as estimatedProfit " +
+    @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * COALESCE(oi.unitCost, 0.0BD)) as estimatedProfit " +
            "FROM OrderItem oi " +
            "JOIN oi.order o " +
            "WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID " +
@@ -21,7 +21,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
            "ORDER BY SUM(oi.quantity) DESC")
     List<Object[]> findTopSellingItems(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * COALESCE(oi.unitCost, 0.0)) as estimatedProfit " +
+    @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * COALESCE(oi.unitCost, 0.0BD)) as estimatedProfit " +
            "FROM OrderItem oi " +
            "JOIN oi.order o " +
            "WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID " +
