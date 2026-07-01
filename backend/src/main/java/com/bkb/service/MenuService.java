@@ -5,6 +5,7 @@ import com.bkb.dto.response.MenuItemResponse;
 import com.bkb.dto.response.PromotionResponse;
 import com.bkb.entity.MenuItem;
 import com.bkb.entity.Promotion;
+import com.bkb.entity.RecipeIngredient;
 import com.bkb.exception.ResourceNotFoundException;
 import com.bkb.repository.MenuItemRepository;
 import com.bkb.repository.PromotionRepository;
@@ -100,7 +101,16 @@ public class MenuService {
     }
 
     public MenuItemResponse toResponse(MenuItem item) {
-        List<MenuItemResponse.IngredientResponse> ingredients = List.of();
+        List<MenuItemResponse.IngredientResponse> ingredients = new ArrayList<>();
+        if (item.getRecipe() != null && item.getRecipe().getIngredients() != null) {
+            ingredients = item.getRecipe().getIngredients().stream()
+                    .map(ri -> MenuItemResponse.IngredientResponse.builder()
+                            .id(ri.getId())
+                            .ingredientName(ri.getInventory().getItemName())
+                            .defaultLevel("MEDIUM")
+                            .build())
+                    .collect(Collectors.toList());
+        }
 
         return MenuItemResponse.builder()
                 .id(item.getId())
