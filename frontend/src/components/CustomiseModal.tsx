@@ -58,12 +58,36 @@ export const CustomiseModal: React.FC<CustomiseModalProps> = ({
 
   const price = menuItem.promoPrice ?? menuItem.price;
 
-  const saucesList = (menuItem.ingredients || []).filter(ing => {
+  const [addons, setAddons] = useState<Record<string, number>>({
+    'Cheese': 0,
+    'Egg': 0,
+    'Patty': 0
+  });
+
+  const addonPrices: Record<string, number> = {
+    'Cheese': 1.00,
+    'Egg': 1.00,
+    'Patty': 2.00,
+  };
+
+  const addonsTotal = Object.entries(addons).reduce((sum, [name, count]) => sum + (addonPrices[name] * count), 0);
+  const totalPrice = price + addonsTotal;
+
+  const validIngredients = (menuItem.ingredients || []).filter(ing => {
+    const name = ing.ingredientName.toLowerCase();
+    // Exclude buns entirely
+    if (name.includes('bun')) return false;
+    // Exclude paid add-ons from standard toppings
+    if (name.includes('cheese') || name.includes('egg') || name.includes('patty') || name.includes('meat')) return false;
+    return true;
+  });
+
+  const saucesList = validIngredients.filter(ing => {
     const name = ing.ingredientName.toLowerCase();
     return name.includes('sauce') || name.includes('chilli') || name.includes('pepper') || name.includes('mayo') || name.includes('ketchup') || name.includes('mustard');
   });
 
-  const toppingsList = (menuItem.ingredients || []).filter(ing => {
+  const toppingsList = validIngredients.filter(ing => {
     const name = ing.ingredientName.toLowerCase();
     return !(name.includes('sauce') || name.includes('chilli') || name.includes('pepper') || name.includes('mayo') || name.includes('ketchup') || name.includes('mustard'));
   });
@@ -98,6 +122,7 @@ export const CustomiseModal: React.FC<CustomiseModalProps> = ({
     });
 
     let initialRemarks = '';
+    const addonsState: Record<string, number> = { 'Cheese': 0, 'Egg': 0, 'Patty': 0 };
 
     // Override with existing selection
     initialCustomisations.forEach(c => {
@@ -105,9 +130,17 @@ export const CustomiseModal: React.FC<CustomiseModalProps> = ({
       
       if (name === 'remarks') {
         initialRemarks = c.level;
+      } else if (name.startsWith('add ')) {
+        // Find the actual key we use (Cheese, Egg, Patty)
+        const possibleKeys = ['Cheese', 'Egg', 'Patty'];
+        for (const key of possibleKeys) {
+          if (name.includes(key.toLowerCase())) {
+            addonsState[key] = parseInt(c.level) || 0;
+          }
+        }
       } else {
         const level = (c.level.charAt(0).toUpperCase() + c.level.slice(1).toLowerCase()) as Level;
-        const match = (menuItem.ingredients || []).find(ing => ing.ingredientName.toLowerCase().trim() === name);
+        const match = validIngredients.find(ing => ing.ingredientName.toLowerCase().trim() === name);
         if (match) {
           initialLevels[match.ingredientName] = level;
         }
@@ -115,6 +148,7 @@ export const CustomiseModal: React.FC<CustomiseModalProps> = ({
     });
 
     setCustomisationLevels(initialLevels);
+    setAddons(addonsState);
     setRemarks(initialRemarks);
     setQty(initialQuantity);
   }, [isOpen, menuItem, initialCustomisations, initialQuantity]);
@@ -123,10 +157,16 @@ export const CustomiseModal: React.FC<CustomiseModalProps> = ({
 
   const handleSave = () => {
     const custom = [
-      ...(menuItem.ingredients || [])
+      ...validIngredients
         .map(ing => ({
           ingredient: ing.ingredientName,
           level: outages[ing.ingredientName.toLowerCase()] ? 'NONE' : (customisationLevels[ing.ingredientName] || 'Medium').toUpperCase()
+        })),
+      ...Object.entries(addons)
+        .filter(([_, count]) => count > 0)
+        .map(([name, count]) => ({
+          ingredient: `Add ${name}`,
+          level: count.toString()
         })),
       ...(remarks.trim() ? [{ ingredient: 'Remarks', level: remarks.trim() }] : []),
     ];
@@ -251,7 +291,7 @@ export const CustomiseModal: React.FC<CustomiseModalProps> = ({
                 {menuItem.description && <p style={{ fontSize: '0.79rem', color: 'var(--text-secondary)', marginTop: 6, lineHeight: 1.5 }}>{menuItem.description}</p>}
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.35rem', color: 'var(--red)' }}>{formatRM(price)}</div>
+                <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.35rem', color: 'var(--red)' }}>{formatRM(totalPrice)}</div>
                 {menuItem.promoPrice && <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>{formatRM(menuItem.price)}</div>}
               </div>
             </div>
@@ -312,14 +352,59 @@ export const CustomiseModal: React.FC<CustomiseModalProps> = ({
                   </div>
                 )}
 
-                {(!menuItem.ingredients || menuItem.ingredients.length === 0) && (
+                {(!menuItem.ingredients || validIngredients.length === 0) && (
                   <div style={{ textAlign: 'center', padding: '20px 10px', background: 'var(--cream-dark)', borderRadius: 14, border: '1px solid var(--border)' }}>
                     <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: 6 }}>🍔</span>
                     <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>Standard Configuration</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 2 }}>This item has no customization ingredients.</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 2 }}>This item has no standard customization ingredients.</div>
                   </div>
                 )}
               </>
+            )}
+
+            {/* Paid Add-ons */}
+            {!isBeverage && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <div style={{ width: 3, height: 14, background: 'var(--red)', borderRadius: 2 }} />
+                  <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Add-ons</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {Object.keys(addons).map(addon => (
+                    <div key={addon} style={{
+                      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                      background: addons[addon] > 0 ? 'rgba(255,107,0,0.05)' : 'var(--cream-dark)',
+                      borderRadius: 14, border: `1.5px solid ${addons[addon] > 0 ? 'var(--red)' : 'var(--border)'}`
+                    }}>
+                      <span style={{ fontSize: '1.2rem', width: 28, textAlign: 'center', flexShrink: 0 }}>
+                        {getIngredientEmoji(addon)}
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {addon} <span style={{ color: 'var(--red)', fontWeight: 800, fontSize: '0.75rem' }}>+ {formatRM(addonPrices[addon])}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                        <button type="button" onClick={() => setAddons(p => ({ ...p, [addon]: Math.max(0, p[addon] - 1) }))} disabled={addons[addon] === 0} style={{
+                          width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)',
+                          background: addons[addon] === 0 ? 'var(--cream-dark)' : 'var(--surface)',
+                          color: addons[addon] === 0 ? 'var(--text-secondary)' : 'var(--text-primary)',
+                          cursor: addons[addon] === 0 ? 'not-allowed' : 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0
+                        }}><IcoMinus /></button>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', minWidth: 16, textAlign: 'center' }}>
+                          {addons[addon]}
+                        </span>
+                        <button type="button" onClick={() => setAddons(p => ({ ...p, [addon]: p[addon] + 1 }))} style={{
+                          width: 26, height: 26, borderRadius: '50%', border: 'none',
+                          background: 'var(--text-primary)', color: 'var(--surface)',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0
+                        }}><IcoPlus /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Special Remarks */}
@@ -361,7 +446,7 @@ export const CustomiseModal: React.FC<CustomiseModalProps> = ({
                   <button type="button" onClick={() => setQty(qty + 1)} style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--text-primary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--background)' }}><IcoPlus /></button>
                 </div>
                 <button type="button" onClick={handleSave} className="btn-primary" style={{ flex: 1, padding: '12px 20px', borderRadius: 'var(--radius-md)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <IcoCart /> Add to Order · {formatRM(price * qty)}
+                  <IcoCart /> Add to Order · {formatRM(totalPrice * qty)}
                 </button>
               </div>
             ) : (

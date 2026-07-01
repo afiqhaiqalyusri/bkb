@@ -391,6 +391,27 @@ public class OrderService {
 
             String customisationsJson = "[]";
             if (req.getCustomisations() != null && !req.getCustomisations().isEmpty()) {
+                // Add-on pricing logic (if not free)
+                if (!Boolean.TRUE.equals(req.getIsFree())) {
+                    for (PlaceOrderRequest.CustomisationRequest c : req.getCustomisations()) {
+                        String ing = c.getIngredient().toLowerCase();
+                        try {
+                            int count = Integer.parseInt(c.getLevel());
+                            if (count > 0) {
+                                if (ing.contains("cheese")) {
+                                    unitPrice = unitPrice.add(new BigDecimal("1.00").multiply(new BigDecimal(count)));
+                                } else if (ing.contains("egg")) {
+                                    unitPrice = unitPrice.add(new BigDecimal("1.00").multiply(new BigDecimal(count)));
+                                } else if (ing.contains("patty") || ing.contains("meat")) {
+                                    unitPrice = unitPrice.add(new BigDecimal("2.00").multiply(new BigDecimal(count)));
+                                }
+                            }
+                        } catch (NumberFormatException ignored) {
+                            // Not a numerical add-on (e.g. "LESS", "NONE"), no extra charge
+                        }
+                    }
+                }
+
                 try {
                     customisationsJson = objectMapper.writeValueAsString(req.getCustomisations());
                 } catch (Exception e) {
