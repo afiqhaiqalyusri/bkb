@@ -22,6 +22,7 @@ export const PaymentResultPage: React.FC = () => {
       const msg = searchParams.get('msg') ?? searchParams.get('reason');
       
       let fetchedGuestToken: string | null = null;
+      let fetchedOrderId: string | null = null;
 
       // Fallback verification: Tell the backend to verify the payment
       if (billcode && statusId) {
@@ -35,6 +36,7 @@ export const PaymentResultPage: React.FC = () => {
             msg,
           });
           fetchedGuestToken = res.data?.data?.guestToken;
+          fetchedOrderId = res.data?.data?.id;
           if (fetchedGuestToken) {
             setGuestToken(fetchedGuestToken);
           }
@@ -51,7 +53,10 @@ export const PaymentResultPage: React.FC = () => {
         setTimeout(() => {
           if (fetchedGuestToken) {
             navigate(`/track/${fetchedGuestToken}`, { replace: true });
-          } else if (orderIdStr) {
+          } else if (fetchedOrderId) {
+            navigate(`/order/${fetchedOrderId}/tracking`, { replace: true });
+          } else {
+            // Fallback if neither is available, but this shouldn't happen
             navigate(`/order/${orderIdStr}/tracking`, { replace: true });
           }
         }, 2000);
