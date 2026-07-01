@@ -19,93 +19,9 @@ import { AppBadge } from '../../components/ui/AppBadge';
 import { AppModal } from '../../components/ui/AppModal';
 import { AppFormField, formControlStyle } from '../../components/ui/AppFormField';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
+import { AppTable, Column } from '../../components/ui/AppTable';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatRM } from '../../utils/formatCurrency';
-
-// ─── Stock Status Badge ───────────────────────────────────────────────────────
-const StockBadge: React.FC<{ status: string; stock: number; unit: string }> = ({ status, stock, unit }) => {
-  const variant =
-    status === 'CRITICAL' ? 'danger' :
-    status === 'LOW' ? 'warning' : 'success';
-  return <AppBadge variant={variant} text={`${stock} ${unit}`} icon />;
-};
-
-// ─── Ingredient Row ───────────────────────────────────────────────────────────
-const IngredientRow: React.FC<{
-  ingredient: RecipeIngredientItem;
-  onEdit: (ingredient: RecipeIngredientItem) => void;
-  onDelete: (id: number) => void;
-}> = ({ ingredient, onEdit, onDelete }) => (
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '10px 14px',
-    background: 'var(--background)',
-    border: '1px solid var(--border)',
-    borderRadius: 8,
-    transition: 'border-color 0.15s',
-  }}
-  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--primary)')}
-  onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-  >
-    {/* Icon */}
-    <div style={{
-      width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-      background: ingredient.trackingType === 'AUTO'
-        ? 'rgba(59,130,246,0.08)' : 'rgba(139,92,246,0.08)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: ingredient.trackingType === 'AUTO' ? '#3B82F6' : '#8B5CF6',
-    }}>
-      <Package size={16} />
-    </div>
-
-    {/* Name & Details */}
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-        <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-          {ingredient.inventoryName}
-        </span>
-        {ingredient.isOptional && (
-          <span style={{
-            fontSize: '0.65rem', fontWeight: 700, color: '#8B5CF6',
-            background: 'rgba(139,92,246,0.1)', padding: '1px 6px', borderRadius: 99,
-          }}>
-            OPTIONAL
-          </span>
-        )}
-        <span style={{
-          fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)',
-          background: 'var(--surface)', border: '1px solid var(--border)',
-          padding: '1px 6px', borderRadius: 99,
-        }}>
-          {ingredient.trackingType}
-        </span>
-      </div>
-      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: 2 }}>
-        Qty: <strong>{ingredient.quantity}</strong> {ingredient.unit}
-        &nbsp;·&nbsp;
-        Stock: <StockBadge status={ingredient.stockStatus} stock={ingredient.currentStock} unit={ingredient.unit} />
-      </div>
-    </div>
-
-    {/* Actions */}
-    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-      <AppButton variant="ghost" size="icon" onClick={() => onEdit(ingredient)} title="Edit">
-        <Edit2 size={14} />
-      </AppButton>
-      <AppButton
-        variant="ghost"
-        size="icon"
-        onClick={() => onDelete(ingredient.id)}
-        className="hover:text-[var(--danger)]"
-        title="Remove"
-      >
-        <Trash2 size={14} />
-      </AppButton>
-    </div>
-  </div>
-);
 
 // ─── Ingredient Form Modal ────────────────────────────────────────────────────
 interface IngredientFormModalProps {
@@ -158,7 +74,7 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
       onClose={onClose}
       title={editingIngredient ? 'Edit Recipe Ingredient' : 'Add Ingredient to Recipe'}
       subtitle="Link an inventory item to this recipe with a required quantity."
-      icon={<Package size={18} />}
+      icon={<Package size={18} className="text-[var(--primary)]" />}
       size="md"
       onSubmit={handleSubmit}
       actions={[
@@ -166,26 +82,22 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
         { label: editingIngredient ? 'Save Changes' : 'Add Ingredient', variant: 'primary', isLoading: saving, type: 'submit', onClick: () => {} },
       ]}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Inventory Item Selector */}
         <AppFormField label="Inventory Item" required>
-          <div style={{ position: 'relative', marginBottom: 6 }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', marginBottom: 10 }}>
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none" />
             <input
               type="text"
               placeholder="Search inventory items…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ ...formControlStyle, paddingLeft: 32, fontSize: '0.82rem' }}
+              className="w-full pl-9 pr-4 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
             />
           </div>
-          <div style={{
-            maxHeight: 180, overflowY: 'auto',
-            border: '1px solid var(--border)', borderRadius: 8,
-            background: 'var(--background)',
-          }}>
+          <div className="max-h-[200px] overflow-y-auto border border-[var(--border)] rounded-xl bg-[var(--background)] shadow-sm">
             {filtered.length === 0 ? (
-              <div style={{ padding: '12px 14px', fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+              <div className="p-4 text-sm text-[var(--text-secondary)] text-center">
                 No inventory items found
               </div>
             ) : (
@@ -193,37 +105,25 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
                 <div
                   key={item.id}
                   onClick={() => { setInventoryId(item.id); setSearch(''); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '8px 12px', cursor: 'pointer',
-                    background: inventoryId === item.id ? 'rgba(255,107,0,0.07)' : 'transparent',
-                    borderBottom: '1px solid var(--border)',
-                    transition: 'background 0.12s',
-                  }}
-                  onMouseEnter={e => { if (inventoryId !== item.id) (e.currentTarget as HTMLElement).style.background = 'var(--surface)'; }}
-                  onMouseLeave={e => { if (inventoryId !== item.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  className={`flex items-center justify-between p-3 cursor-pointer border-b border-[var(--border)] transition-colors hover:bg-[var(--surface)] last:border-0 ${inventoryId === item.id ? 'bg-[var(--primary)]/10' : ''}`}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.83rem', color: 'var(--text-primary)' }}>
+                    <div className="font-semibold text-sm text-[var(--text-primary)]">
                       {item.itemName}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                    <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 font-medium">
                       {item.category} · {item.unit} · Stock: {item.currentStock}
                     </div>
                   </div>
-                  {inventoryId === item.id && <Check size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
+                  {inventoryId === item.id && <Check size={16} className="text-[var(--primary)] shrink-0" />}
                 </div>
               ))
             )}
           </div>
           {selectedItem && (
-            <div style={{
-              marginTop: 6, padding: '6px 10px',
-              background: 'rgba(255,107,0,0.05)',
-              border: '1px solid rgba(255,107,0,0.2)',
-              borderRadius: 6, fontSize: '0.78rem', color: 'var(--primary)',
-            }}>
-              Selected: <strong>{selectedItem.itemName}</strong> ({selectedItem.unit})
+            <div className="mt-3 p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-lg text-xs text-[var(--primary)] flex items-center gap-2">
+              <Package size={14} />
+              <span>Selected: <strong>{selectedItem.itemName}</strong> ({selectedItem.unit})</span>
             </div>
           )}
         </AppFormField>
@@ -236,30 +136,22 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
             onChange={e => setQuantity(parseFloat(e.target.value) || 0)}
             min="0.01"
             step="0.01"
-            style={formControlStyle}
+            className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
           />
         </AppFormField>
 
         {/* Optional Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 8 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flex: 1 }}>
-            <div
-              onClick={() => setIsOptional(v => !v)}
-              style={{
-                width: 40, height: 22, borderRadius: 99, flexShrink: 0,
-                background: isOptional ? 'var(--primary)' : 'var(--border)',
-                position: 'relative', cursor: 'pointer', transition: 'background 0.2s',
-              }}
-            >
-              <div style={{
-                position: 'absolute', top: 3, left: isOptional ? 21 : 3,
-                width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-              }} />
-            </div>
+        <div className="flex items-center gap-3 p-4 bg-[var(--background)] border border-[var(--border)] rounded-xl">
+          <label className="flex items-center gap-3 cursor-pointer flex-1">
+            <input 
+              type="checkbox"
+              checked={isOptional}
+              onChange={() => setIsOptional(v => !v)}
+              className="w-5 h-5 accent-[var(--primary)] rounded cursor-pointer"
+            />
             <div>
-              <div style={{ fontSize: '0.83rem', fontWeight: 600, color: 'var(--text-primary)' }}>Optional Ingredient</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+              <div className="text-sm font-bold text-[var(--text-primary)]">Optional Ingredient</div>
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
                 Optional ingredients won't cause the item to be unavailable if out of stock
               </div>
             </div>
@@ -282,18 +174,20 @@ const NotesEditor: React.FC<{
   useEffect(() => { setValue(initialNotes || ''); setDirty(false); }, [initialNotes]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <textarea
         value={value}
         onChange={e => { setValue(e.target.value); setDirty(true); }}
         placeholder="e.g. Toast bun separately. Grill patty to 75°C internal temp. Apply sauce before closing bun."
         rows={4}
-        style={{ ...formControlStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }}
+        className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-[var(--primary)] transition-colors resize-y leading-relaxed"
       />
       {dirty && (
-        <AppButton size="sm" icon={Save} isLoading={saving} onClick={() => onSave(value)}>
-          Save Notes
-        </AppButton>
+        <div className="flex justify-end">
+          <AppButton size="sm" icon={Save} isLoading={saving} onClick={() => onSave(value)} variant="primary">
+            Save Notes
+          </AppButton>
+        </div>
       )}
     </div>
   );
@@ -425,36 +319,72 @@ export const ManagerRecipes: React.FC = () => {
   const openAddModal = () => { setEditingIngredient(null); setShowIngredientModal(true); };
   const openEditModal = (ing: RecipeIngredientItem) => { setEditingIngredient(ing); setShowIngredientModal(true); };
 
+  const ingredientColumns: Column<RecipeIngredientItem>[] = [
+    {
+      header: 'Ingredient',
+      render: (ing) => (
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${ing.trackingType === 'AUTO' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'}`}>
+            <Package size={14} />
+          </div>
+          <div>
+            <div className="font-bold text-[var(--text-primary)] flex items-center gap-2">
+              {ing.inventoryName}
+              {ing.isOptional && <span className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">Optional</span>}
+            </div>
+            <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 font-medium bg-[var(--surface)] border border-[var(--border)] px-1.5 py-0.5 rounded inline-block">
+              {ing.trackingType}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Required Quantity',
+      render: (ing) => (
+        <span className="font-bold text-[var(--text-primary)]">{ing.quantity} <span className="text-[var(--text-secondary)] font-medium text-xs">{ing.unit}</span></span>
+      )
+    },
+    {
+      header: 'Stock Status',
+      render: (ing) => (
+        <div className="flex items-center gap-2">
+          <AppBadge variant={ing.stockStatus === 'CRITICAL' ? 'danger' : ing.stockStatus === 'LOW' ? 'warning' : 'success'} text={`${ing.currentStock} ${ing.unit}`} icon />
+        </div>
+      )
+    },
+    {
+      header: 'Actions',
+      align: 'right',
+      render: (ing) => (
+        <div className="flex gap-2 justify-end">
+          <AppButton variant="ghost" size="icon" onClick={() => openEditModal(ing)}><Edit2 size={16} /></AppButton>
+          <AppButton variant="ghost" size="icon" onClick={() => handleRemoveIngredient(ing.id)} className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50"><Trash2 size={16} /></AppButton>
+        </div>
+      )
+    }
+  ];
+
   return (
     <ManagerLayout
       title="Recipe Management"
       subtitle="Define standard ingredients required to prepare each menu item"
     >
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 280px 1fr', gap: 16, height: 'calc(100vh - 120px)', minHeight: 0 }}>
+      <div className="grid grid-cols-1 md:grid-cols-[200px_280px_1fr] gap-4 md:gap-6 min-h-[calc(100vh-140px)]">
 
         {/* ── Panel 1: Category Selector ── */}
-        <AppCard noPadding>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>
+        <AppCard className="!p-0 flex flex-col h-[300px] md:h-full">
+          <div className="px-4 py-3 border-b border-[var(--border)] bg-gray-50 dark:bg-slate-800/50 shrink-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Categories
             </span>
           </div>
-          <div style={{ overflowY: 'auto', padding: '8px 8px' }}>
+          <div className="overflow-y-auto p-2 flex-1">
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                style={{
-                  width: '100%', textAlign: 'left',
-                  padding: '8px 12px', borderRadius: 6, border: 'none',
-                  background: selectedCategory === cat ? 'rgba(255,107,0,0.1)' : 'transparent',
-                  color: selectedCategory === cat ? 'var(--primary)' : 'var(--text-secondary)',
-                  fontWeight: selectedCategory === cat ? 700 : 500,
-                  fontSize: '0.83rem', cursor: 'pointer',
-                  transition: 'all 0.12s',
-                }}
-                onMouseEnter={e => { if (selectedCategory !== cat) (e.currentTarget as HTMLElement).style.background = 'var(--background)'; }}
-                onMouseLeave={e => { if (selectedCategory !== cat) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors mb-1 ${selectedCategory === cat ? 'bg-[var(--primary)]/10 text-[var(--primary)] font-bold' : 'text-[var(--text-secondary)] font-medium hover:bg-[var(--background)]'}`}
               >
                 {cat}
               </button>
@@ -463,27 +393,27 @@ export const ManagerRecipes: React.FC = () => {
         </AppCard>
 
         {/* ── Panel 2: Menu Item List ── */}
-        <AppCard noPadding style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>
+        <AppCard className="!p-0 flex flex-col h-[400px] md:h-full">
+          <div className="px-4 py-3 border-b border-[var(--border)] bg-gray-50 dark:bg-slate-800/50 shrink-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Menu Items ({filteredItems.length})
             </span>
-            <div style={{ position: 'relative', marginTop: 8 }}>
-              <Search size={13} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
+            <div className="relative mt-2">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search items…"
                 value={menuSearch}
                 onChange={e => setMenuSearch(e.target.value)}
-                style={{ ...formControlStyle, paddingLeft: 28, fontSize: '0.8rem', padding: '7px 8px 7px 28px' }}
+                className="w-full pl-8 pr-3 py-1.5 bg-[var(--background)] border border-[var(--border)] rounded text-xs focus:outline-none focus:border-[var(--primary)] transition-colors"
               />
             </div>
           </div>
-          <div style={{ overflowY: 'auto', flex: 1, padding: '8px 8px' }}>
+          <div className="overflow-y-auto p-2 flex-1">
             {menuLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 20 }}><LoadingSpinner size="sm" /></div>
+              <div className="flex justify-center p-6"><LoadingSpinner size="sm" /></div>
             ) : filteredItems.length === 0 ? (
-              <AppEmptyState title="No items" icon={ChefHat} />
+              <div className="py-12"><AppEmptyState title="No items" icon={ChefHat} /></div>
             ) : (
               filteredItems.map(item => {
                 const isSelected = selectedItem?.id === item.id;
@@ -491,36 +421,24 @@ export const ManagerRecipes: React.FC = () => {
                   <button
                     key={item.id}
                     onClick={() => handleSelectItem(item)}
-                    style={{
-                      width: '100%', textAlign: 'left',
-                      padding: '9px 12px', borderRadius: 8, border: 'none',
-                      background: isSelected ? 'rgba(255,107,0,0.1)' : 'transparent',
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                      marginBottom: 2, transition: 'background 0.12s',
-                    }}
-                    onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--background)'; }}
-                    onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                    className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-colors mb-1 border border-transparent ${isSelected ? 'bg-[var(--primary)]/10 border-[var(--primary)]/20' : 'hover:bg-[var(--background)] hover:border-[var(--border)]'}`}
                   >
                     {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.name} style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                      <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-md object-cover shrink-0 border border-[var(--border)]" />
                     ) : (
-                      <div style={{ width: 36, height: 36, borderRadius: 6, background: 'rgba(255,107,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <ChefHat size={16} style={{ color: 'var(--primary)' }} />
+                      <div className="w-10 h-10 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 border border-[var(--primary)]/20">
+                        <ChefHat size={16} />
                       </div>
                     )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize: '0.83rem', fontWeight: isSelected ? 700 : 500,
-                        color: isSelected ? 'var(--primary)' : 'var(--text-primary)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-sm truncate ${isSelected ? 'font-bold text-[var(--primary)]' : 'font-semibold text-[var(--text-primary)]'}`}>
                         {item.name}
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                      <div className="text-[11px] text-[var(--text-secondary)] truncate">
                         {item.category}
                       </div>
                     </div>
-                    {isSelected && <ChevronRight size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
+                    {isSelected && <ChevronRight size={14} className="text-[var(--primary)] shrink-0" />}
                   </button>
                 );
               })
@@ -529,9 +447,9 @@ export const ManagerRecipes: React.FC = () => {
         </AppCard>
 
         {/* ── Panel 3: Recipe Editor ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', minHeight: 0 }}>
+        <div className="flex flex-col gap-4 overflow-y-auto h-full">
           {!selectedItem ? (
-            <AppCard style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AppCard className="h-full flex items-center justify-center min-h-[400px]">
               <AppEmptyState
                 title="Select a menu item"
                 description="Choose a menu item from the list to view and edit its recipe ingredients."
@@ -539,36 +457,38 @@ export const ManagerRecipes: React.FC = () => {
               />
             </AppCard>
           ) : recipeLoading ? (
-            <AppCard style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+            <AppCard className="flex items-center justify-center min-h-[400px]">
               <LoadingSpinner size="lg" />
             </AppCard>
           ) : (
             <>
               {/* Header Card */}
-              <AppCard>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <AppCard className="shrink-0">
+                <div className="flex items-center gap-4">
                   {selectedItem.imageUrl ? (
-                    <img src={selectedItem.imageUrl} alt={selectedItem.name} style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                    <img src={selectedItem.imageUrl} alt={selectedItem.name} className="w-16 h-16 rounded-xl object-cover shrink-0 border border-[var(--border)] shadow-sm" />
                   ) : (
-                    <div style={{ width: 56, height: 56, borderRadius: 10, background: 'rgba(255,107,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <ChefHat size={24} style={{ color: 'var(--primary)' }} />
+                    <div className="w-16 h-16 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 border border-[var(--primary)]/20">
+                      <ChefHat size={28} />
                     </div>
                   )}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-lg font-bold text-[var(--text-primary)] truncate">
                       {selectedItem.name}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+                    <div className="text-sm text-[var(--text-secondary)] mt-0.5">
                       {selectedItem.category} · {formatRM(selectedItem.price)}
                     </div>
                     {recipe && (
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: 4 }}>
-                        {recipe.ingredients.length} ingredient{recipe.ingredients.length !== 1 ? 's' : ''}
-                        {recipe.updatedAt && ` · Last updated ${new Date(recipe.updatedAt).toLocaleDateString('en-MY')}`}
+                      <div className="text-xs text-[var(--text-secondary)] mt-1.5 font-medium flex items-center gap-2">
+                        <span className="bg-[var(--background)] border border-[var(--border)] px-2 py-0.5 rounded-full">
+                          {recipe.ingredients.length} ingredient{recipe.ingredients.length !== 1 ? 's' : ''}
+                        </span>
+                        {recipe.updatedAt && <span>Updated {new Date(recipe.updatedAt).toLocaleDateString('en-MY')}</span>}
                       </div>
                     )}
                   </div>
-                  <AppButton icon={Plus} onClick={openAddModal} size="sm">
+                  <AppButton icon={Plus} onClick={openAddModal} variant="primary">
                     Add Ingredient
                   </AppButton>
                 </div>
@@ -578,8 +498,9 @@ export const ManagerRecipes: React.FC = () => {
               <AppCard
                 title="Recipe Ingredients"
                 subtitle="Standard ingredients required to prepare this item"
+                className="!p-0 shrink-0"
                 headerAction={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div className="flex items-center gap-2">
                     {recipe && recipe.ingredients.some(i => i.stockStatus === 'CRITICAL') && (
                       <AppBadge variant="danger" text="Low Stock" icon />
                     )}
@@ -589,27 +510,19 @@ export const ManagerRecipes: React.FC = () => {
                   </div>
                 }
               >
-                {!recipe || recipe.ingredients.length === 0 ? (
-                  <AppEmptyState
-                    title="No ingredients yet"
-                    description="Add inventory items to define what's needed to prepare this menu item."
-                    icon={Package}
-                    action={
-                      <AppButton icon={Plus} onClick={openAddModal} size="sm">
-                        Add First Ingredient
-                      </AppButton>
-                    }
-                  />
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {recipe.ingredients.map(ing => (
-                      <IngredientRow
-                        key={ing.id}
-                        ingredient={ing}
-                        onEdit={openEditModal}
-                        onDelete={handleRemoveIngredient}
-                      />
-                    ))}
+                <AppTable
+                  columns={ingredientColumns}
+                  data={recipe?.ingredients || []}
+                  keyExtractor={ing => ing.id}
+                  emptyTitle="No ingredients yet"
+                  emptyMessage="Add inventory items to define what's needed to prepare this menu item."
+                  emptyIcon={Package}
+                />
+                {(!recipe || recipe.ingredients.length === 0) && (
+                  <div className="flex justify-center pb-8 pt-4 bg-[var(--surface)] border-b border-x border-[var(--border)] rounded-b-xl -mt-6 z-10 relative">
+                    <AppButton icon={Plus} onClick={openAddModal} size="sm">
+                      Add First Ingredient
+                    </AppButton>
                   </div>
                 )}
               </AppCard>
@@ -619,6 +532,7 @@ export const ManagerRecipes: React.FC = () => {
                 title="Preparation Notes"
                 subtitle="Kitchen instructions for preparing this item"
                 icon={FileText}
+                className="shrink-0"
               >
                 <NotesEditor
                   notes={recipe?.notes || ''}

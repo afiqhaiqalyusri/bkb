@@ -12,6 +12,7 @@ import { AppCard } from '../../components/ui/AppCard';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { AppTable, Column } from '../../components/ui/AppTable';
 import { formControlStyle } from '../../components/ui/AppFormField';
 
 export const ManagerCategories: React.FC = () => {
@@ -72,25 +73,51 @@ export const ManagerCategories: React.FC = () => {
     );
   }
 
+  const columns: Column<Category>[] = [
+    {
+      header: 'Category Name',
+      accessor: 'name',
+      render: (cat) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+            <Tag size={14} />
+          </div>
+          <span className="font-bold text-[var(--text-primary)]">{cat.name}</span>
+        </div>
+      )
+    },
+    {
+      header: 'Actions',
+      align: 'right',
+      render: (cat) => (
+        <AppButton
+          variant="ghost"
+          size="icon"
+          onClick={() => handleDelete(cat.id, cat.name)}
+          className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+          title={`Delete ${cat.name}`}
+        >
+          <Trash2 size={16} />
+        </AppButton>
+      )
+    }
+  ];
+
   return (
     <ManagerLayout title="Categories" subtitle="Manage menu item categories">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 720 }}>
+      <div className="flex flex-col gap-6 max-w-3xl">
 
         {/* Add Form */}
         <AppCard title="Add New Category" subtitle="Create a new food category to organise your menu items">
-          <form onSubmit={handleAdd} style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1, position: 'relative' }}>
-              <Tag size={15} style={{
-                position: 'absolute', left: 12, top: '50%',
-                transform: 'translateY(-50%)', color: 'var(--text-secondary)',
-                pointerEvents: 'none',
-              }} />
+          <form onSubmit={handleAdd} className="flex gap-3">
+            <div className="flex-1 relative">
+              <Tag size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none" />
               <input
                 type="text"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 placeholder="e.g. Pasta, Desserts, Specials…"
-                style={{ ...formControlStyle, paddingLeft: 36 }}
+                className="w-full pl-9 pr-4 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]"
                 required
               />
             </div>
@@ -101,61 +128,16 @@ export const ManagerCategories: React.FC = () => {
         </AppCard>
 
         {/* Category List */}
-        <AppCard title={`Categories (${cats.length})`} subtitle="All available menu categories">
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-              <LoadingSpinner size="md" />
-            </div>
-          ) : cats.length === 0 ? (
-            <AppEmptyState
-              title="No categories yet"
-              description="Add your first category above to start organising your menu."
-              icon={Tag}
-            />
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-              {cats.map(cat => (
-                <div
-                  key={cat.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 16px',
-                    background: 'var(--background)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 10,
-                    transition: 'border-color 0.15s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--primary)')}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{
-                      width: 34, height: 34, borderRadius: 8,
-                      background: 'rgba(255,107,0,0.08)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: 'var(--primary)', flexShrink: 0,
-                    }}>
-                      <Tag size={15} />
-                    </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-                      {cat.name}
-                    </span>
-                  </div>
-                  <AppButton
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(cat.id, cat.name)}
-                    className="text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-red-50"
-                    title={`Delete ${cat.name}`}
-                  >
-                    <Trash2 size={15} />
-                  </AppButton>
-                </div>
-              ))}
-            </div>
-          )}
+        <AppCard title={`Categories (${cats.length})`} subtitle="All available menu categories" noPadding>
+          <AppTable
+            columns={columns}
+            data={cats}
+            keyExtractor={cat => cat.id}
+            loading={loading}
+            emptyTitle="No categories yet"
+            emptyMessage="Add your first category above to start organising your menu."
+            emptyIcon={Tag}
+          />
         </AppCard>
       </div>
     </ManagerLayout>

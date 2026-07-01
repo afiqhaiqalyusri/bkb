@@ -35,6 +35,8 @@ import { ManagerCategories } from './pages/manager/ManagerCategories';
 import { ManagerIngredients } from './pages/manager/ManagerIngredients';
 import { ManagerRecipes } from './pages/manager/ManagerRecipes';
 import { ManagerAdvertisements } from './pages/manager/ManagerAdvertisements';
+import { ManagerReports } from './pages/manager/ManagerReports';
+import { ManagerAnalytics } from './pages/manager/ManagerAnalytics';
 import { SettingsPage } from './pages/SettingsPage';
 import { FavouritesPage } from './pages/FavouritesPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
@@ -109,6 +111,8 @@ const router = createBrowserRouter([
       { path: 'manager/customers', element: <ManagerGuard><Navigate to="/manager/users?tab=customers" replace /></ManagerGuard> },
       { path: 'manager/recipes', element: <ManagerGuard><ManagerRecipes /></ManagerGuard> },
       { path: 'manager/advertisements', element: <ManagerGuard><ManagerAdvertisements /></ManagerGuard> },
+      { path: 'manager/reports', element: <ManagerGuard><ManagerReports /></ManagerGuard> },
+      { path: 'manager/analytics', element: <ManagerGuard><ManagerAnalytics /></ManagerGuard> },
       
       { path: 'reset-password', element: <ResetPasswordPage /> },
       { path: '403', element: <AccessDeniedPage /> },

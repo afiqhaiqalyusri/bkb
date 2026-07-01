@@ -22,6 +22,7 @@ import { AppButton } from '../../components/ui/AppButton';
 import { AppBadge } from '../../components/ui/AppBadge';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
 import { AppPageHeader } from '../../components/ui/AppPageHeader';
+import { AppTable, Column } from '../../components/ui/AppTable';
 
 interface StaffUser {
   id: number;
@@ -138,7 +139,6 @@ export const ManagerLoyalty: React.FC = () => {
   const handleAdjustPoints = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adjustAccount) return;
-    // Removed admin restriction for deduct
 
     const amount = adjustType === 'DEDUCT' ? -Math.abs(adjustPoints) : Math.abs(adjustPoints);
     const confirmed = await confirm({
@@ -250,6 +250,60 @@ export const ManagerLoyalty: React.FC = () => {
 
   if (error) return <ManagerLayout title="Loyalty Program"><div className="flex items-center justify-center min-h-[50vh]"><ErrorState onRetry={loadAll} retrying={loading} /></div></ManagerLayout>;
 
+  const cols: Column<StaffUser>[] = [
+    {
+      header: 'Customer Name',
+      render: (c) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold text-xs shrink-0">
+            {c.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div className="font-bold text-[var(--text-primary)]">{c.name}</div>
+            <div className="text-xs text-[var(--text-secondary)]">Role: {c.role}</div>
+          </div>
+        </div>
+      )
+    },
+    { header: 'Email', render: (c) => <span className="text-sm text-[var(--text-secondary)]">{c.email}</span> },
+    { header: 'Phone', render: (c) => <span className="text-sm text-[var(--text-secondary)]">{c.phone || '—'}</span> },
+    {
+      header: 'Points Balance',
+      align: 'right',
+      render: (c) => (
+        <>
+          <span className="font-bold text-[var(--warning)] text-base">{getPointsFor(c.email).toLocaleString()}</span> <span className="text-xs text-[var(--text-secondary)]">pts</span>
+        </>
+      )
+    },
+    {
+      header: 'Lifetime Points',
+      align: 'right',
+      render: (c) => (
+        <span className="text-sm text-[var(--text-secondary)]">
+          {getLifetimePointsFor(c.email).toLocaleString()} <span className="text-xs">pts</span>
+        </span>
+      )
+    },
+    {
+      header: 'Status',
+      render: (c) => <AppBadge variant={c.isActive ? 'success' : 'danger'} text={c.isActive ? 'ACTIVE' : 'SUSPENDED'} />
+    },
+    {
+      header: 'Actions',
+      align: 'right',
+      render: (c) => {
+        const totalOrdersCount = allOrders.filter(o => (o.user && o.user.email?.toLowerCase() === c.email?.toLowerCase()) || (o.user && o.user.name === c.name)).length;
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <AppButton variant="outline" size="sm" icon={ShoppingBag} onClick={() => handleOpenOrderHistory(c)}>Orders ({totalOrdersCount})</AppButton>
+            <AppButton variant="outline" size="sm" icon={Award} onClick={() => openAdjustPoints(c)} className="border-[var(--warning)] text-[var(--warning)] hover:bg-[var(--warning)]/10">Adjust</AppButton>
+          </div>
+        );
+      }
+    }
+  ];
+
   return (
     <ManagerLayout
       title="Loyalty Program"
@@ -263,12 +317,12 @@ export const ManagerLoyalty: React.FC = () => {
               <div className="relative w-full md:w-80">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
                 <input type="text" placeholder="Search customers..." value={search} onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+                  className="w-full pl-9 pr-4 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
               </div>
               <div className="flex items-center gap-3 w-full md:w-auto">
                 <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider shrink-0">Sort By</span>
                 <select value={sortByCustomers} onChange={e => setSortByCustomers(e.target.value as any)}
-                  className="px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] w-full md:w-auto">
+                  className="px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] w-full md:w-auto">
                   <option value="name-asc">Name (A-Z)</option>
                   <option value="name-desc">Name (Z-A)</option>
                   <option value="points-desc">Loyalty Points (High-Low)</option>
@@ -280,64 +334,16 @@ export const ManagerLoyalty: React.FC = () => {
           </AppCard>
 
           <AppCard noPadding>
-            {loading ? (
-              <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>
-            ) : customersList.length === 0 ? (
-              <div className="py-12"><AppEmptyState title="No customers found" description="No customer profiles match your search criteria." icon={Award} /></div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[800px]">
-                  <thead>
-                    <tr className="bg-[var(--background)] border-b border-[var(--border)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-wider">
-                      <th className="px-6 py-4 font-bold">Customer Name</th>
-                      <th className="px-6 py-4 font-bold">Email</th>
-                      <th className="px-6 py-4 font-bold">Phone</th>
-                      <th className="px-6 py-4 font-bold text-right">Points Balance</th>
-                      <th className="px-6 py-4 font-bold text-right">Lifetime Points</th>
-                      <th className="px-6 py-4 font-bold">Status</th>
-                      <th className="px-6 py-4 font-bold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customersList.map(c => {
-                      const totalOrdersCount = allOrders.filter(o => (o.user && o.user.email?.toLowerCase() === c.email?.toLowerCase()) || (o.user && o.user.name === c.name)).length;
-                      const pts = getPointsFor(c.email);
-                      const lifePts = getLifetimePointsFor(c.email);
-                      return (
-                        <tr key={c.id} className={`border-b border-[var(--border)] last:border-0 hover:bg-[rgba(0,0,0,0.01)] transition-colors ${c.isActive ? '' : 'opacity-60'}`}>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold text-xs shrink-0">
-                                {c.name.charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <div className="font-semibold text-[var(--text-primary)]">{c.name}</div>
-                                <div className="text-xs text-[var(--text-secondary)]">Role: {c.role}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{c.email}</td>
-                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{c.phone || '—'}</td>
-                          <td className="px-6 py-4 text-right">
-                            <span className="font-bold text-[var(--warning)] text-base">{pts.toLocaleString()}</span> <span className="text-xs text-[var(--text-secondary)]">pts</span>
-                          </td>
-                          <td className="px-6 py-4 text-right text-sm text-[var(--text-secondary)]">
-                            {lifePts.toLocaleString()} <span className="text-xs">pts</span>
-                          </td>
-                          <td className="px-6 py-4"><AppBadge variant={c.isActive ? 'success' : 'danger'} text={c.isActive ? 'ACTIVE' : 'SUSPENDED'} /></td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center justify-end gap-2">
-                              <AppButton variant="outline" size="sm" icon={ShoppingBag} onClick={() => handleOpenOrderHistory(c)}>Orders ({totalOrdersCount})</AppButton>
-                              <AppButton variant="outline" size="sm" icon={Award} onClick={() => openAdjustPoints(c)} className="border-[var(--warning)] text-[var(--warning)] hover:bg-[var(--warning)]/10">Adjust</AppButton>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <AppTable 
+              columns={cols}
+              data={customersList}
+              keyExtractor={(c) => c.id}
+              loading={loading}
+              emptyTitle="No customers found"
+              emptyMessage="No customer profiles match your search criteria."
+              emptyIcon={Award}
+              rowClassName={(c) => !c.isActive ? 'opacity-60 grayscale-[0.5]' : ''}
+            />
           </AppCard>
         </div>
       )}
@@ -390,43 +396,43 @@ export const ManagerLoyalty: React.FC = () => {
 
       {/* Add / Edit Reward Modals */}
       {(showAddReward || (showEditReward && editingReward)) && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => showAddReward ? setShowAddReward(false) : setShowEditReward(false)}>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-xl flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)] shrink-0">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => showAddReward ? setShowAddReward(false) : setShowEditReward(false)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50 shrink-0">
               <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Star size={18} className="text-[var(--primary)]" /> {showAddReward ? 'Add New Voucher' : 'Edit Voucher'}</h3>
-              <button onClick={() => showAddReward ? setShowAddReward(false) : setShowEditReward(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+              <button onClick={() => showAddReward ? setShowAddReward(false) : setShowEditReward(false)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
-              <form onSubmit={showAddReward ? handleCreateReward : handleUpdateReward} className="flex flex-col gap-4">
+              <form onSubmit={showAddReward ? handleCreateReward : handleUpdateReward} className="flex flex-col gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Link to Existing Menu Item (Optional)</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Link to Existing Menu Item (Optional)</label>
                   <select
                     value={(showAddReward ? newRewardMenuItemId : editRewardMenuItemId) || ''}
                     onChange={e => showAddReward ? handleSelectMenuItemForNewReward(e.target.value ? Number(e.target.value) : null) : handleSelectMenuItemForEditReward(e.target.value ? Number(e.target.value) : null)}
-                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]"
+                    className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                   >
                     <option value="">-- No linked menu item --</option>
                     {menuItems.map(item => (
                       <option key={item.id} value={item.id}>{item.name} ({item.category}) - {formatRM(item.price)}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-[var(--text-secondary)] mt-1.5 italic">Selecting an item auto-fills details and calculates points cost.</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-1.5 italic">Selecting an item auto-fills details and calculates points cost.</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Voucher Name *</label>
-                  <input value={showAddReward ? newRewardName : editRewardName} onChange={e => showAddReward ? setNewRewardName(e.target.value) : setEditRewardName(e.target.value)} required placeholder="e.g. Free Burger Ayam Special" className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Voucher Name *</label>
+                  <input value={showAddReward ? newRewardName : editRewardName} onChange={e => showAddReward ? setNewRewardName(e.target.value) : setEditRewardName(e.target.value)} required placeholder="e.g. Free Burger Ayam Special" className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Points Cost *</label>
-                  <input type="number" min="1" value={showAddReward ? newRewardCost : editRewardCost} onChange={e => showAddReward ? setNewRewardCost(Number(e.target.value)) : setEditRewardCost(Number(e.target.value))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Points Cost *</label>
+                  <input type="number" min="1" value={showAddReward ? newRewardCost : editRewardCost} onChange={e => showAddReward ? setNewRewardCost(Number(e.target.value)) : setEditRewardCost(Number(e.target.value))} required className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Description (Optional)</label>
-                  <textarea value={showAddReward ? newRewardDescription : editRewardDescription} onChange={e => showAddReward ? setNewRewardDescription(e.target.value) : setEditRewardDescription(e.target.value)} placeholder="Details about what the customer gets..." rows={3} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] resize-y" />
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Description (Optional)</label>
+                  <textarea value={showAddReward ? newRewardDescription : editRewardDescription} onChange={e => showAddReward ? setNewRewardDescription(e.target.value) : setEditRewardDescription(e.target.value)} placeholder="Details about what the customer gets..." rows={3} className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] resize-y transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Image URL (Optional)</label>
-                  <input value={showAddReward ? newRewardImageUrl : editRewardImageUrl} onChange={e => showAddReward ? setNewRewardImageUrl(e.target.value) : setEditRewardImageUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Image URL (Optional)</label>
+                  <input value={showAddReward ? newRewardImageUrl : editRewardImageUrl} onChange={e => showAddReward ? setNewRewardImageUrl(e.target.value) : setEditRewardImageUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
                 </div>
                 <AppButton type="submit" variant="primary" className="w-full mt-2" size="lg">{showAddReward ? 'Create Reward' : 'Update Reward'}</AppButton>
               </form>
@@ -437,36 +443,36 @@ export const ManagerLoyalty: React.FC = () => {
 
       {/* Adjust Points Modal */}
       {showAdjust && adjustAccount && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAdjust(false)}>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowAdjust(false)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
               <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Award size={18} className="text-[var(--primary)]" /> Adjust Loyalty Points</h3>
-              <button onClick={() => setShowAdjust(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+              <button onClick={() => setShowAdjust(false)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
             </div>
-            <div className="p-6 flex flex-col gap-4">
-              <div className="bg-[var(--background)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-1">
+            <div className="p-6 flex flex-col gap-5">
+              <div className="bg-[var(--background)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-1.5">
                 <div className="text-sm"><strong>User:</strong> {adjustAccount.userName}</div>
                 <div className="text-sm"><strong>Current Balance:</strong> <span className="font-bold text-[var(--warning)]">{adjustAccount.points} pts</span></div>
               </div>
-              <form onSubmit={handleAdjustPoints} className="flex flex-col gap-4">
+              <form onSubmit={handleAdjustPoints} className="flex flex-col gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Action</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Action</label>
                   <div className="flex gap-3">
-                    <button type="button" onClick={() => setAdjustType('ADD')} className={`flex-1 py-2.5 px-4 rounded-lg border flex items-center justify-center gap-2 text-sm font-bold transition-colors ${adjustType === 'ADD' ? 'bg-[var(--success)]/10 border-[var(--success)] text-[var(--success)]' : 'bg-[var(--background)] border-[var(--border)] text-[var(--text-secondary)]'}`}>
+                    <button type="button" onClick={() => setAdjustType('ADD')} className={`flex-1 py-2.5 px-4 rounded-lg border flex items-center justify-center gap-2 text-sm font-bold transition-colors ${adjustType === 'ADD' ? 'bg-[var(--success)]/10 border-[var(--success)] text-[var(--success)]' : 'bg-[var(--background)] border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface)]'}`}>
                       <TrendingUp size={16} /> Add Points
                     </button>
-                    <button type="button" onClick={() => setAdjustType('DEDUCT')} className={`flex-1 py-2.5 px-4 rounded-lg border flex items-center justify-center gap-2 text-sm font-bold transition-colors ${adjustType === 'DEDUCT' ? 'bg-[var(--danger)]/10 border-[var(--danger)] text-[var(--danger)]' : 'bg-[var(--background)] border-[var(--border)] text-[var(--text-secondary)]'}`}>
+                    <button type="button" onClick={() => setAdjustType('DEDUCT')} className={`flex-1 py-2.5 px-4 rounded-lg border flex items-center justify-center gap-2 text-sm font-bold transition-colors ${adjustType === 'DEDUCT' ? 'bg-[var(--danger)]/10 border-[var(--danger)] text-[var(--danger)]' : 'bg-[var(--background)] border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface)]'}`}>
                       <TrendingDown size={16} /> Deduct Points
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Amount</label>
-                  <input type="number" min="1" value={adjustPoints} onChange={e => setAdjustPoints(Math.abs(Number(e.target.value)))} required placeholder="e.g. 50" className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Amount</label>
+                  <input type="number" min="1" value={adjustPoints} onChange={e => setAdjustPoints(Math.abs(Number(e.target.value)))} required placeholder="e.g. 50" className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Reason</label>
-                  <input value={adjustReason} onChange={e => setAdjustReason(e.target.value)} required placeholder="e.g. Compensation for delay" className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Reason</label>
+                  <input value={adjustReason} onChange={e => setAdjustReason(e.target.value)} required placeholder="e.g. Compensation for delay" className="w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
                 </div>
                 <AppButton type="submit" variant="primary" disabled={submittingAdjust} className="w-full mt-2" size="lg">{submittingAdjust ? 'Adjusting...' : 'Apply Adjustment'}</AppButton>
               </form>
@@ -477,14 +483,14 @@ export const ManagerLoyalty: React.FC = () => {
 
       {/* Customer Orders Modal */}
       {selectedCustomer && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedCustomer(null)}>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)] shrink-0">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedCustomer(null)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50 shrink-0">
               <div>
                 <h3 className="font-bold text-lg m-0 flex items-center gap-2"><ShoppingBag size={18} className="text-[var(--primary)]" /> Customer Purchase History</h3>
                 <p className="text-xs text-[var(--text-secondary)] mt-1 mb-0">Purchases for <span className="font-bold text-[var(--text-primary)]">{selectedCustomer.name}</span> ({selectedCustomer.email})</p>
               </div>
-              <button onClick={() => setSelectedCustomer(null)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+              <button onClick={() => setSelectedCustomer(null)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
             </div>
             
             <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4 bg-[var(--background)]">
@@ -492,9 +498,9 @@ export const ManagerLoyalty: React.FC = () => {
                 <div className="flex justify-center py-12"><AppEmptyState title="No orders found" description="This customer hasn't placed any orders yet." icon={ShoppingBag} /></div>
               ) : (
                 customerOrders.map(order => (
-                  <div key={order.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-3 shadow-sm">
+                  <div key={order.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-3 shadow-sm hover:border-[var(--primary)]/30 transition-colors">
                     <div className="flex justify-between items-center flex-wrap gap-2">
-                      <span className="font-bold text-sm">#{order.orderNumber}</span>
+                      <span className="font-bold text-sm font-mono text-[var(--text-primary)]">#{order.orderNumber}</span>
                       <AppBadge variant={order.status === 'READY' || order.status === 'COMPLETED' ? 'success' : 'warning'} text={order.status} />
                     </div>
                     
@@ -515,7 +521,7 @@ export const ManagerLoyalty: React.FC = () => {
                       {order.items?.map((item: any, i: number) => (
                         <div key={i} className="flex justify-between text-sm">
                           <span className="text-[var(--text-primary)]">{item.quantity}x {item.menuItem?.name || 'Item'}</span>
-                          <span className="font-bold">{item.isFree ? 'FREE' : formatRM(item.unitPrice * item.quantity)}</span>
+                          <span className="font-bold text-[var(--text-primary)]">{item.isFree ? 'FREE' : formatRM(item.unitPrice * item.quantity)}</span>
                         </div>
                       ))}
                     </div>

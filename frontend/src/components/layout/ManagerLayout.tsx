@@ -2,76 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, Package, Trash2, Users, Award,
-  Settings, Menu as MenuIcon, ChefHat, Tag, Megaphone, LogOut, Bell, X, MessageSquare
+  Settings, Menu as MenuIcon, ChefHat, Tag, Megaphone, LogOut, Bell, X, MessageSquare,
+  BarChart2, PieChart, Search, Sun, Moon, Calendar as CalendarIcon, ChevronDown, ChevronRight, Zap
 } from 'lucide-react';
 import { BkbLogo } from '../ui/BkbLogo';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/auth.service';
 import toast from 'react-hot-toast';
 
-// ─── Nav Item Definition ──────────────────────────────────────────────────────
 interface NavItem {
-  path: string;
+  path?: string;
   label: string;
   icon: React.ElementType;
   adminOnly?: boolean;
   exact?: boolean;
+  subItems?: { path: string; label: string; icon: React.ElementType }[];
 }
 
 const NAV_ITEMS: NavItem[] = [
   { path: '/manager',                label: 'Dashboard',  icon: LayoutDashboard, exact: true },
-  { path: '/manager/menu',           label: 'Menu',       icon: ShoppingBag },
-  { path: '/manager/recipes',        label: 'Recipes',    icon: ChefHat },
+  { 
+    label: 'Menu', 
+    icon: ShoppingBag,
+    subItems: [
+      { path: '/manager/menu',       label: 'Menu Items', icon: ShoppingBag },
+      { path: '/manager/categories', label: 'Categories', icon: Tag },
+      { path: '/manager/recipes',    label: 'Recipes',    icon: ChefHat },
+    ]
+  },
   { path: '/manager/inventory',      label: 'Inventory',  icon: Package },
   { path: '/manager/waste',          label: 'Waste Log',  icon: Trash2 },
   { path: '/manager/users',          label: 'Users',      icon: Users },
   { path: '/manager/feedback',       label: 'Feedback',   icon: MessageSquare },
   { path: '/manager/loyalty',        label: 'Loyalty',    icon: Award },
-  { path: '/manager/advertisements', label: 'Ads',        icon: Megaphone },
-  { path: '/manager/categories',     label: 'Categories', icon: Tag },
+  { path: '/manager/advertisements', label: 'Advertisements', icon: Megaphone },
+  { path: '/manager/reports',        label: 'Reports',    icon: BarChart2 },
+  { path: '/manager/analytics',      label: 'Analytics',  icon: PieChart },
+  { path: '/manager/settings',       label: 'Settings',   icon: Settings },
 ];
 
-// ─── Pill Nav ─────────────────────────────────────────────────────────────────
-const PillNav: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-  const location = useLocation();
-  const { user } = useAuthStore();
-
-  const isActive = (item: NavItem) => {
-    if (item.exact) return location.pathname === item.path;
-    return location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-  };
-
-  const items = NAV_ITEMS.filter(item => {
-    if (item.adminOnly && user?.role !== 'ADMIN') return false;
-    return true;
-  });
-
-  return (
-    <nav className="flex items-center gap-1">
-      {items.map(item => {
-        const active = isActive(item);
-        return (
-          <Link
-            key={item.path}
-            to={item.path}
-            onClick={onClose}
-            className={`
-              whitespace-nowrap px-3.5 py-1.5 rounded-md text-[13px] font-semibold
-              transition-all duration-150 flex-shrink-0
-              ${active
-                ? 'bg-gray-100 text-gray-900'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
-            `}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
-};
-
-// ─── Layout Props ─────────────────────────────────────────────────────────────
 export interface ManagerTab {
   id: string;
   label: string;
@@ -87,7 +56,6 @@ interface ManagerLayoutProps {
   headerAction?: React.ReactNode;
 }
 
-// ─── Manager Layout ───────────────────────────────────────────────────────────
 export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   children,
   title,
@@ -96,9 +64,27 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   headerAction,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [expandedNav, setExpandedNav] = useState<string | null>('Menu');
+  
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => (document.documentElement.getAttribute('data-theme') as 'light' | 'dark') || 'light');
+
+  useEffect(() => {
+    const handleTheme = () => setTheme((document.documentElement.getAttribute('data-theme') as 'light' | 'dark') || 'light');
+    window.addEventListener('theme-change', handleTheme);
+    return () => window.removeEventListener('theme-change', handleTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('bkb-theme', newTheme);
+    setTheme(newTheme);
+    window.dispatchEvent(new Event('theme-change'));
+  };
 
   useEffect(() => {
     window.history.pushState(null, '', window.location.href);
@@ -111,179 +97,229 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch {
-      // ignore
-    } finally {
+    try { await authService.logout(); } catch { } 
+    finally {
       clearAuth();
       navigate('/login', { replace: true });
       toast.success('Logged out successfully');
     }
   };
 
-  return (
-    <div
-      className="h-screen w-screen overflow-hidden flex flex-col bg-[var(--background)]"
-      style={{ fontFamily: "'Inter', 'DM Sans', sans-serif" }}
-    >
-      {/* ── TOP NAVIGATION BAR ── */}
-      <header className="flex-shrink-0 bg-[var(--surface)] border-b border-[var(--border)] px-4 lg:px-8 h-[60px] flex items-center justify-between gap-4 z-50">
+  const isActive = (item: NavItem) => {
+    if (item.path) {
+      if (item.exact) return location.pathname === item.path;
+      return location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+    }
+    if (item.subItems) {
+      return item.subItems.some(sub => location.pathname === sub.path || location.pathname.startsWith(sub.path + '/'));
+    }
+    return false;
+  };
 
-        {/* Left: Brand */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
+  const isSubActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
+
+  const navItemsFiltered = NAV_ITEMS.filter(item => !(item.adminOnly && user?.role !== 'ADMIN'));
+
+  const currentDate = new Date().toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+  const renderNavItems = () => (
+    <nav className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1 scrollbar-hide">
+      {navItemsFiltered.map(item => {
+        const active = isActive(item);
+        if (item.subItems) {
+          const isExpanded = expandedNav === item.label || active;
+          return (
+            <div key={item.label} className="flex flex-col gap-1">
+              <button
+                onClick={() => setExpandedNav(isExpanded && !active ? null : item.label)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${active || isExpanded ? 'bg-gray-100 dark:bg-slate-800 text-[var(--primary)]' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon size={18} />
+                  {item.label}
+                </div>
+                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </button>
+              
+              {isExpanded && (
+                <div className="flex flex-col gap-0.5 ml-4 pl-4 border-l-2 border-gray-100 dark:border-slate-800 my-1">
+                  {item.subItems.map(sub => {
+                    const subActive = isSubActive(sub.path);
+                    return (
+                      <Link
+                        key={sub.path}
+                        to={sub.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${subActive ? 'text-[var(--primary)] bg-[var(--primary)]/5 font-bold' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}
+                      >
+                        <sub.icon size={15} />
+                        {sub.label}
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <Link
+            key={item.label}
+            to={item.path!}
+            onClick={() => setMobileMenuOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${active ? 'bg-[var(--primary)] text-white shadow-md shadow-orange-500/20' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+          >
+            <item.icon size={18} />
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
+  return (
+    <div className="h-screen w-screen overflow-hidden flex bg-[#F8F9FA] dark:bg-slate-900 text-gray-900 dark:text-gray-100" style={{ fontFamily: "'Inter', 'DM Sans', sans-serif" }}>
+      
+      {/* ── DESKTOP SIDEBAR ── */}
+      <aside className="hidden lg:flex flex-col w-[260px] bg-[var(--surface)] border-r border-[var(--border)] z-40">
+        <div className="h-[70px] flex items-center px-6 border-b border-[var(--border)] gap-3 shrink-0">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF6B00] to-[#E65100] flex items-center justify-center shadow">
             <BkbLogo size={16} showText={false} color="#fff" />
           </div>
-          <span className="text-[15px] font-bold tracking-tight text-[var(--text-primary)] hidden sm:block">BKB Admin</span>
+          <span className="text-[16px] font-extrabold tracking-tight">BKB Workspace</span>
         </div>
-
-        {/* Center: Pill Navigation — desktop only */}
-        <div className="hidden lg:flex flex-1 justify-center overflow-x-auto scrollbar-hide px-4">
-          <PillNav />
-        </div>
-
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Notification */}
-          <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
-            <Bell size={17} />
-            <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full ring-1 ring-white" />
-          </button>
-
-          {/* Profile + Dropdown */}
-          <div className="relative flex items-center pl-2 border-l border-gray-100 dark:border-slate-700 ml-1">
-            <button 
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-slate-800 p-1 rounded-lg transition-colors"
-            >
-              <div className="hidden sm:block text-right">
-                <div className="text-[13px] font-bold text-gray-900 dark:text-white leading-tight">{user?.name || 'Administrator'}</div>
-                <div className="text-[11px] text-gray-400 dark:text-slate-400">{user?.email || 'admin@bkb.com'}</div>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 border-2 border-white dark:border-slate-800 shadow flex items-center justify-center font-bold text-[var(--primary)] text-sm">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
-              </div>
-            </button>
-
-            {/* Dropdown Menu */}
-            {profileDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                <div className="absolute top-full mt-2 right-0 w-48 bg-[var(--surface)] rounded-xl shadow-lg border border-[var(--border)] py-1 z-50">
-                  <Link 
-                    to="/manager/settings" 
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
-                    onClick={() => setProfileDropdownOpen(false)}
-                  >
-                    <Settings size={16} />
-                    Settings
-                  </Link>
-                  <button 
-                    onClick={() => {
-                      setProfileDropdownOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left"
-                  >
-                    <LogOut size={16} />
-                    Log Out
-                  </button>
-                </div>
-              </>
-            )}
+        {renderNavItems()}
+        
+        {/* Bottom User Profile in Sidebar */}
+        <div className="p-4 border-t border-[var(--border)]">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700">
+             <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center font-bold text-[var(--primary)] text-sm shrink-0">
+               {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+             </div>
+             <div className="flex-1 min-w-0">
+               <div className="text-[13px] font-bold truncate">{user?.name || 'Administrator'}</div>
+               <div className="text-[11px] text-gray-500 truncate">{user?.email || 'admin@bkb.com'}</div>
+             </div>
+             <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Log Out">
+               <LogOut size={16} />
+             </button>
           </div>
-
-          {/* Mobile hamburger */}
-          <button
-            className="lg:hidden w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 ml-1"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <MenuIcon size={18} />
-          </button>
         </div>
-      </header>
+      </aside>
 
       {/* ── MOBILE DRAWER ── */}
       {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-[999] bg-black/50 lg:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          <div
-            className="absolute top-0 left-0 h-full w-72 bg-white shadow-2xl flex flex-col"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 h-[60px] border-b border-gray-100">
-              <span className="font-bold text-gray-900">Navigation</span>
-              <button onClick={() => setMobileMenuOpen(false)} className="text-gray-400 hover:text-gray-700">
+        <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <div className="absolute top-0 left-0 h-full w-[280px] bg-[var(--surface)] shadow-2xl flex flex-col transform transition-transform" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 h-[70px] border-b border-[var(--border)] shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF6B00] to-[#E65100] flex items-center justify-center shadow">
+                  <BkbLogo size={16} showText={false} color="#fff" />
+                </div>
+                <span className="font-extrabold tracking-tight">BKB Workspace</span>
+              </div>
+              <button onClick={() => setMobileMenuOpen(false)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800">
                 <X size={20} />
               </button>
             </div>
-            <nav className="flex-1 overflow-y-auto p-4 flex flex-col gap-1">
-              {NAV_ITEMS.map(item => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <item.icon size={17} />
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            {renderNavItems()}
           </div>
         </div>
       )}
 
-      {/* ── PAGE BODY ── */}
-      <div className="flex-1 overflow-hidden flex flex-col p-3 lg:p-5">
+      {/* ── MAIN CONTENT AREA ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        
+        {/* ── TOP NAVBAR ── */}
+        <header className="h-[70px] bg-[var(--surface)] border-b border-[var(--border)] px-4 lg:px-8 flex items-center justify-between z-30 shrink-0">
+          
+          <div className="flex items-center gap-4">
+            <button className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" onClick={() => setMobileMenuOpen(true)}>
+              <MenuIcon size={20} />
+            </button>
 
-        {/* White canvas */}
-        <div className="flex-1 bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col">
-
-          {/* Page title bar */}
-          <div className="flex-shrink-0 px-6 lg:px-8 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h1 className="text-[22px] font-bold tracking-tight text-gray-900 leading-tight">{title}</h1>
-              {subtitle && <p className="text-[13px] text-gray-500 mt-0.5">{subtitle}</p>}
+            {/* Global Search Placeholder */}
+            <div className="hidden md:flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg px-3 py-2 w-64 border border-transparent focus-within:border-[var(--primary)] focus-within:bg-white dark:focus-within:bg-slate-900 transition-all">
+              <Search size={16} className="text-gray-400 mr-2" />
+              <input type="text" placeholder="Search across BKB..." className="bg-transparent border-none outline-none text-[13px] w-full text-[var(--text-primary)]" />
             </div>
-
-            {/* Tabs + action on the right */}
-            {(tabs && tabs.length > 0) || headerAction ? (
-              <div className="flex items-center gap-3 flex-wrap">
-                {tabs && tabs.length > 0 && (
-                  <div className="flex items-center gap-1.5 bg-gray-100 rounded-xl p-1">
-                    {tabs.map(tab => (
-                      <button
-                        key={tab.id}
-                        onClick={tab.onClick}
-                        className={`px-3.5 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
-                          tab.active
-                            ? 'bg-white text-gray-900 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-800'
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {headerAction && <div>{headerAction}</div>}
-              </div>
-            ) : null}
           </div>
 
-          {/* Scrollable content */}
-          <main className="flex-1 overflow-y-auto">
-            <div className="p-6 lg:p-8">
-              {children}
+          <div className="flex items-center gap-3 md:gap-4">
+            
+            {/* Current Date (hidden on mobile) */}
+            <div className="hidden lg:flex items-center gap-2 text-[13px] font-semibold text-gray-500 bg-gray-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-slate-700">
+              <CalendarIcon size={14} />
+              {currentDate}
             </div>
+
+            <div className="h-6 w-[1px] bg-gray-200 dark:bg-slate-700 hidden md:block"></div>
+
+            {/* Quick Actions */}
+            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Quick Actions">
+              <Zap size={18} />
+            </button>
+            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Announcements">
+              <Megaphone size={18} />
+            </button>
+            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Notifications">
+              <Bell size={18} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[var(--surface)]" />
+            </button>
+            <button onClick={toggleTheme} className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Toggle Theme">
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+          </div>
+        </header>
+
+        {/* ── PAGE CONTENT ── */}
+        <div className="flex-1 overflow-hidden p-3 lg:p-6 flex flex-col">
+          <main className="flex-1 bg-[var(--surface)] rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden flex flex-col">
+            
+            {/* Page Header Bar */}
+            <div className="shrink-0 px-6 lg:px-8 py-5 border-b border-[var(--border)] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--surface)]">
+              <div>
+                <h1 className="text-[22px] font-extrabold tracking-tight leading-tight">{title}</h1>
+                {subtitle && <p className="text-[13.5px] text-gray-500 mt-1">{subtitle}</p>}
+              </div>
+
+              {/* Tabs and Actions */}
+              {(tabs && tabs.length > 0) || headerAction ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  {tabs && tabs.length > 0 && (
+                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 rounded-xl p-1 border border-gray-200 dark:border-slate-700">
+                      {tabs.map(tab => (
+                        <button
+                          key={tab.id}
+                          onClick={tab.onClick}
+                          className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${
+                            tab.active
+                              ? 'bg-white dark:bg-slate-700 text-[var(--primary)] dark:text-white shadow-sm'
+                              : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {headerAction && <div>{headerAction}</div>}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto bg-[#FBFBFB] dark:bg-[var(--background)]">
+              <div className="p-6 lg:p-8 max-w-[1600px] mx-auto">
+                {children}
+              </div>
+            </div>
+
           </main>
         </div>
       </div>
-
+      
       <style>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

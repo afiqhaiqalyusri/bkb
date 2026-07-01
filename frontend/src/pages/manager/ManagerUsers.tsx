@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Plus, Edit2, Trash2, X, Search, ShoppingBag,
   Calendar, MessageSquare, Shield, Mail, Phone, FileText,
-  UserCheck, UserX, ChevronDown, ChevronUp, Users, AlertCircle
+  UserCheck, UserX, ChevronDown, ChevronUp, Users, AlertCircle, Clock
 } from 'lucide-react';
 import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { staffService } from '../../services/manager.service';
@@ -16,12 +16,10 @@ import toast from 'react-hot-toast';
 import { useConfirmation } from '../../components/ConfirmationProvider';
 import { useUnsavedChangesBlocker } from '../../hooks/useUnsavedChangesBlocker';
 
-// UI Components
 import { AppCard } from '../../components/ui/AppCard';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppBadge } from '../../components/ui/AppBadge';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
-import { AppPageHeader } from '../../components/ui/AppPageHeader';
 
 interface StaffUser {
   id: number;
@@ -37,9 +35,9 @@ interface StaffUser {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   notes?: string;
+  lastLoginAt?: string;
 }
 
-// 1. Staff Documents Modal
 const DocModal: React.FC<{ staff: StaffUser; onClose: () => void; onSave: () => void }> = ({ staff, onClose, onSave }) => {
   const { confirm } = useConfirmation();
   const [form, setForm] = useState({
@@ -72,33 +70,33 @@ const DocModal: React.FC<{ staff: StaffUser; onClose: () => void; onSave: () => 
 
   const field = (label: string, key: keyof typeof form, type = 'text') => (
     <div>
-      <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">{label}</label>
+      <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
     </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={handleClose}>
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={handleClose}>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
           <h3 className="font-bold text-lg m-0 flex items-center gap-2"><FileText size={18} className="text-[var(--primary)]" /> Documents — {staff.name}</h3>
-          <button onClick={handleClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+          <button onClick={handleClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
           {field('IC Number', 'icNumber')}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             {field('Typhoid Cert Expiry', 'typhoidExpiry', 'date')}
             {field('Food Handler Expiry', 'foodHandlerExpiry', 'date')}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             {field('Emergency Contact', 'emergencyContactName')}
             {field('Emergency Phone', 'emergencyContactPhone')}
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Notes / Remarks</label>
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Notes / Remarks</label>
             <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={3}
-              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] resize-y" />
+              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors resize-y" />
           </div>
           <AppButton type="submit" variant="primary" className="w-full mt-2" size="lg">Save Documents</AppButton>
         </form>
@@ -107,7 +105,6 @@ const DocModal: React.FC<{ staff: StaffUser; onClose: () => void; onSave: () => 
   );
 };
 
-// 2. Add User Modal
 const AddUserModal: React.FC<{ defaultRole: 'CUSTOMER' | 'STAFF'; onClose: () => void; onSave: () => void }> = ({ defaultRole, onClose, onSave }) => {
   const { confirm } = useConfirmation();
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', role: defaultRole as string });
@@ -134,32 +131,32 @@ const AddUserModal: React.FC<{ defaultRole: 'CUSTOMER' | 'STAFF'; onClose: () =>
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={handleClose}>
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={handleClose}>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
           <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Plus size={18} className="text-[var(--primary)]" /> Add User Account</h3>
-          <button onClick={handleClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+          <button onClick={handleClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Name</label>
-            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Name</label>
+            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Email</label>
-            <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Email</label>
+            <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Phone</label>
-            <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Phone</label>
+            <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Password</label>
-            <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Password</label>
+            <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Role</label>
-            <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]">
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Role</label>
+            <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors">
               <option value="CUSTOMER">Customer</option>
               <option value="GUEST">Guest</option>
               <option value="STAFF">Staff (Kitchen / Front Counter)</option>
@@ -174,7 +171,6 @@ const AddUserModal: React.FC<{ defaultRole: 'CUSTOMER' | 'STAFF'; onClose: () =>
   );
 };
 
-// 3. Edit User Modal
 const EditUserModal: React.FC<{ user: StaffUser; onClose: () => void; onSave: () => void }> = ({ user, onClose, onSave }) => {
   const { confirm } = useConfirmation();
   const [form, setForm] = useState({ name: user.name, email: user.email, phone: user.phone || '', password: '', role: user.role });
@@ -203,32 +199,32 @@ const EditUserModal: React.FC<{ user: StaffUser; onClose: () => void; onSave: ()
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={handleClose}>
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={handleClose}>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
           <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Edit2 size={18} className="text-[var(--primary)]" /> Edit User</h3>
-          <button onClick={handleClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+          <button onClick={handleClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Name</label>
-            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Name</label>
+            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Email</label>
-            <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Email</label>
+            <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Phone</label>
-            <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Phone</label>
+            <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">New Password (optional)</label>
-            <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">New Password (optional)</label>
+            <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Role</label>
-            <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value as any }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]">
+            <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Role</label>
+            <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value as any }))} className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors">
               <option value="CUSTOMER">Customer</option>
               <option value="GUEST">Guest</option>
               <option value="STAFF">Staff (Kitchen / Front Counter)</option>
@@ -316,6 +312,16 @@ export const ManagerUsers: React.FC = () => {
     return { label: d.toLocaleDateString('en-MY'), color: 'text-[var(--success)]' };
   };
 
+  const getRoleBadgeVariant = (role: string) => {
+    switch(role) {
+      case 'ADMIN': return 'danger';
+      case 'MANAGER': return 'primary';
+      case 'STAFF': return 'info';
+      case 'GUEST': return 'neutral';
+      default: return 'success';
+    }
+  };
+
   const customersList = users.filter(u => u.role === 'CUSTOMER' || u.role === 'GUEST')
     .filter(u => { const q = search.toLowerCase(); return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone && u.phone.includes(q)); })
     .sort((a, b) => {
@@ -356,12 +362,12 @@ export const ManagerUsers: React.FC = () => {
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
               <input type="text" placeholder={`Search ${activeTab}...`} value={search} onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" />
+                className="w-full pl-9 pr-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" />
             </div>
             <div className="flex items-center gap-3 w-full md:w-auto">
               <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider shrink-0">Sort</span>
               <select value={activeTab === 'customers' ? sortByCustomers : sortByStaff} onChange={e => activeTab === 'customers' ? setSortByCustomers(e.target.value as any) : setSortByStaff(e.target.value as any)}
-                className="px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] w-full md:w-auto">
+                className="px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors w-full md:w-auto">
                 {activeTab === 'customers' ? (
                   <>
                     <option value="name-asc">Name (A-Z)</option>
@@ -386,142 +392,173 @@ export const ManagerUsers: React.FC = () => {
         </AppCard>
 
         {activeTab === 'customers' && (
-          <AppCard noPadding>
+          <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
             {loading ? (
               <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>
             ) : customersList.length === 0 ? (
               <div className="py-12"><AppEmptyState title="No customers found" description="No customer profiles match your search criteria." icon={Users} /></div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-[var(--background)] border-b border-[var(--border)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-wider">
-                      <th className="px-6 py-4 font-bold">Customer Name</th>
-                      <th className="px-6 py-4 font-bold">Email</th>
-                      <th className="px-6 py-4 font-bold">Phone</th>
-                      <th className="px-6 py-4 font-bold">Role</th>
-                      <th className="px-6 py-4 font-bold">Registration Date</th>
-                      <th className="px-6 py-4 font-bold">Status</th>
-                      <th className="px-6 py-4 font-bold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customersList.map(c => {
-                      const totalOrdersCount = allOrders.filter(o => (o.user && o.user.email?.toLowerCase() === c.email?.toLowerCase()) || (o.user && o.user.name === c.name)).length;
-                      return (
-                        <tr key={c.id} className={`border-b border-[var(--border)] last:border-0 hover:bg-[rgba(0,0,0,0.01)] transition-colors ${c.isActive ? '' : 'opacity-60'}`}>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold text-xs shrink-0">
-                                {c.name.charAt(0).toUpperCase()}
-                              </div>
-                              <span className="font-semibold text-[var(--text-primary)]">{c.name}</span>
+              <table className="w-full text-left border-collapse whitespace-nowrap">
+                <thead className="bg-gray-50 dark:bg-slate-800/50">
+                  <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider">
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Customer Name</th>
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Contact Info</th>
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Role & Registration</th>
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10 text-center">Status</th>
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {customersList.map(c => {
+                    const totalOrdersCount = allOrders.filter(o => (o.user && o.user.email?.toLowerCase() === c.email?.toLowerCase()) || (o.user && o.user.name === c.name)).length;
+                    return (
+                      <tr key={c.id} className={`hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors ${c.isActive ? '' : 'opacity-70'}`}>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold text-sm shrink-0 shadow-sm border border-[var(--primary)]/20">
+                              {c.name.charAt(0).toUpperCase()}
                             </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{c.email}</td>
-                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{c.phone || '—'}</td>
-                          <td className="px-6 py-4"><span className="text-xs font-bold text-[var(--text-primary)] uppercase bg-[var(--background)] px-2 py-1 rounded">{c.role}</span></td>
-                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{new Date(c.createdAt).toLocaleDateString('en-MY')}</td>
-                          <td className="px-6 py-4"><AppBadge variant={c.isActive ? 'success' : 'danger'} text={c.isActive ? 'ACTIVE' : 'SUSPENDED'} /></td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center justify-end gap-1">
-                              <AppButton variant="outline" size="sm" icon={ShoppingBag} onClick={() => handleOpenOrderHistory(c)}>Orders ({totalOrdersCount})</AppButton>
-                              <AppButton variant="ghost" size="icon" onClick={() => setEditUser(c)}><Edit2 size={16} /></AppButton>
-                              <AppButton variant="ghost" size="icon" onClick={() => handleToggleUserStatus(c)} className={c.isActive ? 'text-[var(--danger)] hover:text-red-700' : 'text-[var(--success)] hover:text-green-700'}>{c.isActive ? <UserX size={16} /> : <UserCheck size={16} />}</AppButton>
-                              <AppButton variant="ghost" size="icon" onClick={() => handleDeleteUser(c)} className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50"><Trash2 size={16} /></AppButton>
+                            <div>
+                              <div className="font-bold text-[var(--text-primary)] text-sm">{c.name}</div>
+                              {c.lastLoginAt && <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 flex items-center gap-1"><Clock size={10} /> Last seen {new Date(c.lastLoginAt).toLocaleDateString()}</div>}
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                           <div className="flex flex-col gap-1 text-[13px] text-[var(--text-secondary)]">
+                              <span className="flex items-center gap-1.5"><Mail size={12} /> {c.email}</span>
+                              <span className="flex items-center gap-1.5"><Phone size={12} /> {c.phone || '—'}</span>
+                           </div>
+                        </td>
+                        <td className="px-6 py-4">
+                           <div className="flex flex-col items-start gap-1">
+                              <AppBadge variant={getRoleBadgeVariant(c.role)} text={c.role} icon={true} />
+                              <span className="text-[11px] text-[var(--text-secondary)] mt-1.5">Joined {new Date(c.createdAt).toLocaleDateString('en-MY')}</span>
+                           </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                           <AppBadge variant={c.isActive ? 'success' : 'danger'} text={c.isActive ? 'ACTIVE' : 'SUSPENDED'} />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <AppButton variant="outline" size="sm" icon={ShoppingBag} onClick={() => handleOpenOrderHistory(c)}>Orders ({totalOrdersCount})</AppButton>
+                            <AppButton variant="ghost" size="icon" onClick={() => setEditUser(c)}><Edit2 size={16} /></AppButton>
+                            <AppButton variant="ghost" size="icon" onClick={() => handleToggleUserStatus(c)} className={c.isActive ? 'text-[var(--danger)] hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20' : 'text-[var(--success)] hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'}>{c.isActive ? <UserX size={16} /> : <UserCheck size={16} />}</AppButton>
+                            <AppButton variant="ghost" size="icon" onClick={() => handleDeleteUser(c)} className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 size={16} /></AppButton>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
-          </AppCard>
+          </div>
         )}
 
         {activeTab === 'staff' && (
-          <div className="flex flex-col gap-4">
+          <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
             {loading ? (
               <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>
             ) : staffList.length === 0 ? (
-              <AppEmptyState title="No staff members found" description="No staff profiles match your search criteria." icon={Shield} />
+              <div className="py-12"><AppEmptyState title="No staff members found" description="No staff profiles match your search criteria." icon={Shield} /></div>
             ) : (
-              staffList.map(s => {
-                const isExpanded = expandedStaff === s.id;
-                const typhoidStat = certStatus(s.typhoidExpiry);
-                const foodStat = certStatus(s.foodHandlerExpiry);
-                const isStaffOrManager = s.role === 'STAFF' || s.role === 'MANAGER';
-                const hasExpiredDoc = isStaffOrManager && (typhoidStat.color.includes('danger') || foodStat.color.includes('danger'));
+              <table className="w-full text-left border-collapse whitespace-nowrap">
+                <thead className="bg-gray-50 dark:bg-slate-800/50">
+                  <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider">
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Staff Profile</th>
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Contact Info</th>
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Role & Documents</th>
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10 text-center">Status</th>
+                    <th className="px-6 py-4 sticky top-0 bg-inherit z-10 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {staffList.map(s => {
+                    const isExpanded = expandedStaff === s.id;
+                    const typhoidStat = certStatus(s.typhoidExpiry);
+                    const foodStat = certStatus(s.foodHandlerExpiry);
+                    const isStaffOrManager = s.role === 'STAFF' || s.role === 'MANAGER';
+                    const hasExpiredDoc = isStaffOrManager && (typhoidStat.color.includes('danger') || foodStat.color.includes('danger'));
 
-                return (
-                  <div key={s.id} className={`bg-[var(--surface)] border rounded-xl overflow-hidden shadow-sm transition-all duration-200 ${hasExpiredDoc ? 'border-[var(--danger)]/50' : 'border-[var(--border)]'} ${s.isActive ? '' : 'opacity-60'}`}>
-                    <div className="p-4 md:px-6 md:py-5 flex flex-col md:flex-row items-start md:items-center gap-4">
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-[var(--background)] border border-[var(--border)] flex items-center justify-center font-bold text-[var(--text-primary)] text-sm shrink-0">
-                          {s.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="font-bold text-[var(--text-primary)] mb-1">{s.name}</div>
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--text-secondary)]">
-                            <span className="flex items-center gap-1.5"><Mail size={12} /> {s.email}</span>
-                            {s.phone && <span className="flex items-center gap-1.5"><Phone size={12} /> {s.phone}</span>}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1.5 ${s.role === 'MANAGER' ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : s.role === 'ADMIN' ? 'bg-red-500/10 text-red-500' : 'bg-[var(--background)] text-[var(--text-primary)]'}`}>
-                          <Shield size={12} /> {s.role}
-                        </span>
-
-                        {hasExpiredDoc && (
-                          <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-red-500/10 text-red-500 flex items-center gap-1.5">
-                            <AlertCircle size={12} /> Expired Docs
-                          </span>
+                    return (
+                      <React.Fragment key={s.id}>
+                        <tr className={`hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors ${s.isActive ? '' : 'opacity-70'} ${hasExpiredDoc ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 shadow-sm border ${hasExpiredDoc ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600'}`}>
+                                {s.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-bold text-[var(--text-primary)] text-sm">{s.name}</div>
+                                {s.lastLoginAt && <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 flex items-center gap-1"><Clock size={10} /> Last seen {new Date(s.lastLoginAt).toLocaleDateString()}</div>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1 text-[13px] text-[var(--text-secondary)]">
+                                <span className="flex items-center gap-1.5"><Mail size={12} /> {s.email}</span>
+                                <span className="flex items-center gap-1.5"><Phone size={12} /> {s.phone || '—'}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                             <div className="flex flex-col items-start gap-1.5">
+                                <AppBadge variant={getRoleBadgeVariant(s.role)} text={s.role} icon={true} />
+                                {hasExpiredDoc && <AppBadge variant="danger" text="Expired Docs" icon={true} />}
+                             </div>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                             <AppBadge variant={s.isActive ? 'success' : 'danger'} text={s.isActive ? 'ACTIVE' : 'SUSPENDED'} />
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <AppButton variant="outline" size="sm" icon={FileText} onClick={() => setDocUser(s)}>Docs</AppButton>
+                              <AppButton variant="ghost" size="icon" onClick={() => setEditUser(s)}><Edit2 size={16} /></AppButton>
+                              <AppButton variant="ghost" size="icon" onClick={() => handleToggleUserStatus(s)} className={s.isActive ? 'text-[var(--danger)] hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20' : 'text-[var(--success)] hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20'}>{s.isActive ? <UserX size={16} /> : <UserCheck size={16} />}</AppButton>
+                              <AppButton variant="ghost" size="icon" onClick={() => handleDeleteUser(s)} className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 size={16} /></AppButton>
+                              {isStaffOrManager && (
+                                <AppButton variant="ghost" size="icon" onClick={() => setExpandedStaff(isExpanded ? null : s.id)} className="ml-2">
+                                  {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                </AppButton>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                        {isExpanded && isStaffOrManager && (
+                          <tr className="bg-gray-50/50 dark:bg-slate-800/30">
+                            <td colSpan={5} className="px-6 py-4 border-b border-[var(--border)]">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-10">
+                                <div>
+                                  <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">IC Number</div>
+                                  <div className="text-[13px] font-semibold text-[var(--text-primary)]">{s.icNumber || '—'}</div>
+                                </div>
+                                <div>
+                                  <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Typhoid Cert</div>
+                                  <div className={`text-[13px] font-semibold ${typhoidStat.color}`}>{typhoidStat.label}</div>
+                                </div>
+                                <div>
+                                  <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Food Handler Cert</div>
+                                  <div className={`text-[13px] font-semibold ${foodStat.color}`}>{foodStat.label}</div>
+                                </div>
+                                <div>
+                                  <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Emergency Contact</div>
+                                  <div className="text-[13px] font-semibold text-[var(--text-primary)]">{s.emergencyContactName ? `${s.emergencyContactName} (${s.emergencyContactPhone || '—'})` : '—'}</div>
+                                </div>
+                                {s.notes && (
+                                  <div className="col-span-full mt-2">
+                                    <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Admin Notes</div>
+                                    <div className="text-[13px] text-[var(--text-secondary)] bg-white dark:bg-slate-900 p-3 rounded-lg border border-[var(--border)]">{s.notes}</div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
                         )}
-
-                        <AppButton variant="outline" size="sm" icon={Edit2} onClick={() => setEditUser(s)}>Edit</AppButton>
-                        {isStaffOrManager && <AppButton variant="outline" size="sm" icon={FileText} onClick={() => setDocUser(s)}>Docs</AppButton>}
-
-                        <div className="flex gap-1 ml-auto md:ml-2">
-                          <AppButton variant="ghost" size="icon" onClick={() => handleToggleUserStatus(s)} className={s.isActive ? 'text-[var(--danger)] hover:text-red-700' : 'text-[var(--success)] hover:text-green-700'}>{s.isActive ? <UserX size={16} /> : <UserCheck size={16} />}</AppButton>
-                          <AppButton variant="ghost" size="icon" onClick={() => handleDeleteUser(s)} className="text-[var(--danger)] hover:text-red-700 hover:bg-red-50"><Trash2 size={16} /></AppButton>
-                          {isStaffOrManager && <AppButton variant="ghost" size="icon" onClick={() => setExpandedStaff(isExpanded ? null : s.id)}>{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</AppButton>}
-                        </div>
-                      </div>
-                    </div>
-
-                    {isExpanded && isStaffOrManager && (
-                      <div className="border-t border-[var(--border)] p-4 md:px-6 bg-[var(--background)] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                          <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">IC Number</div>
-                          <div className="text-sm font-semibold">{s.icNumber || '—'}</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Typhoid Cert</div>
-                          <div className={`text-sm font-semibold ${typhoidStat.color}`}>{typhoidStat.label}</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Food Handler Cert</div>
-                          <div className={`text-sm font-semibold ${foodStat.color}`}>{foodStat.label}</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Emergency Contact</div>
-                          <div className="text-sm font-semibold">{s.emergencyContactName ? `${s.emergencyContactName} (${s.emergencyContactPhone || '—'})` : '—'}</div>
-                        </div>
-                        {s.notes && (
-                          <div className="col-span-full">
-                            <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1">Admin Notes</div>
-                            <div className="text-sm text-[var(--text-secondary)]">{s.notes}</div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
         )}
@@ -529,14 +566,14 @@ export const ManagerUsers: React.FC = () => {
 
       {/* Customer Orders Modal */}
       {selectedCustomer && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedCustomer(null)}>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)] shrink-0">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedCustomer(null)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50 shrink-0">
               <div>
                 <h3 className="font-bold text-lg m-0 flex items-center gap-2"><ShoppingBag size={18} className="text-[var(--primary)]" /> Customer Purchase History</h3>
-                <p className="text-xs text-[var(--text-secondary)] mt-1 mb-0">Purchases for <span className="font-bold text-[var(--text-primary)]">{selectedCustomer.name}</span> ({selectedCustomer.email})</p>
+                <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-0">Purchases for <span className="font-bold text-[var(--text-primary)]">{selectedCustomer.name}</span> ({selectedCustomer.email})</p>
               </div>
-              <button onClick={() => setSelectedCustomer(null)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+              <button onClick={() => setSelectedCustomer(null)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
             </div>
             
             <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4 bg-[var(--background)]">
@@ -544,36 +581,36 @@ export const ManagerUsers: React.FC = () => {
                 <div className="flex justify-center py-12"><AppEmptyState title="No orders found" description="This customer hasn't placed any orders yet." icon={ShoppingBag} /></div>
               ) : (
                 customerOrders.map(order => (
-                  <div key={order.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-3 shadow-sm">
+                  <div key={order.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-center flex-wrap gap-2">
-                      <span className="font-bold text-sm">#{order.orderNumber}</span>
-                      <AppBadge variant={order.status === 'READY' || order.status === 'COMPLETED' ? 'success' : 'warning'} text={order.status} />
+                      <span className="font-bold text-sm tracking-wide">#{order.orderNumber}</span>
+                      <AppBadge variant={order.status === 'READY' || order.status === 'COMPLETED' ? 'success' : 'warning'} text={order.status} icon={true} />
                     </div>
                     
-                    <div className="flex flex-wrap gap-3 text-xs text-[var(--text-secondary)]">
-                      <span className="flex items-center gap-1.5"><Calendar size={12} /> {new Date(order.createdAt).toLocaleString('en-MY')}</span>
+                    <div className="flex flex-wrap gap-3 text-sm text-[var(--text-secondary)] font-medium">
+                      <span className="flex items-center gap-1.5"><Calendar size={14} /> {new Date(order.createdAt).toLocaleString('en-MY')}</span>
                     </div>
 
                     {order.notes && (
-                      <div className="text-xs bg-[var(--danger)]/10 text-[var(--danger)] px-3 py-2 rounded-lg italic flex items-center gap-2">
-                        <MessageSquare size={12} /> Note: "{order.notes}"
+                      <div className="text-sm bg-[var(--danger)]/5 border border-[var(--danger)]/20 text-[var(--danger)] px-4 py-3 rounded-xl italic flex items-center gap-2">
+                        <MessageSquare size={14} /> Note: "{order.notes}"
                       </div>
                     )}
 
                     <div className="border-t border-dashed border-[var(--border)] my-1" />
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-3">
                       {order.items?.map((item: any, i: number) => (
-                        <div key={i} className="flex justify-between text-sm">
-                          <span className="text-[var(--text-primary)]">{item.quantity}x {item.menuItem?.name || 'Item'}</span>
+                        <div key={i} className="flex justify-between text-[13px]">
+                          <span className="text-[var(--text-primary)]"><span className="font-bold mr-1">{item.quantity}x</span> {item.menuItem?.name || 'Item'}</span>
                           <span className="font-bold">{item.isFree ? 'FREE' : formatRM(item.unitPrice * item.quantity)}</span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="border-t border-[var(--border)] pt-3 mt-1 flex justify-between items-center">
-                      <span className="text-xs font-bold text-[var(--text-secondary)]">Total Paid ({order.paymentMethod}):</span>
-                      <span className="font-black text-lg text-[var(--primary)]">{formatRM(order.total)}</span>
+                    <div className="border-t border-[var(--border)] pt-4 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/30 -mx-5 -mb-5 px-5 py-4 rounded-b-xl">
+                      <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Total Paid ({order.paymentMethod})</span>
+                      <span className="font-black text-xl text-[var(--primary)]">{formatRM(order.total)}</span>
                     </div>
                   </div>
                 ))

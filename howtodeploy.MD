@@ -105,6 +105,8 @@ Add all of these:
 | `JWT_REFRESH_SECRET` | Run: `openssl rand -hex 64` (must be different) |
 | `MAIL_USERNAME` | Gmail address |
 | `MAIL_PASSWORD` | Gmail App Password — https://myaccount.google.com/apppasswords |
+| `TOYYIBPAY_SECRET_KEY` | Your ToyyibPay Secret Key |
+| `TOYYIBPAY_CATEGORY_CODE` | Your ToyyibPay Category Code |
 
 > 💡 Generate JWT secrets:
 > ```bash

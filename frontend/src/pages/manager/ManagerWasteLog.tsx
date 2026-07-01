@@ -10,7 +10,6 @@ import { formatRM } from '../../utils/formatCurrency';
 import { AppCard } from '../../components/ui/AppCard';
 import { AppStatCard } from '../../components/ui/AppStatCard';
 import { AppTable, Column } from '../../components/ui/AppTable';
-import { AppEmptyState } from '../../components/ui/AppEmptyState';
 import { AppPageHeader } from '../../components/ui/AppPageHeader';
 import { AppButton } from '../../components/ui/AppButton';
 
@@ -124,19 +123,15 @@ export const WasteContent: React.FC = () => {
       </div>
 
       <AppCard noPadding>
-        {loading ? (
-          <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>
-        ) : filtered.length === 0 ? (
-          <div className="py-8">
-            <AppEmptyState
-              title="No waste entries found"
-              description="There are no waste logs matching your current filters."
-              icon={Trash2}
-            />
-          </div>
-        ) : (
-          <AppTable columns={cols} data={filtered} keyExtractor={(e) => e.id} />
-        )}
+        <AppTable 
+          columns={cols} 
+          data={filtered} 
+          keyExtractor={(e) => e.id} 
+          loading={loading}
+          emptyTitle="No waste entries found"
+          emptyMessage="There are no waste logs matching your current filters."
+          emptyIcon={Trash2}
+        />
       </AppCard>
     </div>
   );

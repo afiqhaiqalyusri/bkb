@@ -14,7 +14,6 @@ import { AppTable, Column } from '../../components/ui/AppTable';
 import { AppBadge } from '../../components/ui/AppBadge';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppPageHeader } from '../../components/ui/AppPageHeader';
-import { AppEmptyState } from '../../components/ui/AppEmptyState';
 
 export const InventoryContent: React.FC = () => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -71,11 +70,11 @@ export const InventoryContent: React.FC = () => {
 
   const cols: Column<InventoryItem>[] = [
     { header: 'Ingredient', accessor: 'itemName' },
-    { header: 'Category', render: (i) => <span className="text-xs bg-[var(--background)] px-2 py-1 rounded text-[var(--text-secondary)]">{i.category}</span> },
+    { header: 'Category', render: (i) => <span className="text-xs font-semibold bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded text-[var(--text-secondary)]">{i.category}</span> },
     { header: 'Current Stock', render: (i) => <span className="font-bold">{i.currentStock} <span className="font-normal text-[var(--text-secondary)] text-xs">{i.unit}</span></span> },
     { header: 'Min Threshold', render: (i) => <span className="text-[var(--text-secondary)]">{i.minStock} {i.unit}</span> },
     { header: 'Est. Days Left', render: (i) => <span className={`font-semibold ${(i.estimatedDaysRemaining ?? 0) <= 3 ? 'text-[var(--danger)]' : 'text-[var(--text-secondary)]'}`}>{i.estimatedDaysRemaining !== null ? `${i.estimatedDaysRemaining} days` : '—'}</span> },
-    { header: 'Status', render: (i) => <AppBadge variant={i.status === 'CRITICAL' ? 'danger' : i.status === 'LOW' ? 'warning' : 'success'} text={i.status} /> },
+    { header: 'Status', render: (i) => <AppBadge variant={i.status === 'CRITICAL' ? 'danger' : i.status === 'LOW' ? 'warning' : 'success'} text={i.status} icon={true} /> },
     { header: '', render: (i) => <AppButton variant="ghost" size="sm" icon={Sliders} onClick={() => setSelectedItem(i)}>Adjust</AppButton>, align: 'right' },
   ];
 
@@ -98,73 +97,72 @@ export const InventoryContent: React.FC = () => {
         <AppStatCard title="Critical Stock" value={summary.critical} icon={AlertCircle} colorClass="text-[var(--danger)]" />
       </div>
 
-      <AppCard noPadding>
-        <div className="px-6 py-4 border-b border-[var(--border)] flex gap-2">
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-2">
           {(['ALL', 'LOW'] as const).map(t => (
             <button key={t} onClick={() => setActiveTab(t)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
                 activeTab === t 
-                  ? t === 'LOW' ? 'bg-red-500/10 text-red-500' : 'bg-[var(--primary)]/10 text-[var(--primary)]'
-                  : 'bg-transparent text-[var(--text-secondary)] hover:bg-[rgba(0,0,0,0.02)]'
+                  ? t === 'LOW' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' : 'bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20'
+                  : 'bg-[var(--surface)] border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--background)]'
               }`}>
               {t === 'ALL' ? `All Items (${summary.total})` : `Alerts (${summary.low + summary.critical})`}
             </button>
           ))}
         </div>
         
-        {loading ? (
-          <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>
-        ) : (
-          <AppTable 
-            columns={cols} 
-            data={filteredItems} 
-            keyExtractor={(i) => i.id} 
-            emptyMessage={<AppEmptyState title="No items found" description="There are no items matching the current filter." icon={Database} />} 
-          />
-        )}
-      </AppCard>
+        <AppTable 
+          columns={cols} 
+          data={filteredItems} 
+          keyExtractor={(i) => i.id} 
+          loading={loading}
+          emptyTitle="No items found"
+          emptyMessage="There are no items matching the current filter."
+          emptyIcon={Database}
+        />
+      </div>
 
       {/* Add Modal */}
       {isAdding && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setIsAdding(false)}>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
-              <h3 className="font-bold text-lg m-0">Add Raw Ingredient</h3>
-              <button onClick={() => setIsAdding(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setIsAdding(false)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Plus size={18} className="text-[var(--primary)]"/> Add Raw Ingredient</h3>
+              <button onClick={() => setIsAdding(false)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAdd} className="p-6 flex flex-col gap-4">
+            <form onSubmit={handleAdd} className="p-6 flex flex-col gap-5">
               <div>
-                <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Ingredient Name</label>
+                <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Ingredient Name</label>
                 <input type="text" value={newItem.itemName || ''} onChange={e => setNewItem(p => ({ ...p, itemName: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" placeholder="e.g. Cheddar Cheese" required />
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" placeholder="e.g. Cheddar Cheese" required />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Category</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Category</label>
                   <select value={newItem.category || 'Meat'} onChange={e => setNewItem(p => ({ ...p, category: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]">
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors">
                     {['Meat', 'Bread', 'Vegetables', 'Dairy', 'Condiments', 'Cooking', 'Dry Goods'].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Unit</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Unit</label>
                   <input type="text" value={newItem.unit || ''} onChange={e => setNewItem(p => ({ ...p, unit: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" placeholder="pcs, kg, L" required />
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" placeholder="pcs, kg, L" required />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-5">
                 {['Current Stock', 'Min Stock', 'Max Stock'].map((label, i) => {
                   const key = ['currentStock', 'minStock', 'maxStock'][i] as keyof InventoryItem;
                   return (
                     <div key={label}>
-                      <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">{label}</label>
+                      <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">{label}</label>
                       <input type="number" min="0" step="0.01" value={(newItem as any)[key] || ''} onChange={e => setNewItem(p => ({ ...p, [key]: Number(e.target.value) }))}
-                        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" required />
+                        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" required />
                     </div>
                   );
                 })}
               </div>
-              <AppButton type="submit" variant="primary" className="w-full mt-4" size="lg">Register Ingredient</AppButton>
+              <AppButton type="submit" variant="primary" className="w-full mt-2" size="lg">Register Ingredient</AppButton>
             </form>
           </div>
         </div>
@@ -172,35 +170,35 @@ export const InventoryContent: React.FC = () => {
 
       {/* Adjust Modal */}
       {selectedItem && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedItem(null)}>
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]">
-              <h3 className="font-bold text-lg m-0">Adjust: {selectedItem.itemName}</h3>
-              <button onClick={() => setSelectedItem(null)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={20} /></button>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedItem(null)}>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Sliders size={18} className="text-[var(--primary)]"/> Adjust: {selectedItem.itemName}</h3>
+              <button onClick={() => setSelectedItem(null)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAdjust} className="p-6 flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleAdjust} className="p-6 flex flex-col gap-5">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Adjustment Type</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Adjustment Type</label>
                   <select value={adjustType} onChange={e => setAdjustType(e.target.value)}
-                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]">
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors">
                     <option value="RESTOCK">Restock (Add)</option>
                     <option value="WASTE">Waste (Deduct)</option>
                     <option value="ADJUST">Inventory Count (Set)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Quantity ({selectedItem.unit})</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Quantity ({selectedItem.unit})</label>
                   <input type="number" step="0.01" min="0.01" value={adjustQty || ''} onChange={e => setAdjustQty(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" required />
+                    className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" required />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Reason / Remarks</label>
+                <label className="block text-[11px] font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">Reason / Remarks</label>
                 <input type="text" value={adjustReason} onChange={e => setAdjustReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]" placeholder="e.g. Weekly Restock, Spoiled patty" required />
+                  className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors" placeholder="e.g. Weekly Restock, Spoiled patty" required />
               </div>
-              <AppButton type="submit" variant="primary" className="w-full mt-4" size="lg">Register Adjustment</AppButton>
+              <AppButton type="submit" variant="primary" className="w-full mt-2" size="lg">Register Adjustment</AppButton>
             </form>
           </div>
         </div>
