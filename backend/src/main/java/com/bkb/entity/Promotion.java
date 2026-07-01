@@ -37,6 +37,7 @@ public class Promotion {
     private BigDecimal discountValue;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "start_date")

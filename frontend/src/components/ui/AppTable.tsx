@@ -52,7 +52,7 @@ export function AppTable<T>({
   return (
     <div className="w-full overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
       <table className="w-full text-sm text-left border-collapse whitespace-nowrap">
-        <thead className="bg-gray-50 dark:bg-slate-800/50">
+        <thead className="bg-[var(--surface-hover)]">
           <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider">
             {columns.map((col, index) => (
               <th
@@ -75,7 +75,7 @@ export function AppTable<T>({
               onClick={() => onRowClick && onRowClick(item)}
               className={`
                 transition-colors duration-150 group bg-inherit
-                ${onRowClick ? 'cursor-pointer hover:bg-gray-50/50 dark:hover:bg-slate-800/50' : 'hover:bg-gray-50/50 dark:hover:bg-slate-800/50'}
+                ${onRowClick ? 'cursor-pointer hover:bg-[var(--background)]/50 dark:hover:bg-slate-800/50' : 'hover:bg-[var(--background)]/50 dark:hover:bg-slate-800/50'}
                 ${rowClassName ? rowClassName(item) : ''}
               `}
             >

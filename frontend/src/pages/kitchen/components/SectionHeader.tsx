@@ -15,7 +15,7 @@ export const SectionHeader: React.FC<{
       <div style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '0.92rem', color }}>
         {label}
       </div>
-      <div style={{ fontSize: '0.7rem', color: '#9B7B6B', marginTop: 2 }}>{subtitle}</div>
+      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 2 }}>{subtitle}</div>
     </div>
     <span style={{
       background: color, color: '#fff', borderRadius: 99, minWidth: 26,

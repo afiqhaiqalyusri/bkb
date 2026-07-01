@@ -438,7 +438,7 @@ export const ManagerRecipes: React.FC = () => {
 
         {/* ── Panel 1: Category Selector ── */}
         <AppCard className="!p-0 flex flex-col h-[300px] md:h-full">
-          <div className="px-4 py-3 border-b border-[var(--border)] bg-gray-50 dark:bg-slate-800/50 shrink-0 flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-hover)] shrink-0 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Categories
             </span>
@@ -467,7 +467,7 @@ export const ManagerRecipes: React.FC = () => {
 
         {/* ── Panel 2: Menu Item List ── */}
         <AppCard className="!p-0 flex flex-col h-[400px] md:h-full">
-          <div className="px-4 py-3 border-b border-[var(--border)] bg-gray-50 dark:bg-slate-800/50 shrink-0">
+          <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-hover)] shrink-0">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Menu Items ({filteredItems.length})
             </span>

@@ -375,7 +375,7 @@ export const KitchenPage: React.FC = () => {
             <h1 style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '1.5rem', margin: 0, color: 'var(--text-dark)' }}>
               {activeTab === 'FRONT' ? 'Front Counter' : activeTab === 'GRILL' ? 'Grill Station' : activeTab === 'PREP' ? 'Prep Line' : 'Settings'}
             </h1>
-            <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#9B7B6B' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
               {activeTab === 'FRONT'
                 ? 'Accept, manage and complete customer orders'
                 : activeTab === 'GRILL'
@@ -390,8 +390,8 @@ export const KitchenPage: React.FC = () => {
               <button
                 onClick={() => setShowOnHold(true)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 7, background: '#fff',
-                  border: '1.5px solid #EAE2D8', color: '#1A1008', borderRadius: 10,
+                  display: 'flex', alignItems: 'center', gap: 7, background: 'var(--surface)',
+                  border: '1.5px solid var(--border)', color: 'var(--text-primary)', borderRadius: 10,
                   padding: '9px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
                 }}
@@ -401,8 +401,8 @@ export const KitchenPage: React.FC = () => {
               <button
                 onClick={() => setShowHistory(true)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 7, background: '#fff',
-                  border: '1.5px solid #EAE2D8', color: '#1A1008', borderRadius: 10,
+                  display: 'flex', alignItems: 'center', gap: 7, background: 'var(--surface)',
+                  border: '1.5px solid var(--border)', color: 'var(--text-primary)', borderRadius: 10,
                   padding: '9px 14px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
                 }}
@@ -416,7 +416,7 @@ export const KitchenPage: React.FC = () => {
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 80 }}>
             <LoadingSpinner size="lg" />
-            <p style={{ color: '#9B7B6B', fontSize: '0.9rem', marginTop: 12 }}>Loading orders...</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: 12 }}>Loading orders...</p>
           </div>
         ) : (
           <>
@@ -505,7 +505,7 @@ export const KitchenPage: React.FC = () => {
                       />
                     ))}
                     {incomingOrders.length === 0 && (
-                      <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed #EAE2D8', borderRadius: 14, color: '#9B7B6B', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
+                      <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed var(--border)', borderRadius: 14, color: 'var(--text-secondary)', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
                         No incoming orders right now
                       </div>
                     )}
@@ -538,7 +538,7 @@ export const KitchenPage: React.FC = () => {
                       />
                     ))}
                     {acceptedOrders.length === 0 && (
-                      <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed #EAE2D8', borderRadius: 14, color: '#9B7B6B', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
+                      <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed var(--border)', borderRadius: 14, color: 'var(--text-secondary)', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
                         No orders currently in progress
                       </div>
                     )}
@@ -571,7 +571,7 @@ export const KitchenPage: React.FC = () => {
                       />
                     ))}
                     {readyOrders.length === 0 && (
-                      <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed #EAE2D8', borderRadius: 14, color: '#9B7B6B', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
+                      <div style={{ textAlign: 'center', padding: '28px 20px', border: '1.5px dashed var(--border)', borderRadius: 14, color: 'var(--text-secondary)', fontSize: '0.8rem', gridColumn: '1 / -1' }}>
                         Nothing ready for pickup yet
                       </div>
                     )}
@@ -612,13 +612,13 @@ export const KitchenPage: React.FC = () => {
                     })}
                   </div>
                   <div style={{ marginTop: 8 }}>
-                    <div style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '1rem', color: '#1A1008', marginBottom: 12 }}>
+                    <div style={{ fontFamily: 'Poppins', fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: 12 }}>
                       Active Grill Orders
                     </div>
                     {grillOrders.length === 0 ? (
                       <div style={{
-                        textAlign: 'center', padding: '48px 20px', border: '1.5px dashed #EAE2D8', borderRadius: 18,
-                        color: '#9B7B6B', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10
+                        textAlign: 'center', padding: '48px 20px', border: '1.5px dashed var(--border)', borderRadius: 18,
+                        color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10
                       }}>
                         <Flame size={32} opacity={0.35} />
                         No burgers to cook right now
@@ -644,7 +644,7 @@ export const KitchenPage: React.FC = () => {
             {activeTab === 'PREP' && (
               <div className="order-grid">
                 {prepOrders.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: 60, color: '#9B7B6B', fontSize: '0.85rem', gridColumn: '1 / -1' }}>
+                  <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)', fontSize: '0.85rem', gridColumn: '1 / -1' }}>
                     No items to prep right now
                   </div>
                 ) : (

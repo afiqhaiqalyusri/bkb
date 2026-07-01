@@ -43,7 +43,7 @@ export const SessionSyncManager: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center animate-fade-in p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-8 shadow-2xl border border-gray-100 dark:border-slate-700 animate-scale-in text-center">
+      <div className="bg-[var(--background)] rounded-2xl max-w-md w-full p-8 shadow-2xl border border-[var(--border)] animate-scale-in text-center">
         
         <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 text-primary flex items-center justify-center mx-auto mb-6">
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -54,11 +54,11 @@ export const SessionSyncManager: React.FC = () => {
           </svg>
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 tracking-tight">
+        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3 tracking-tight">
           Session Changed
         </h2>
         
-        <p className="text-gray-500 dark:text-slate-400 mb-8 leading-relaxed">
+        <p className="text-[var(--text-secondary)] dark:text-slate-400 mb-8 leading-relaxed">
           Another account has signed in using this browser. Your current session in this tab is no longer active and has been securely locked.
         </p>
 
@@ -72,7 +72,7 @@ export const SessionSyncManager: React.FC = () => {
           
           <button 
             onClick={handleLoginAgain}
-            className="w-full bg-transparent text-gray-500 dark:text-slate-400 font-bold py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+            className="w-full bg-transparent text-[var(--text-secondary)] dark:text-slate-400 font-bold py-3 px-4 rounded-xl border-2 border-[var(--border)] hover:bg-[var(--background)] dark:hover:bg-slate-800 transition-colors"
           >
             Log Out & Sign In
           </button>

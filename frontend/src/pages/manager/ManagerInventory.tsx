@@ -70,7 +70,7 @@ export const InventoryContent: React.FC = () => {
 
   const cols: Column<InventoryItem>[] = [
     { header: 'Ingredient', accessor: 'itemName' },
-    { header: 'Category', render: (i) => <span className="text-xs font-semibold bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded text-[var(--text-secondary)]">{i.category}</span> },
+    { header: 'Category', render: (i) => <span className="text-xs font-semibold bg-gray-100 bg-[var(--surface)] px-2 py-1 rounded text-[var(--text-secondary)]">{i.category}</span> },
     { header: 'Current Stock', render: (i) => <span className="font-bold">{i.currentStock} <span className="font-normal text-[var(--text-secondary)] text-xs">{i.unit}</span></span> },
     { header: 'Min Threshold', render: (i) => <span className="text-[var(--text-secondary)]">{i.minStock} {i.unit}</span> },
     { header: 'Est. Days Left', render: (i) => <span className={`font-semibold ${(i.estimatedDaysRemaining ?? 0) <= 3 ? 'text-[var(--danger)]' : 'text-[var(--text-secondary)]'}`}>{i.estimatedDaysRemaining !== null ? `${i.estimatedDaysRemaining} days` : '—'}</span> },
@@ -126,7 +126,7 @@ export const InventoryContent: React.FC = () => {
       {isAdding && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setIsAdding(false)}>
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface-hover)]">
               <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Plus size={18} className="text-[var(--primary)]"/> Add Raw Ingredient</h3>
               <button onClick={() => setIsAdding(false)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
             </div>
@@ -172,7 +172,7 @@ export const InventoryContent: React.FC = () => {
       {selectedItem && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedItem(null)}>
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface-hover)]">
               <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Sliders size={18} className="text-[var(--primary)]"/> Adjust: {selectedItem.itemName}</h3>
               <button onClick={() => setSelectedItem(null)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
             </div>

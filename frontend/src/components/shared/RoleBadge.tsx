@@ -23,10 +23,10 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({ role, className = '', size
       colorClasses = 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900/50';
       break;
     case 'CUSTOMER':
-      colorClasses = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+      colorClasses = 'bg-slate-100 text-slate-700 border-slate-200 bg-[var(--surface)] dark:text-slate-300 dark:border-slate-700';
       break;
     default:
-      colorClasses = 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
+      colorClasses = 'bg-gray-100 text-[var(--text-secondary)] border-[var(--border)] dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
   }
 
   const sizeClasses = {

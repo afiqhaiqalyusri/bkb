@@ -41,6 +41,7 @@ public class MenuItem {
     private String imageUrl;
 
     @Column(name = "is_available")
+    @Builder.Default
     private Boolean isAvailable = true;
 
     @Column(name = "deleted", nullable = false)

@@ -17,5 +17,6 @@ public class IngredientOutage {
     private String name;
 
     @Column(name = "out_of_stock", nullable = false)
+    @Builder.Default
     private Boolean outOfStock = false;
 }

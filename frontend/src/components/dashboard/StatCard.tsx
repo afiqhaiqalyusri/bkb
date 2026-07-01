@@ -21,11 +21,11 @@ export const StatCard: React.FC<StatCardProps> = ({
   iconColor = 'var(--primary)',
 }) => {
   return (
-    <div className="bg-white rounded-[24px] p-6 lg:p-8 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div className="bg-[var(--surface)] rounded-[24px] p-6 lg:p-8 border border-[var(--border)] shadow-sm hover:shadow-md transition-shadow duration-200">
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-500 mb-2">{title}</p>
-          <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight">{value}</h3>
+          <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">{title}</p>
+          <h3 className="text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">{value}</h3>
           
           {trend !== undefined && (
             <div className="mt-4 flex items-center gap-2">
@@ -34,7 +34,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                   ? 'bg-emerald-50 text-emerald-600' 
                   : trend < 0 
                     ? 'bg-red-50 text-red-600' 
-                    : 'bg-gray-50 text-gray-600'
+                    : 'bg-[var(--background)] text-gray-600'
               }`}>
                 {trend > 0 ? '+' : ''}{trend}%
               </span>

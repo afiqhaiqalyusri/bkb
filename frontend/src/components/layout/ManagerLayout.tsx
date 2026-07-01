@@ -132,7 +132,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
             <div key={item.label} className="flex flex-col gap-1">
               <button
                 onClick={() => setExpandedNav(isExpanded && !active ? null : item.label)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${active || isExpanded ? 'bg-gray-100 dark:bg-slate-800 text-[var(--primary)]' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800/50'}`}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${active || isExpanded ? 'bg-gray-100 bg-[var(--surface)] text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--background)] dark:hover:bg-slate-800/50'}`}
               >
                 <div className="flex items-center gap-3">
                   <item.icon size={18} />
@@ -142,7 +142,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
               </button>
               
               {isExpanded && (
-                <div className="flex flex-col gap-0.5 ml-4 pl-4 border-l-2 border-gray-100 dark:border-slate-800 my-1">
+                <div className="flex flex-col gap-0.5 ml-4 pl-4 border-l-2 border-[var(--border)] dark:border-slate-800 my-1">
                   {item.subItems.map(sub => {
                     const subActive = isSubActive(sub.path);
                     return (
@@ -150,7 +150,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
                         key={sub.path}
                         to={sub.path}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${subActive ? 'text-[var(--primary)] bg-[var(--primary)]/5 font-bold' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${subActive ? 'text-[var(--primary)] bg-[var(--primary)]/5 font-bold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                       >
                         <sub.icon size={15} />
                         {sub.label}
@@ -168,7 +168,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
             key={item.label}
             to={item.path!}
             onClick={() => setMobileMenuOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${active ? 'bg-[var(--primary)] text-white shadow-md shadow-orange-500/20' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-semibold transition-all ${active ? 'bg-[var(--primary)] text-white shadow-md shadow-orange-500/20' : 'text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-slate-800'}`}
           >
             <item.icon size={18} />
             {item.label}
@@ -179,7 +179,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   );
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-[#F8F9FA] dark:bg-slate-900 text-gray-900 dark:text-gray-100" style={{ fontFamily: "'Inter', 'DM Sans', sans-serif" }}>
+    <div className="h-screen w-screen overflow-hidden flex bg-[var(--background)] text-[var(--text-primary)]" style={{ fontFamily: "'Inter', 'DM Sans', sans-serif" }}>
       
       {/* ── DESKTOP SIDEBAR ── */}
       <aside className="hidden lg:flex flex-col w-[260px] bg-[var(--surface)] border-r border-[var(--border)] z-40">
@@ -193,13 +193,13 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
         
         {/* Bottom User Profile in Sidebar */}
         <div className="p-4 border-t border-[var(--border)]">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-hover)] border border-[var(--border)]">
              <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center font-bold text-[var(--primary)] text-sm shrink-0">
                {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
              </div>
              <div className="flex-1 min-w-0">
                <div className="text-[13px] font-bold truncate">{user?.name || 'Administrator'}</div>
-               <div className="text-[11px] text-gray-500 truncate">{user?.email || 'admin@bkb.com'}</div>
+               <div className="text-[11px] text-[var(--text-secondary)] truncate">{user?.email || 'admin@bkb.com'}</div>
              </div>
              <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Log Out">
                <LogOut size={16} />
@@ -235,13 +235,13 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
         <header className="h-[70px] bg-[var(--surface)] border-b border-[var(--border)] px-4 lg:px-8 flex items-center justify-between z-30 shrink-0">
           
           <div className="flex items-center gap-4">
-            <button className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" onClick={() => setMobileMenuOpen(true)}>
+            <button className="lg:hidden p-2 text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" onClick={() => setMobileMenuOpen(true)}>
               <MenuIcon size={20} />
             </button>
 
             {/* Global Search Placeholder */}
-            <div className="hidden md:flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg px-3 py-2 w-64 border border-transparent focus-within:border-[var(--primary)] focus-within:bg-white dark:focus-within:bg-slate-900 transition-all">
-              <Search size={16} className="text-gray-400 mr-2" />
+            <div className="hidden md:flex items-center bg-gray-100 bg-[var(--surface)] rounded-lg px-3 py-2 w-64 border border-transparent focus-within:border-[var(--primary)] focus-within:bg-[var(--surface)] transition-all">
+              <Search size={16} className="text-[var(--text-secondary)] mr-2" />
               <input type="text" placeholder="Search across BKB..." className="bg-transparent border-none outline-none text-[13px] w-full text-[var(--text-primary)]" />
             </div>
           </div>
@@ -249,25 +249,25 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
           <div className="flex items-center gap-3 md:gap-4">
             
             {/* Current Date (hidden on mobile) */}
-            <div className="hidden lg:flex items-center gap-2 text-[13px] font-semibold text-gray-500 bg-gray-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-slate-700">
+            <div className="hidden lg:flex items-center gap-2 text-[13px] font-semibold text-[var(--text-secondary)] bg-[var(--surface-hover)] px-3 py-1.5 rounded-lg border border-[var(--border)]">
               <CalendarIcon size={14} />
               {currentDate}
             </div>
 
-            <div className="h-6 w-[1px] bg-gray-200 dark:bg-slate-700 hidden md:block"></div>
+            <div className="h-6 w-[1px] bg-[var(--border)] hidden md:block"></div>
 
             {/* Quick Actions */}
-            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Quick Actions">
+            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Quick Actions">
               <Zap size={18} />
             </button>
-            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Announcements">
+            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Announcements">
               <Megaphone size={18} />
             </button>
-            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Notifications">
+            <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Notifications">
               <Bell size={18} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[var(--surface)]" />
             </button>
-            <button onClick={toggleTheme} className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Toggle Theme">
+            <button onClick={toggleTheme} className="relative w-9 h-9 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" title="Toggle Theme">
               {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </button>
           </div>
@@ -281,22 +281,22 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
             <div className="shrink-0 px-6 lg:px-8 py-5 border-b border-[var(--border)] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--surface)]">
               <div>
                 <h1 className="text-[22px] font-extrabold tracking-tight leading-tight">{title}</h1>
-                {subtitle && <p className="text-[13.5px] text-gray-500 mt-1">{subtitle}</p>}
+                {subtitle && <p className="text-[13.5px] text-[var(--text-secondary)] mt-1">{subtitle}</p>}
               </div>
 
               {/* Tabs and Actions */}
               {(tabs && tabs.length > 0) || headerAction ? (
                 <div className="flex flex-wrap items-center gap-3">
                   {tabs && tabs.length > 0 && (
-                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 rounded-xl p-1 border border-gray-200 dark:border-slate-700">
+                    <div className="flex items-center gap-1 bg-gray-100 bg-[var(--surface)] rounded-xl p-1 border border-[var(--border)]">
                       {tabs.map(tab => (
                         <button
                           key={tab.id}
                           onClick={tab.onClick}
                           className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${
                             tab.active
-                              ? 'bg-white dark:bg-slate-700 text-[var(--primary)] dark:text-white shadow-sm'
-                              : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                              ? 'bg-[var(--surface)] dark:bg-slate-700 text-[var(--primary)] dark:text-white shadow-sm'
+                              : 'text-[var(--text-secondary)] hover:text-gray-800 dark:hover:text-gray-200'
                           }`}
                         >
                           {tab.label}
@@ -310,7 +310,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
             </div>
 
             {/* Scrollable Body */}
-            <div className="flex-1 overflow-y-auto bg-[#FBFBFB] dark:bg-[var(--background)]">
+            <div className="flex-1 overflow-y-auto bg-[var(--background)]">
               <div className="p-6 lg:p-8 max-w-[1600px] mx-auto">
                 {children}
               </div>

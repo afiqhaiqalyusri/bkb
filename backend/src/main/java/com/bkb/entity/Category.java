@@ -23,6 +23,7 @@ public class Category {
     private String name;
 
     @Column(name = "display_order")
+    @Builder.Default
     private Integer displayOrder = 0;
 
     @CreationTimestamp

@@ -50,29 +50,29 @@ export const ManagerFeedback: React.FC = () => {
       <div className="flex flex-col gap-6 max-w-[1200px] mx-auto w-full animate-fade-in">
         {/* Header Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm flex items-center gap-4">
+          <div className="bg-[var(--surface)] p-5 rounded-xl border border-[var(--border)] shadow-sm flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[rgba(255,107,0,0.1)] text-[var(--primary)] flex items-center justify-center">
               <MessageSquare size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-slate-400 font-medium">Total Feedback</p>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{feedback.length}</h3>
+              <p className="text-sm text-[var(--text-secondary)] dark:text-slate-400 font-medium">Total Feedback</p>
+              <h3 className="text-2xl font-bold text-[var(--text-primary)]">{feedback.length}</h3>
             </div>
           </div>
           
-          <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm flex items-center gap-4">
+          <div className="bg-[var(--surface)] p-5 rounded-xl border border-[var(--border)] shadow-sm flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center">
               <Star size={24} fill="currentColor" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-slate-400 font-medium">Average Rating</p>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{averageRating} <span className="text-sm font-normal text-gray-500">/ 5.0</span></h3>
+              <p className="text-sm text-[var(--text-secondary)] dark:text-slate-400 font-medium">Average Rating</p>
+              <h3 className="text-2xl font-bold text-[var(--text-primary)]">{averageRating} <span className="text-sm font-normal text-[var(--text-secondary)]">/ 5.0</span></h3>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="bg-[var(--surface)] p-4 rounded-xl border border-[var(--border)] shadow-sm flex flex-col lg:flex-row gap-4 items-center justify-between">
           <div className="relative w-full lg:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
@@ -80,7 +80,7 @@ export const ManagerFeedback: React.FC = () => {
               placeholder="Search by order #, name or comment..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all"
             />
           </div>
           <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 hide-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -126,12 +126,12 @@ export const ManagerFeedback: React.FC = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(index * 0.05, 0.5) }}
-                className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full"
+                className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex flex-col">
-                    <span className="font-bold text-gray-900 dark:text-white truncate max-w-[150px]">{item.customerName || 'Guest Customer'}</span>
-                    <span className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                    <span className="font-bold text-[var(--text-primary)] truncate max-w-[150px]">{item.customerName || 'Guest Customer'}</span>
+                    <span className="text-xs text-[var(--text-secondary)] dark:text-slate-400 flex items-center gap-1 mt-0.5">
                       <Calendar size={12} />
                       {new Date(item.createdAt).toLocaleDateString()}
                     </span>
@@ -142,13 +142,13 @@ export const ManagerFeedback: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="text-sm text-gray-700 dark:text-slate-300 mt-2 mb-4 flex-1 italic bg-gray-50 dark:bg-slate-900/50 p-4 rounded-lg border border-gray-100 dark:border-slate-700/50 relative">
-                  <span className="absolute -top-2 left-3 bg-white dark:bg-slate-800 text-gray-300 dark:text-slate-600 text-2xl leading-none font-serif">"</span>
+                <div className="text-sm text-[var(--text-secondary)] mt-2 mb-4 flex-1 italic bg-[var(--background)] p-4 rounded-lg border border-[var(--border)]/50 relative">
+                  <span className="absolute -top-2 left-3 bg-[var(--surface)] text-gray-300 dark:text-slate-600 text-2xl leading-none font-serif">"</span>
                   {item.feedback || 'No written feedback provided.'}
                 </div>
 
-                <div className="mt-auto pt-3 border-t border-gray-100 dark:border-slate-700 flex justify-between items-center text-xs">
-                  <span className="text-gray-500 dark:text-slate-400">Order Ref:</span>
+                <div className="mt-auto pt-3 border-t border-[var(--border)] flex justify-between items-center text-xs">
+                  <span className="text-[var(--text-secondary)] dark:text-slate-400">Order Ref:</span>
                   <span className="font-bold font-mono text-[var(--primary)] bg-[rgba(255,107,0,0.1)] px-2 py-1 rounded">#{item.orderNumber}</span>
                 </div>
               </motion.div>

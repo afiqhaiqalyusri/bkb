@@ -185,6 +185,10 @@ public class InventoryService {
                 if (ingredientName != null && inv.getItemName().toLowerCase().contains(ingredientName.toLowerCase())) {
                     if ("NONE".equalsIgnoreCase(level)) {
                         finalNeeded[0] = BigDecimal.ZERO;
+                    } else if ("LESS".equalsIgnoreCase(level)) {
+                        finalNeeded[0] = finalNeeded[0].multiply(new BigDecimal("0.5"));
+                    } else if ("EXTRA".equalsIgnoreCase(level) || "MORE".equalsIgnoreCase(level)) {
+                        finalNeeded[0] = finalNeeded[0].multiply(new BigDecimal("2.0"));
                     }
                 }
             }

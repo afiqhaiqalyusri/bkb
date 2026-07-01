@@ -7,36 +7,41 @@ import { SessionSyncManager } from './components/SessionSyncManager';
 import { ConfirmationProvider } from './components/ConfirmationProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Pages
-import { LandingPage } from './pages/LandingPage';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { VerifyOtpPage } from './pages/VerifyOtpPage';
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
-import { VerifyResetOtpPage } from './pages/VerifyResetOtpPage';
-import { MenuPage } from './pages/MenuPage';
-import { CartPage } from './pages/CartPage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { PaymentPage } from './pages/PaymentPage';
-import { PaymentResultPage } from './pages/PaymentResultPage';
-import { LoyaltyPage } from './pages/LoyaltyPage';
-import { OrderTrackingPage } from './pages/OrderTrackingPage';
-import { OrderHistoryPage } from './pages/OrderHistoryPage';
-import { KitchenPage } from './pages/kitchen/KitchenPage';
-import { ManagerDashboard } from './pages/manager/ManagerDashboard';
-import { ManagerMenu } from './pages/manager/ManagerMenu';
-import { ManagerInventory } from './pages/manager/ManagerInventory';
-import { ManagerWasteLog } from './pages/manager/ManagerWasteLog';
-import { ManagerLoyalty } from './pages/manager/ManagerLoyalty';
-import { ManagerFeedback } from './pages/manager/ManagerFeedback';
-import { ManagerSettings } from './pages/manager/ManagerSettings';
-import { ManagerUsers } from './pages/manager/ManagerUsers';
-import { ManagerCategories } from './pages/manager/ManagerCategories';
-import { ManagerRecipes } from './pages/manager/ManagerRecipes';
-import { ManagerAdvertisements } from './pages/manager/ManagerAdvertisements';
-import { SettingsPage } from './pages/SettingsPage';
-import { FavouritesPage } from './pages/FavouritesPage';
-import { ResetPasswordPage } from './pages/ResetPasswordPage';
+// Pages - Lazy Loaded
+const lazyImport = <T extends React.ComponentType<any>>(
+  factory: () => Promise<{ [key: string]: T }>,
+  name: string
+) => React.lazy(() => factory().then((module) => ({ default: module[name] })));
+
+const LandingPage = lazyImport(() => import('./pages/LandingPage'), 'LandingPage');
+const LoginPage = lazyImport(() => import('./pages/LoginPage'), 'LoginPage');
+const RegisterPage = lazyImport(() => import('./pages/RegisterPage'), 'RegisterPage');
+const VerifyOtpPage = lazyImport(() => import('./pages/VerifyOtpPage'), 'VerifyOtpPage');
+const ForgotPasswordPage = lazyImport(() => import('./pages/ForgotPasswordPage'), 'ForgotPasswordPage');
+const VerifyResetOtpPage = lazyImport(() => import('./pages/VerifyResetOtpPage'), 'VerifyResetOtpPage');
+const MenuPage = lazyImport(() => import('./pages/MenuPage'), 'MenuPage');
+const CartPage = lazyImport(() => import('./pages/CartPage'), 'CartPage');
+const CheckoutPage = lazyImport(() => import('./pages/CheckoutPage'), 'CheckoutPage');
+const PaymentPage = lazyImport(() => import('./pages/PaymentPage'), 'PaymentPage');
+const PaymentResultPage = lazyImport(() => import('./pages/PaymentResultPage'), 'PaymentResultPage');
+const LoyaltyPage = lazyImport(() => import('./pages/LoyaltyPage'), 'LoyaltyPage');
+const OrderTrackingPage = lazyImport(() => import('./pages/OrderTrackingPage'), 'OrderTrackingPage');
+const OrderHistoryPage = lazyImport(() => import('./pages/OrderHistoryPage'), 'OrderHistoryPage');
+const KitchenPage = lazyImport(() => import('./pages/kitchen/KitchenPage'), 'KitchenPage');
+const ManagerDashboard = lazyImport(() => import('./pages/manager/ManagerDashboard'), 'ManagerDashboard');
+const ManagerMenu = lazyImport(() => import('./pages/manager/ManagerMenu'), 'ManagerMenu');
+const ManagerInventory = lazyImport(() => import('./pages/manager/ManagerInventory'), 'ManagerInventory');
+const ManagerWasteLog = lazyImport(() => import('./pages/manager/ManagerWasteLog'), 'ManagerWasteLog');
+const ManagerLoyalty = lazyImport(() => import('./pages/manager/ManagerLoyalty'), 'ManagerLoyalty');
+const ManagerFeedback = lazyImport(() => import('./pages/manager/ManagerFeedback'), 'ManagerFeedback');
+const ManagerSettings = lazyImport(() => import('./pages/manager/ManagerSettings'), 'ManagerSettings');
+const ManagerUsers = lazyImport(() => import('./pages/manager/ManagerUsers'), 'ManagerUsers');
+const ManagerCategories = lazyImport(() => import('./pages/manager/ManagerCategories'), 'ManagerCategories');
+const ManagerRecipes = lazyImport(() => import('./pages/manager/ManagerRecipes'), 'ManagerRecipes');
+const ManagerAdvertisements = lazyImport(() => import('./pages/manager/ManagerAdvertisements'), 'ManagerAdvertisements');
+const SettingsPage = lazyImport(() => import('./pages/SettingsPage'), 'SettingsPage');
+const FavouritesPage = lazyImport(() => import('./pages/FavouritesPage'), 'FavouritesPage');
+const ResetPasswordPage = lazyImport(() => import('./pages/ResetPasswordPage'), 'ResetPasswordPage');
 
 // Error Pages
 import { NotFoundPage } from './pages/errors/NotFoundPage';
@@ -56,12 +61,20 @@ import {
   AdminGuard
 } from './components/guards/RouteGuards';
 
+const LoadingFallback = () => (
+  <div className="flex h-screen w-full items-center justify-center bg-[var(--cream)]">
+    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent"></div>
+  </div>
+);
+
 const RootLayout: React.FC = () => {
   return (
     <ConfirmationProvider>
       <SessionTimeoutManager />
       <SessionSyncManager />
-      <Outlet />
+      <React.Suspense fallback={<LoadingFallback />}>
+        <Outlet />
+      </React.Suspense>
     </ConfirmationProvider>
   );
 };

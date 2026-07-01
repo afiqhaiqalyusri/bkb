@@ -79,7 +79,7 @@ const DocModal: React.FC<{ staff: StaffUser; onClose: () => void; onSave: () => 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={handleClose}>
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface-hover)]">
           <h3 className="font-bold text-lg m-0 flex items-center gap-2"><FileText size={18} className="text-[var(--primary)]" /> Documents — {staff.name}</h3>
           <button onClick={handleClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
         </div>
@@ -133,7 +133,7 @@ const AddUserModal: React.FC<{ defaultRole: 'CUSTOMER' | 'STAFF'; onClose: () =>
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={handleClose}>
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface-hover)]">
           <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Plus size={18} className="text-[var(--primary)]" /> Add User Account</h3>
           <button onClick={handleClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
         </div>
@@ -201,7 +201,7 @@ const EditUserModal: React.FC<{ user: StaffUser; onClose: () => void; onSave: ()
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={handleClose}>
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+        <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface-hover)]">
           <h3 className="font-bold text-lg m-0 flex items-center gap-2"><Edit2 size={18} className="text-[var(--primary)]" /> Edit User</h3>
           <button onClick={handleClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"><X size={20} /></button>
         </div>
@@ -399,7 +399,7 @@ export const ManagerUsers: React.FC = () => {
               <div className="py-12"><AppEmptyState title="No customers found" description="No customer profiles match your search criteria." icon={Users} /></div>
             ) : (
               <table className="w-full text-left border-collapse whitespace-nowrap">
-                <thead className="bg-gray-50 dark:bg-slate-800/50">
+                <thead className="bg-[var(--surface-hover)]">
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider">
                     <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Customer Name</th>
                     <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Contact Info</th>
@@ -412,7 +412,7 @@ export const ManagerUsers: React.FC = () => {
                   {customersList.map(c => {
                     const totalOrdersCount = allOrders.filter(o => (o.user && o.user.email?.toLowerCase() === c.email?.toLowerCase()) || (o.user && o.user.name === c.name)).length;
                     return (
-                      <tr key={c.id} className={`hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors ${c.isActive ? '' : 'opacity-70'}`}>
+                      <tr key={c.id} className={`hover:bg-[var(--background)]/50 dark:hover:bg-slate-800/50 transition-colors ${c.isActive ? '' : 'opacity-70'}`}>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold text-sm shrink-0 shadow-sm border border-[var(--primary)]/20">
@@ -464,7 +464,7 @@ export const ManagerUsers: React.FC = () => {
               <div className="py-12"><AppEmptyState title="No staff members found" description="No staff profiles match your search criteria." icon={Shield} /></div>
             ) : (
               <table className="w-full text-left border-collapse whitespace-nowrap">
-                <thead className="bg-gray-50 dark:bg-slate-800/50">
+                <thead className="bg-[var(--surface-hover)]">
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider">
                     <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Staff Profile</th>
                     <th className="px-6 py-4 sticky top-0 bg-inherit z-10">Contact Info</th>
@@ -483,10 +483,10 @@ export const ManagerUsers: React.FC = () => {
 
                     return (
                       <React.Fragment key={s.id}>
-                        <tr className={`hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors ${s.isActive ? '' : 'opacity-70'} ${hasExpiredDoc ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}>
+                        <tr className={`hover:bg-[var(--background)]/50 dark:hover:bg-slate-800/50 transition-colors ${s.isActive ? '' : 'opacity-70'} ${hasExpiredDoc ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 shadow-sm border ${hasExpiredDoc ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600'}`}>
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 shadow-sm border ${hasExpiredDoc ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-700 border-[var(--border)] dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600'}`}>
                                 {s.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                               </div>
                               <div>
@@ -525,7 +525,7 @@ export const ManagerUsers: React.FC = () => {
                           </td>
                         </tr>
                         {isExpanded && isStaffOrManager && (
-                          <tr className="bg-gray-50/50 dark:bg-slate-800/30">
+                          <tr className="bg-[var(--surface-hover)]">
                             <td colSpan={5} className="px-6 py-4 border-b border-[var(--border)]">
                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-10">
                                 <div>
@@ -547,7 +547,7 @@ export const ManagerUsers: React.FC = () => {
                                 {s.notes && (
                                   <div className="col-span-full mt-2">
                                     <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Admin Notes</div>
-                                    <div className="text-[13px] text-[var(--text-secondary)] bg-white dark:bg-slate-900 p-3 rounded-lg border border-[var(--border)]">{s.notes}</div>
+                                    <div className="text-[13px] text-[var(--text-secondary)] bg-[var(--background)] p-3 rounded-lg border border-[var(--border)]">{s.notes}</div>
                                   </div>
                                 )}
                               </div>
@@ -568,7 +568,7 @@ export const ManagerUsers: React.FC = () => {
       {selectedCustomer && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedCustomer(null)}>
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50 dark:bg-slate-800/50 shrink-0">
+            <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface-hover)] shrink-0">
               <div>
                 <h3 className="font-bold text-lg m-0 flex items-center gap-2"><ShoppingBag size={18} className="text-[var(--primary)]" /> Customer Purchase History</h3>
                 <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-0">Purchases for <span className="font-bold text-[var(--text-primary)]">{selectedCustomer.name}</span> ({selectedCustomer.email})</p>
@@ -608,7 +608,7 @@ export const ManagerUsers: React.FC = () => {
                       ))}
                     </div>
 
-                    <div className="border-t border-[var(--border)] pt-4 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/30 -mx-5 -mb-5 px-5 py-4 rounded-b-xl">
+                    <div className="border-t border-[var(--border)] pt-4 flex justify-between items-center bg-[var(--surface-hover)] -mx-5 -mb-5 px-5 py-4 rounded-b-xl">
                       <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Total Paid ({order.paymentMethod})</span>
                       <span className="font-black text-xl text-[var(--primary)]">{formatRM(order.total)}</span>
                     </div>

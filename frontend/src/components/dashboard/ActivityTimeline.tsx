@@ -41,14 +41,14 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ events }) =>
                   </div>
                   <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <p className="text-sm font-medium text-[var(--text-primary)]">
                         {event.title}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-slate-400">
+                      <p className="text-sm text-[var(--text-secondary)] dark:text-slate-400">
                         {event.description}
                       </p>
                     </div>
-                    <div className="whitespace-nowrap text-right text-xs text-gray-500 dark:text-slate-400">
+                    <div className="whitespace-nowrap text-right text-xs text-[var(--text-secondary)] dark:text-slate-400">
                       <time dateTime={event.time}>{event.time}</time>
                     </div>
                   </div>

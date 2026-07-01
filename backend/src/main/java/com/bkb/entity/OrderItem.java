@@ -35,11 +35,13 @@ public class OrderItem {
     private BigDecimal unitPrice;
 
     @Column(name = "unit_cost", precision = 10, scale = 2)
+    @Builder.Default
     private BigDecimal unitCost = BigDecimal.ZERO;
 
     // Store customisations as JSON string mapped to PostgreSQL jsonb column
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
+    @Builder.Default
     private String customisations = "[]";
 }
 

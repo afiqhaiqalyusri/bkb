@@ -35,9 +35,11 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "user_role")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
+    @Builder.Default
     private UserRole role = UserRole.CUSTOMER;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreationTimestamp

@@ -418,7 +418,7 @@ export const MenuPage: React.FC = () => {
 
               {/* Promo banner / Ad */}
               {activeAd ? (
-                <div style={{ background:'linear-gradient(135deg,#1A1008,#3D1F1C)', borderRadius:14, padding:'12px 14px', marginTop:12, display:'flex', justifyContent:'space-between', alignItems:'center', overflow:'hidden', position:'relative' }}>
+                <div style={{ background:'linear-gradient(135deg, var(--surface), var(--primary))', borderRadius:14, padding:'12px 14px', marginTop:12, display:'flex', justifyContent:'space-between', alignItems:'center', overflow:'hidden', position:'relative' }}>
                   <div style={{ zIndex: 1 }}>
                     <div style={{ fontSize:'0.62rem', fontWeight:700, color:'rgba(255,255,255,0.6)', marginBottom:1 }}>🔥 {activeAd.type === 'SEASONAL' ? 'SEASONAL OFFER' : 'FEATURED'}</div>
                     <div style={{ fontFamily:'Poppins', fontWeight:700, fontSize:'0.85rem', color:'#fff' }}>{activeAd.title}</div>
@@ -431,7 +431,7 @@ export const MenuPage: React.FC = () => {
                   )}
                 </div>
               ) : promo && (
-                <div style={{ background:'linear-gradient(135deg,#1A1008,#3D1F1C)', borderRadius:14, padding:'12px 14px', marginTop:12, display:'flex', justifyContent:'space-between', alignItems:'center', overflow:'hidden', position:'relative' }}>
+                <div style={{ background:'linear-gradient(135deg, var(--surface), var(--primary))', borderRadius:14, padding:'12px 14px', marginTop:12, display:'flex', justifyContent:'space-between', alignItems:'center', overflow:'hidden', position:'relative' }}>
                   <div>
                     <div style={{ fontSize:'0.62rem', fontWeight:700, color:'rgba(255,255,255,0.6)', marginBottom:1 }}>🔥 LIMITED OFFER</div>
                     <div style={{ fontFamily:'Poppins', fontWeight:700, fontSize:'0.85rem', color:'#fff' }}>{promo.title}</div>

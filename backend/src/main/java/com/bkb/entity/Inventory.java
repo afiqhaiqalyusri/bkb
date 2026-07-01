@@ -51,6 +51,7 @@ public class Inventory {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "inventory_status")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
+    @Builder.Default
     private InventoryStatus status = InventoryStatus.GOOD;
 
     @Builder.Default

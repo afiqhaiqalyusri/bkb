@@ -482,7 +482,7 @@ const MenuAnalyticsContent: React.FC = () => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <DashboardCard>
         <div className="mb-4">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">Best Performers</h3>
+          <h3 className="text-base font-bold text-[var(--text-primary)]">Best Performers</h3>
         </div>
         <div className="overflow-x-auto">
           <AppTable columns={cols} data={analytics?.topSellers || []} keyExtractor={(i) => i.itemName} emptyMessage={<AppEmptyState title="No data" />} />
@@ -490,7 +490,7 @@ const MenuAnalyticsContent: React.FC = () => {
       </DashboardCard>
       <DashboardCard>
         <div className="mb-4">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">Needs Attention</h3>
+          <h3 className="text-base font-bold text-[var(--text-primary)]">Needs Attention</h3>
         </div>
         <div className="overflow-x-auto">
           <AppTable columns={cols} data={analytics?.worstSellers || []} keyExtractor={(i) => i.itemName} emptyMessage={<AppEmptyState title="No data" />} />
@@ -522,14 +522,14 @@ const CustomerInsightsContent: React.FC = () => {
 
       <DashboardCard>
         <div className="mb-6">
-          <h3 className="text-base font-bold text-gray-900 dark:text-white">Recent Customer Feedback</h3>
+          <h3 className="text-base font-bold text-[var(--text-primary)]">Recent Customer Feedback</h3>
         </div>
         {(!insights?.recentFeedback || insights.recentFeedback.length === 0) ? (
           <AppEmptyState title="No feedback yet" icon={MessageSquare} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {insights.recentFeedback.map((fb: any, idx: number) => (
-              <div key={idx} className="p-5 border border-gray-100 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 transition-colors shadow-sm">
+              <div key={idx} className="p-5 border border-[var(--border)] rounded-xl bg-[var(--background)] hover:bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-colors shadow-sm">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-[var(--primary)] flex items-center justify-center font-bold text-xs">

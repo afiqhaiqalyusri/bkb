@@ -128,9 +128,9 @@ export const FrontOrderCard = React.memo<FrontCardProps>(({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         {order.items.map(item => (
           <div key={item.id}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1A1008' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               {getItemEmoji(item.menuItemName)} {item.quantity}× {item.menuItemName}
-              <span style={{ color: '#9B7B6B', fontWeight: 500, marginLeft: 6 }}>
+              <span style={{ color: 'var(--text-secondary)', fontWeight: 500, marginLeft: 6 }}>
                 {formatRM(item.unitPrice * item.quantity)}
               </span>
             </div>
@@ -222,7 +222,7 @@ export const FrontOrderCard = React.memo<FrontCardProps>(({
           disabled={updating || !isPaid}
           style={{
             width: '100%',
-            background: isPaid ? '#16A34A' : '#9B7B6B',
+            background: isPaid ? '#16A34A' : 'var(--warning)',
             color: '#fff',
             border: 'none',
             borderRadius: 10,

@@ -33,6 +33,7 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "payment_method_enum")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
+    @Builder.Default
     private PaymentMethodEnum method = PaymentMethodEnum.CASH;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -41,6 +42,7 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "payment_status_enum")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
+    @Builder.Default
     private PaymentStatusEnum status = PaymentStatusEnum.PENDING;
 
     @Column(name = "receipt_url", columnDefinition = "TEXT")

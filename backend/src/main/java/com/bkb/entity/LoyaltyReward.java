@@ -27,6 +27,7 @@ public class LoyaltyReward {
     private Integer pointsCost;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(columnDefinition = "TEXT")

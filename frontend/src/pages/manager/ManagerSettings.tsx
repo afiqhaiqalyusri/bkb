@@ -114,7 +114,7 @@ export const ManagerSettings: React.FC = () => {
 
   const ToggleSwitch: React.FC<{ checked: boolean; onChange: () => void }> = ({ checked, onChange }) => (
     <div onClick={onChange} className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${checked ? 'bg-[var(--primary)]' : 'bg-[var(--border)]'}`}>
-      <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+      <div className={`bg-[var(--surface)] w-4 h-4 rounded-full shadow-sm transform transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
     </div>
   );
 
@@ -137,7 +137,7 @@ export const ManagerSettings: React.FC = () => {
                   <div>
                     <h3 className="font-bold text-[var(--text-primary)] m-0">{user?.name || 'Administrator'}</h3>
                     <p className="text-sm text-[var(--text-secondary)] m-0">{user?.email}</p>
-                    <span className="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
+                    <span className="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)]">
                       {user?.role || 'ADMIN'}
                     </span>
                   </div>
