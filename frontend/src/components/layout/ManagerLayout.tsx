@@ -22,7 +22,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { path: '/manager',                label: 'Dashboard',  icon: LayoutDashboard, exact: true },
   { 
-    label: 'Menu', 
+    label: 'Menu Management', 
     icon: ShoppingBag,
     subItems: [
       { path: '/manager/menu',       label: 'Menu Items', icon: ShoppingBag },
@@ -30,15 +30,32 @@ const NAV_ITEMS: NavItem[] = [
       { path: '/manager/recipes',    label: 'Recipes',    icon: ChefHat },
     ]
   },
-  { path: '/manager/inventory',      label: 'Inventory',  icon: Package },
-  { path: '/manager/waste',          label: 'Waste Log',  icon: Trash2 },
-  { path: '/manager/users',          label: 'Users',      icon: Users },
-  { path: '/manager/feedback',       label: 'Feedback',   icon: MessageSquare },
-  { path: '/manager/loyalty',        label: 'Loyalty',    icon: Award },
-  { path: '/manager/advertisements', label: 'Advertisements', icon: Megaphone },
-  { path: '/manager?tab=reports',    label: 'Reports',    icon: BarChart2 },
-  { path: '/manager?tab=overview',   label: 'Analytics',  icon: PieChart },
-  { path: '/manager/settings',       label: 'Settings',   icon: Settings },
+  {
+    label: 'Inventory Ops',
+    icon: Package,
+    subItems: [
+      { path: '/manager/inventory',  label: 'Stock Levels', icon: Package },
+      { path: '/manager/waste',      label: 'Waste Log',    icon: Trash2 },
+    ]
+  },
+  {
+    label: 'Engagement',
+    icon: Megaphone,
+    subItems: [
+      { path: '/manager/advertisements', label: 'Advertisements', icon: Megaphone },
+      { path: '/manager/loyalty',        label: 'Loyalty Program',icon: Award },
+      { path: '/manager/feedback',       label: 'Feedback',       icon: MessageSquare },
+    ]
+  },
+  {
+    label: 'System Admin',
+    icon: Settings,
+    adminOnly: true,
+    subItems: [
+      { path: '/manager/users',      label: 'Staff & Users',  icon: Users },
+      { path: '/manager/settings',   label: 'Global Settings',icon: Settings },
+    ]
+  }
 ];
 
 export interface ManagerTab {
