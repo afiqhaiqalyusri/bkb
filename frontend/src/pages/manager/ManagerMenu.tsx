@@ -17,6 +17,7 @@ import { AppCard } from '../../components/ui/AppCard';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppPageHeader } from '../../components/ui/AppPageHeader';
 import { AppEmptyState } from '../../components/ui/AppEmptyState';
+import { getImageUrl } from '../../utils/imageUtils';
 
 export const MenuContent: React.FC = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -194,7 +195,7 @@ export const MenuContent: React.FC = () => {
             <div key={item.id} className={`bg-[var(--bkb-card-bg)] border border-[var(--bkb-border)] rounded-xl overflow-hidden shadow-sm transition-all duration-200 hover:shadow-md ${!item.isAvailable ? 'opacity-70 grayscale-[0.2]' : ''}`}>
               <div className="h-36 relative bg-[var(--background)] flex items-center justify-center overflow-hidden">
                 {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  <img src={getImageUrl(item.imageUrl)} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
                   <ImageIcon size={48} className="text-[var(--border)]" />
                 )}
