@@ -377,6 +377,7 @@ export const MenuPage: React.FC = () => {
                   <h1 style={{ fontFamily:'Poppins', fontWeight:800, fontSize:'1.35rem', color:'var(--text-primary)', lineHeight:1.2, marginBottom:12 }}>
                     Find your <span style={{ color:'var(--red)' }}>favourite</span>
                   </h1>
+                </div>
               </div>
 
               {/* Search */}
