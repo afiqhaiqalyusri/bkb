@@ -68,13 +68,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     long countUniqueCustomersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     // Native query is already correct, no change needed
-    @Query(value = "SELECT EXTRACT(HOUR FROM created_at) as hr, COUNT(*) as cnt FROM orders WHERE payment_status::varchar = 'PAID' AND created_at BETWEEN :from AND :to GROUP BY hr ORDER BY cnt DESC", nativeQuery = true)
+    @Query(value = "SELECT EXTRACT(HOUR FROM created_at) as hr, COUNT(*) as cnt FROM orders WHERE CAST(payment_status as varchar) = 'PAID' AND created_at BETWEEN :from AND :to GROUP BY hr ORDER BY cnt DESC", nativeQuery = true)
     List<Object[]> getPeakHours(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query("SELECT SUM(o.total) FROM Order o WHERE CAST(o.paymentStatus as String) = 'PAID' AND o.user IS NOT NULL")
     java.math.BigDecimal sumUserRevenue();
 
-    @Query(value = "SELECT COUNT(*) FROM (SELECT user_id FROM orders WHERE payment_status::varchar = 'PAID' AND user_id IS NOT NULL GROUP BY user_id HAVING COUNT(*) > 1) AS repeat_cust", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM (SELECT user_id FROM orders WHERE CAST(payment_status as varchar) = 'PAID' AND user_id IS NOT NULL GROUP BY user_id HAVING COUNT(*) > 1) AS repeat_cust", nativeQuery = true)
     long countRepeatCustomers();
 
     @Query("SELECT AVG(o.rating) FROM Order o WHERE o.rating IS NOT NULL")
