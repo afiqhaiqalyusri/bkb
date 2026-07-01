@@ -173,7 +173,7 @@ public class MockDataSeederService {
                         .quantity(quantity)
                         .unitPrice(unitPrice)
                         .unitCost(unitCost)
-                        .notes(notes.isEmpty() ? null : notes)
+                        .customisations(notes.isEmpty() ? "[]" : "[{\"name\":\"" + notes + "\"}]")
                         .build();
 
                 orderItemRepository.save(orderItem);
