@@ -29,6 +29,12 @@ export const recipeService = {
     api.post<ApiResponse<Recipe>>(`${BASE}/menu/${menuItemId}/ingredients`, request).then(r => r.data),
 
   /**
+   * Add multiple ingredients to all menu items in a category.
+   */
+  addIngredientsToCategory: (category: string, requests: RecipeIngredientRequest[]) =>
+    api.post<ApiResponse<Recipe[]>>(`${BASE}/category/${encodeURIComponent(category)}/ingredients`, requests).then(r => r.data),
+
+  /**
    * Update an existing recipe ingredient (quantity, inventory item, or optional flag).
    */
   updateIngredient: (menuItemId: number, ingredientId: number, request: RecipeIngredientRequest) =>

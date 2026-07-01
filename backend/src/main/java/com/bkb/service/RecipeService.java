@@ -148,6 +148,57 @@ public class RecipeService {
     }
 
     /**
+     * Add multiple ingredients to all menu items in a specific category.
+     * Skips items where the ingredient already exists.
+     */
+    @Transactional
+    public List<RecipeResponse> addIngredientsToCategory(String category, List<RecipeIngredientRequest> requests) {
+        List<MenuItem> items = menuItemRepository.findByCategoryAndDeletedFalse(category);
+        List<RecipeResponse> responses = new java.util.ArrayList<>();
+        
+        for (MenuItem item : items) {
+            // Ensure recipe exists
+            Recipe recipe = recipeRepository.findByMenuItemIdWithIngredients(item.getId())
+                    .orElseGet(() -> {
+                        Recipe newRecipe = Recipe.builder()
+                                .menuItem(item)
+                                .updatedAt(LocalDateTime.now())
+                                .build();
+                        return recipeRepository.save(newRecipe);
+                    });
+
+            boolean updated = false;
+
+            for (RecipeIngredientRequest request : requests) {
+                Inventory inventory = inventoryRepository.findById(request.getInventoryId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Inventory item", request.getInventoryId()));
+
+                boolean alreadyExists = recipe.getIngredients().stream()
+                        .anyMatch(ri -> ri.getInventory().getId().equals(request.getInventoryId()));
+
+                if (!alreadyExists) {
+                    RecipeIngredient ingredient = RecipeIngredient.builder()
+                            .recipe(recipe)
+                            .inventory(inventory)
+                            .quantity(request.getQuantity())
+                            .isOptional(request.isOptional())
+                            .build();
+                    recipe.getIngredients().add(ingredient);
+                    updated = true;
+                }
+            }
+
+            if (updated) {
+                recipe.setUpdatedAt(LocalDateTime.now());
+                recipe = recipeRepository.save(recipe);
+            }
+            responses.add(toResponse(recipe));
+        }
+        
+        return responses;
+    }
+
+    /**
      * Update quantity or optional flag for an existing recipe ingredient.
      */
     @Transactional

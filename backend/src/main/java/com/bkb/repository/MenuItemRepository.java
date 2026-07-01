@@ -11,6 +11,8 @@ import java.util.List;
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     List<MenuItem> findByDeletedFalse();
 
+    List<MenuItem> findByCategoryAndDeletedFalse(String category);
+
     @Query("SELECT DISTINCT m.category FROM MenuItem m WHERE m.deleted = false ORDER BY m.category")
     List<String> findDistinctCategories();
 

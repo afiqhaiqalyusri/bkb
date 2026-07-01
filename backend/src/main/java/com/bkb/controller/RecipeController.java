@@ -74,6 +74,18 @@ public class RecipeController {
     }
 
     /**
+     * POST /api/recipes/category/{category}/ingredients
+     * Add multiple ingredients to all menu items in a specific category.
+     */
+    @PostMapping("/category/{category}/ingredients")
+    public ResponseEntity<ApiResponse<List<RecipeResponse>>> addIngredientsToCategory(
+            @PathVariable String category,
+            @Valid @RequestBody List<RecipeIngredientRequest> requests) {
+        List<RecipeResponse> responses = recipeService.addIngredientsToCategory(category, requests);
+        return ResponseEntity.status(201).body(ApiResponse.success("Ingredients added to category " + category, responses));
+    }
+
+    /**
      * PUT /api/recipes/menu/{menuItemId}/ingredients/{ingredientId}
      * Update an existing recipe ingredient (quantity, inventory item, or optional flag).
      */

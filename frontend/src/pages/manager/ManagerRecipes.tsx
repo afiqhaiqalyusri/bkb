@@ -32,10 +32,11 @@ interface IngredientFormModalProps {
   inventoryItems: InventoryItem[];
   editingIngredient: RecipeIngredientItem | null;
   saving: boolean;
+  bulkCategory?: string | null;
 }
 
 const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
-  isOpen, onClose, onAdd, onEdit, inventoryItems, editingIngredient, saving
+  isOpen, onClose, onAdd, onEdit, inventoryItems, editingIngredient, saving, bulkCategory
 }) => {
   const [selectedItems, setSelectedItems] = useState<Record<number, { quantity: number; isOptional: boolean }>>({});
   const [search, setSearch] = useState('');
@@ -106,8 +107,8 @@ const IngredientFormModal: React.FC<IngredientFormModalProps> = ({
     <AppModal
       isOpen={isOpen}
       onClose={onClose}
-      title={editingIngredient ? 'Edit Recipe Ingredient' : 'Add Ingredients to Recipe'}
-      subtitle={editingIngredient ? 'Update the quantity or optional status' : 'Select one or more inventory items to add'}
+      title={editingIngredient ? 'Edit Recipe Ingredient' : bulkCategory ? `Bulk Add to ${bulkCategory}` : 'Add Ingredients to Recipe'}
+      subtitle={editingIngredient ? 'Update the quantity or optional status' : bulkCategory ? `Add these ingredients to all items in the ${bulkCategory} category` : 'Select one or more inventory items to add'}
       icon={<Package size={18} className="text-[var(--primary)]" />}
       size="md"
       onSubmit={handleSubmit}
@@ -253,6 +254,7 @@ export const ManagerRecipes: React.FC = () => {
   // Modal state
   const [showIngredientModal, setShowIngredientModal] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState<RecipeIngredientItem | null>(null);
+  const [bulkCategoryMode, setBulkCategoryMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notesSaving, setNotesSaving] = useState(false);
 
@@ -297,6 +299,24 @@ export const ManagerRecipes: React.FC = () => {
 
   // Add ingredient
   const handleAddIngredient = async (data: RecipeIngredientRequest[]) => {
+    if (bulkCategoryMode && selectedCategory !== 'All') {
+      setSaving(true);
+      try {
+        await recipeService.addIngredientsToCategory(selectedCategory, data);
+        toast.success(`Added ${data.length} ingredient(s) to category ${selectedCategory}`);
+        setShowIngredientModal(false);
+        setBulkCategoryMode(false);
+        if (selectedItem && selectedItem.category === selectedCategory) {
+          loadRecipe(selectedItem.id);
+        }
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || 'Failed to bulk add ingredients');
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     if (!selectedItem) return;
     setSaving(true);
     try {
@@ -359,8 +379,9 @@ export const ManagerRecipes: React.FC = () => {
     }
   };
 
-  const openAddModal = () => { setEditingIngredient(null); setShowIngredientModal(true); };
-  const openEditModal = (ing: RecipeIngredientItem) => { setEditingIngredient(ing); setShowIngredientModal(true); };
+  const openAddModal = () => { setEditingIngredient(null); setBulkCategoryMode(false); setShowIngredientModal(true); };
+  const openEditModal = (ing: RecipeIngredientItem) => { setEditingIngredient(ing); setBulkCategoryMode(false); setShowIngredientModal(true); };
+  const openBulkModal = () => { setEditingIngredient(null); setBulkCategoryMode(true); setShowIngredientModal(true); };
 
   const ingredientColumns: Column<RecipeIngredientItem>[] = [
     {
@@ -417,10 +438,19 @@ export const ManagerRecipes: React.FC = () => {
 
         {/* ── Panel 1: Category Selector ── */}
         <AppCard className="!p-0 flex flex-col h-[300px] md:h-full">
-          <div className="px-4 py-3 border-b border-[var(--border)] bg-gray-50 dark:bg-slate-800/50 shrink-0">
+          <div className="px-4 py-3 border-b border-[var(--border)] bg-gray-50 dark:bg-slate-800/50 shrink-0 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Categories
             </span>
+            {selectedCategory !== 'All' && (
+              <button 
+                onClick={openBulkModal}
+                className="text-[10px] bg-[var(--primary)] text-white px-2 py-1 rounded font-bold hover:bg-[var(--primary)]/90 transition-colors shadow-sm flex items-center gap-1"
+              >
+                <Plus size={12} />
+                Bulk Add
+              </button>
+            )}
           </div>
           <div className="overflow-y-auto p-2 flex-1">
             {categories.map(cat => (
@@ -591,12 +621,13 @@ export const ManagerRecipes: React.FC = () => {
       {/* Ingredient Form Modal */}
       <IngredientFormModal
         isOpen={showIngredientModal}
-        onClose={() => { setShowIngredientModal(false); setEditingIngredient(null); }}
+        onClose={() => { setShowIngredientModal(false); setEditingIngredient(null); setBulkCategoryMode(false); }}
         onAdd={handleAddIngredient}
         onEdit={handleEditIngredient}
         inventoryItems={inventoryItems}
         editingIngredient={editingIngredient}
         saving={saving}
+        bulkCategory={bulkCategoryMode ? selectedCategory : null}
       />
     </ManagerLayout>
   );
