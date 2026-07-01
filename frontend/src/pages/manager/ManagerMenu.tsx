@@ -4,6 +4,7 @@ import { Plus, Edit2, Trash2, ToggleLeft, ToggleRight, X, Tag, Image as ImageIco
 import { MenuItem } from '../../types';
 import { menuService } from '../../services/menu.service';
 import { categoryService } from '../../services/category.service';
+import { advertisementService } from '../../services/advertisement.service';
 import { ManagerLayout } from '../../components/layout/ManagerLayout';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatRM } from '../../utils/formatCurrency';
@@ -40,24 +41,32 @@ export const MenuContent: React.FC = () => {
   const [uploadingFileName, setUploadingFileName] = useState('');
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadingFile(true); setUploadProgress(0); setUploadingFileName(file.name); setFilePreviewUrl(null);
+    setUploadingFile(true); 
+    setUploadProgress(0); 
+    setUploadingFileName(file.name); 
+    setFilePreviewUrl(null);
 
-    const timer = setInterval(() => {
-      setUploadProgress(prev => {
-        const next = prev + 25;
-        if (next >= 100) {
-          clearInterval(timer); setUploadingFile(false);
-          const preview = URL.createObjectURL(file);
-          setFilePreviewUrl(preview); setEditItem(p => p ? { ...p, imageUrl: preview } : null);
-          toast.success('Image uploaded successfully'); return 100;
-        }
-        return next;
-      });
-    }, 200);
+    try {
+      // Fake progress while uploading
+      const timer = setInterval(() => setUploadProgress(p => p < 90 ? p + 10 : p), 200);
+      
+      const res = await advertisementService.uploadImage(file);
+      
+      clearInterval(timer);
+      setUploadProgress(100);
+      setFilePreviewUrl(res.data.url); 
+      setEditItem(p => p ? { ...p, imageUrl: res.data.url } : null);
+      toast.success('Image uploaded successfully');
+    } catch (err: any) {
+      toast.error('Failed to upload image');
+      console.error(err);
+    } finally {
+      setTimeout(() => setUploadingFile(false), 500);
+    }
   };
 
   const loadInitialData = () => {
