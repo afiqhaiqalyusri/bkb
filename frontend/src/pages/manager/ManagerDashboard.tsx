@@ -161,7 +161,7 @@ const OverviewContent: React.FC = () => {
             <AppCard title="Revenue Trend" subtitle="Daily revenue over the selected period" className="min-h-[400px] flex flex-col">
               <div className="flex-1 w-full mt-4 min-h-[300px]">
                 {salesData?.dailyRevenue?.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={salesData.dailyRevenue} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -208,7 +208,7 @@ const OverviewContent: React.FC = () => {
             <AppCard title="Top Selling Items" subtitle="Highest volume products" className="min-h-[400px] flex flex-col">
               <div className="flex-1 w-full mt-4 min-h-[300px]">
                 {dashboardData?.topItems?.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={dashboardData.topItems.slice(0, 5)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
                       <XAxis 
