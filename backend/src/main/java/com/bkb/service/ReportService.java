@@ -80,7 +80,7 @@ public class ReportService {
         }
 
         // Top selling items
-        List<Object[]> topRaw = orderItemRepository.findTopSellingItems(fromDt, toDt);
+        List<Object[]> topRaw = orderItemRepository.findTopSellingItems(fromDt, toDt, BigDecimal.ZERO);
         List<SalesReportResponse.TopItemEntry> topItems = topRaw.stream()
                 .limit(10)
                 .map(row -> SalesReportResponse.TopItemEntry.builder()
@@ -125,7 +125,7 @@ public class ReportService {
 
         BigDecimal rev = orderRepository.sumRevenueBetween(fromDt, toDt);
         if (rev == null) rev = BigDecimal.ZERO;
-        BigDecimal prof = orderRepository.sumProfitBetween(fromDt, toDt);
+        BigDecimal prof = orderRepository.sumProfitBetween(fromDt, toDt, BigDecimal.ZERO);
         if (prof == null) prof = BigDecimal.ZERO;
         long ord = orderRepository.countOrdersBetween(fromDt, toDt);
         long cust = orderRepository.countUniqueCustomersBetween(fromDt, toDt);
@@ -137,12 +137,12 @@ public class ReportService {
 
         BigDecimal prevRev = orderRepository.sumRevenueBetween(prevFromDt, prevToDt);
         if (prevRev == null) prevRev = BigDecimal.ZERO;
-        BigDecimal prevProf = orderRepository.sumProfitBetween(prevFromDt, prevToDt);
+        BigDecimal prevProf = orderRepository.sumProfitBetween(prevFromDt, prevToDt, BigDecimal.ZERO);
         if (prevProf == null) prevProf = BigDecimal.ZERO;
         long prevOrd = orderRepository.countOrdersBetween(prevFromDt, prevToDt);
         long prevCust = orderRepository.countUniqueCustomersBetween(prevFromDt, prevToDt);
 
-        List<Object[]> topRaw = orderItemRepository.findTopSellingItems(fromDt, toDt);
+        List<Object[]> topRaw = orderItemRepository.findTopSellingItems(fromDt, toDt, BigDecimal.ZERO);
         List<ExecutiveDashboardResponse.TopItemEntry> topItems = topRaw.stream()
                 .limit(6)
                 .map(row -> ExecutiveDashboardResponse.TopItemEntry.builder()
@@ -192,8 +192,8 @@ public class ReportService {
         LocalDateTime fromDt = from.atStartOfDay();
         LocalDateTime toDt = to.plusDays(1).atStartOfDay();
 
-        List<Object[]> topRaw = orderItemRepository.findTopSellingItems(fromDt, toDt);
-        List<Object[]> worstRaw = orderItemRepository.findWorstSellingItems(fromDt, toDt);
+        List<Object[]> topRaw = orderItemRepository.findTopSellingItems(fromDt, toDt, BigDecimal.ZERO);
+        List<Object[]> worstRaw = orderItemRepository.findWorstSellingItems(fromDt, toDt, BigDecimal.ZERO);
 
         return MenuAnalyticsResponse.builder()
                 .topSellers(mapMenuPerformance(topRaw))

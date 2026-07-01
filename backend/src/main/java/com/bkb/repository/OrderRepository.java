@@ -58,8 +58,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT SUM(o.total) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
     java.math.BigDecimal sumRevenueBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("SELECT SUM(o.total - COALESCE(o.totalCost, 0.0BD)) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
-    java.math.BigDecimal sumProfitBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    @Query("SELECT SUM(o.total - COALESCE(o.totalCost, :zero)) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
+    java.math.BigDecimal sumProfitBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to, @Param("zero") java.math.BigDecimal zero);
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
     long countOrdersBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);

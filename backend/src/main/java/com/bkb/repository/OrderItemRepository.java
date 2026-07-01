@@ -13,19 +13,19 @@ import java.util.List;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<OrderItem> findByOrderId(Long orderId);
 
-    @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * COALESCE(oi.unitCost, 0.0BD)) as estimatedProfit " +
+    @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * COALESCE(oi.unitCost, :zero)) as estimatedProfit " +
            "FROM OrderItem oi " +
            "JOIN oi.order o " +
            "WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID " +
            "GROUP BY oi.menuItem.id, oi.menuItem.name " +
            "ORDER BY SUM(oi.quantity) DESC")
-    List<Object[]> findTopSellingItems(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    List<Object[]> findTopSellingItems(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to, @Param("zero") java.math.BigDecimal zero);
 
-    @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * COALESCE(oi.unitCost, 0.0BD)) as estimatedProfit " +
+    @Query("SELECT oi.menuItem.id, oi.menuItem.name, SUM(oi.quantity) as totalQty, SUM(oi.quantity * oi.unitPrice) as totalRevenue, SUM(oi.quantity * oi.unitPrice) - SUM(oi.quantity * COALESCE(oi.unitCost, :zero)) as estimatedProfit " +
            "FROM OrderItem oi " +
            "JOIN oi.order o " +
            "WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID " +
            "GROUP BY oi.menuItem.id, oi.menuItem.name " +
            "ORDER BY SUM(oi.quantity) ASC")
-    List<Object[]> findWorstSellingItems(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    List<Object[]> findWorstSellingItems(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to, @Param("zero") java.math.BigDecimal zero);
 }
