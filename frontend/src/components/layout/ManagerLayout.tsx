@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, Package, Trash2, Users, Award,
-  Settings, Menu as MenuIcon, ChefHat, Tag, Megaphone, LogOut, Bell, X
+  Settings, Menu as MenuIcon, ChefHat, Tag, Megaphone, LogOut, Bell, X, MessageSquare
 } from 'lucide-react';
 import { BkbLogo } from '../ui/BkbLogo';
 import { useAuthStore } from '../../store/authStore';
@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/manager/inventory',      label: 'Inventory',  icon: Package },
   { path: '/manager/waste',          label: 'Waste Log',  icon: Trash2 },
   { path: '/manager/users',          label: 'Users',      icon: Users },
+  { path: '/manager/feedback',       label: 'Feedback',   icon: MessageSquare },
   { path: '/manager/loyalty',        label: 'Loyalty',    icon: Award },
   { path: '/manager/advertisements', label: 'Ads',        icon: Megaphone },
   { path: '/manager/categories',     label: 'Categories', icon: Tag },

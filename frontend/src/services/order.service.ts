@@ -64,4 +64,7 @@ export const orderService = {
 
   cancelOnHoldOrder: (id: number) =>
     api.delete<ApiResponse<Order>>(`/api/orders/on-hold/${id}`).then(r => r.data),
+
+  getFeedbackHistory: () =>
+    api.get<ApiResponse<Order[]>>('/api/orders/feedback').then(r => r.data),
 };

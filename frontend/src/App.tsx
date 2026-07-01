@@ -28,6 +28,7 @@ import { ManagerMenu } from './pages/manager/ManagerMenu';
 import { ManagerInventory } from './pages/manager/ManagerInventory';
 import { ManagerWasteLog } from './pages/manager/ManagerWasteLog';
 import { ManagerLoyalty } from './pages/manager/ManagerLoyalty';
+import { ManagerFeedback } from './pages/manager/ManagerFeedback';
 import { ManagerSettings } from './pages/manager/ManagerSettings';
 import { ManagerUsers } from './pages/manager/ManagerUsers';
 import { ManagerCategories } from './pages/manager/ManagerCategories';
@@ -102,6 +103,7 @@ const router = createBrowserRouter([
       { path: 'manager/ingredients', element: <ManagerGuard><ManagerIngredients /></ManagerGuard> },
       { path: 'manager/staff', element: <ManagerGuard><Navigate to="/manager/users?tab=staff" replace /></ManagerGuard> },
       { path: 'manager/loyalty', element: <ManagerGuard><ManagerLoyalty /></ManagerGuard> },
+      { path: 'manager/feedback', element: <ManagerGuard><ManagerFeedback /></ManagerGuard> },
       { path: 'manager/users', element: <ManagerGuard><ManagerUsers /></ManagerGuard> },
       { path: 'manager/settings', element: <ManagerGuard><ManagerSettings /></ManagerGuard> },
       { path: 'manager/customers', element: <ManagerGuard><Navigate to="/manager/users?tab=customers" replace /></ManagerGuard> },
