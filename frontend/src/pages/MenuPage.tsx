@@ -377,31 +377,6 @@ export const MenuPage: React.FC = () => {
                   <h1 style={{ fontFamily:'Poppins', fontWeight:800, fontSize:'1.35rem', color:'var(--text-primary)', lineHeight:1.2, marginBottom:12 }}>
                     Find your <span style={{ color:'var(--red)' }}>favourite</span>
                   </h1>
-                </div>
-                <button
-                  onClick={() => {
-                    if (user?.role === 'GUEST') {
-                      clearAuth();
-                    }
-                    navigate('/');
-                  }}
-                  style={{
-                    background: 'transparent',
-                    color: 'var(--text-primary)',
-                    border: '1.5px solid var(--border)',
-                    borderRadius: 12,
-                    padding: '8px 14px',
-                    fontFamily: 'Outfit',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                >
-                  Back to Home
-                </button>
               </div>
 
               {/* Search */}
