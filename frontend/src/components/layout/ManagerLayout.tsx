@@ -96,6 +96,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
   headerAction,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
 
@@ -123,18 +124,18 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
 
   return (
     <div
-      className="h-screen w-screen overflow-hidden flex flex-col bg-[#F0F2F5]"
+      className="h-screen w-screen overflow-hidden flex flex-col bg-[var(--background)]"
       style={{ fontFamily: "'Inter', 'DM Sans', sans-serif" }}
     >
       {/* ── TOP NAVIGATION BAR ── */}
-      <header className="flex-shrink-0 bg-white border-b border-gray-100 px-4 lg:px-8 h-[60px] flex items-center justify-between gap-4 z-50">
+      <header className="flex-shrink-0 bg-[var(--surface)] border-b border-[var(--border)] px-4 lg:px-8 h-[60px] flex items-center justify-between gap-4 z-50">
 
         {/* Left: Brand */}
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF6B00] to-[#E65100] flex items-center justify-center shadow">
             <BkbLogo size={16} showText={false} color="#fff" />
           </div>
-          <span className="text-[15px] font-bold tracking-tight text-gray-900 hidden sm:block">BKB Admin</span>
+          <span className="text-[15px] font-bold tracking-tight text-[var(--text-primary)] hidden sm:block">BKB Admin</span>
         </div>
 
         {/* Center: Pill Navigation — desktop only */}
@@ -150,22 +151,47 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({
             <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full ring-1 ring-white" />
           </button>
 
-          {/* Profile + Logout */}
-          <div className="flex items-center gap-2 pl-2 border-l border-gray-100 ml-1">
-            <div className="hidden sm:block text-right">
-              <div className="text-[13px] font-bold text-gray-900 leading-tight">{user?.name || 'Administrator'}</div>
-              <div className="text-[11px] text-gray-400">{user?.email || 'admin@bkb.com'}</div>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-orange-100 border-2 border-white shadow flex items-center justify-center font-bold text-orange-600 text-sm">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
-            </div>
-            <button
-              onClick={handleLogout}
-              title="Log out"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors ml-1"
+          {/* Profile + Dropdown */}
+          <div className="relative flex items-center pl-2 border-l border-gray-100 dark:border-slate-700 ml-1">
+            <button 
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-slate-800 p-1 rounded-lg transition-colors"
             >
-              <LogOut size={15} />
+              <div className="hidden sm:block text-right">
+                <div className="text-[13px] font-bold text-gray-900 dark:text-white leading-tight">{user?.name || 'Administrator'}</div>
+                <div className="text-[11px] text-gray-400 dark:text-slate-400">{user?.email || 'admin@bkb.com'}</div>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 border-2 border-white dark:border-slate-800 shadow flex items-center justify-center font-bold text-[var(--primary)] text-sm">
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+              </div>
             </button>
+
+            {/* Dropdown Menu */}
+            {profileDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
+                <div className="absolute top-full mt-2 right-0 w-48 bg-[var(--surface)] rounded-xl shadow-lg border border-[var(--border)] py-1 z-50">
+                  <Link 
+                    to="/manager/settings" 
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
+                    onClick={() => setProfileDropdownOpen(false)}
+                  >
+                    <Settings size={16} />
+                    Settings
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left"
+                  >
+                    <LogOut size={16} />
+                    Log Out
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Mobile hamburger */}
