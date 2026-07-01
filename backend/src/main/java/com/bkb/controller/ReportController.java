@@ -53,14 +53,7 @@ public class ReportController {
         return ResponseEntity.ok(ApiResponse.success(reportService.getCustomerInsights()));
     }
 
-    @GetMapping("/sales/monthly")
-    public ResponseEntity<ApiResponse<SalesReportResponse>> monthlySales(
-            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().withDayOfMonth(1).toString()}") String from,
-            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().toString()}") String to) {
-        LocalDate fromDate = LocalDate.parse(from);
-        LocalDate toDate = LocalDate.parse(to);
-        return ResponseEntity.ok(ApiResponse.success(reportService.getDailySalesReport(fromDate, toDate)));
-    }
+
 
     @GetMapping("/items/top-selling")
     public ResponseEntity<ApiResponse<SalesReportResponse>> topSelling(
