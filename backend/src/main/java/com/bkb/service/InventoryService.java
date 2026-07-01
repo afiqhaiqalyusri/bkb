@@ -198,8 +198,9 @@ public class InventoryService {
             }
 
             if (inv.getCurrentStock().compareTo(finalNeeded[0]) < 0) {
-                throw new InsufficientStockException(
-                        inv.getItemName(), finalNeeded[0].doubleValue(), inv.getCurrentStock().doubleValue());
+                log.warn("⚠️  Order {} is causing {} to go into negative stock! Needed: {}, Available: {}", 
+                    order.getOrderNumber(), inv.getItemName(), finalNeeded[0], inv.getCurrentStock());
+                // We will allow it to go negative so the kitchen is not blocked from operating
             }
 
             inv.setCurrentStock(inv.getCurrentStock().subtract(finalNeeded[0]));

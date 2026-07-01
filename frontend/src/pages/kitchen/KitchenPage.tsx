@@ -156,8 +156,10 @@ export const KitchenPage: React.FC = () => {
       await orderService.updateStatus(orderId, status);
       await fetchOrders();
       toast.success(`Order ${status.toLowerCase()}`);
-    } catch {
-      toast.error('Failed to update order status');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to update order status';
+      toast.error(msg);
+      console.error('Update status error:', err);
     } finally {
       setUpdating(null);
     }
