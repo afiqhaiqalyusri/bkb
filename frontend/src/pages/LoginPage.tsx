@@ -106,11 +106,6 @@ export const LoginPage: React.FC = () => {
         />
       )}
 
-      {/* Logo */}
-      <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
-        <BkbLogo size={48} showText={true} />
-      </div>
-
       {storeClosed && (
         <div
           style={{
@@ -136,14 +131,14 @@ export const LoginPage: React.FC = () => {
       )}
 
       {/* Form Header */}
-      <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>Welcome Back</h2>
-        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-          Sign in to manage your orders and rewards.
+      <div style={{ marginBottom: '28px' }}>
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Sign In</h2>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+          Please enter your credentials to access your account.
         </p>
       </div>
 
-      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Email Field */}
         <div>
           <label htmlFor="email-input" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>

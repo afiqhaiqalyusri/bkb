@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { BkbLogo } from '../components/ui/BkbLogo';
-import { ArrowRight, Flame, Star, Award, ShieldCheck, Moon, Sun, ShoppingBag } from 'lucide-react';
+import { Search, ShoppingBag, Truck, Utensils, Star, Moon, Sun, ChevronRight } from 'lucide-react';
 import { advertisementService, Advertisement } from '../services/advertisement.service';
-import { getImageUrl } from '../utils/imageUtils';
 import { IngredientOutageBanner } from '../components/IngredientOutageBanner';
+import { formatRM } from '../utils/formatCurrency';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,584 +14,229 @@ export const LandingPage: React.FC = () => {
     return (localStorage.getItem('bkb-theme') as 'light' | 'dark') || 'light';
   });
 
+  const [ads, setAds] = useState<Advertisement[]>([]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('bkb-theme', newTheme);
   };
 
-  const [ads, setAds] = useState<Advertisement[]>([]);
-  const [loadingAds, setLoadingAds] = useState(true);
-
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  useEffect(() => {
-    const fetchAds = async () => {
-      try {
-        const res = await advertisementService.getAll(true, 'LANDING');
-        setAds(res.data);
-      } catch (err) {
-        console.error('Failed to load ads', err);
-      } finally {
-        setLoadingAds(false);
-      }
-    };
-    fetchAds();
+    advertisementService.getAll(true, 'LANDING').then(res => setAds(res.data)).catch(() => {});
   }, []);
 
   const handleOrderNow = () => {
-    if (isAuthenticated) {
-      navigate('/menu');
-    } else {
-      navigate('/login');
-    }
+    navigate(isAuthenticated ? '/menu' : '/login');
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--background)',
-        color: 'var(--text-primary)',
-        transition: 'all 0.3s ease',
-        overflowX: 'hidden'
-      }}
-    >
+    <div style={{ minHeight: '100vh', background: 'var(--background)', color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif', overflowX: 'hidden' }}>
       <IngredientOutageBanner />
-      {/* Premium Header */}
-      <header
-        style={{
-          width: '100%',
-          borderBottom: '1px solid var(--border)',
-          transition: 'border-color 0.3s ease',
-          background: 'var(--background)',
-          position: 'relative',
-          zIndex: 100
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '18px 40px',
-            width: '100%',
-            margin: '0 auto'
-          }}
-        >
-          <BkbLogo size={40} horizontal={true} />
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            {/* Theme Toggle */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="premium-nav-theme-toggle"
-              style={{
-                background: 'var(--cream-dark)',
-                border: 'none',
-                width: 38,
-                height: 38,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'var(--text-dark)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-            </button>
 
-            {isAuthenticated ? (
-              <button
-                onClick={() => navigate('/menu')}
-                className="premium-nav-btn-primary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 18px',
-                  fontSize: '0.82rem',
-                  fontFamily: 'Inter',
-                  fontWeight: 600,
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  color: 'white',
-                  background: 'var(--primary)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <ShoppingBag size={14} /> Enter Store
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => navigate('/login')}
-                  className="premium-nav-btn-text"
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    fontFamily: 'Inter',
-                    padding: '8px 12px'
-                  }}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => navigate('/register')}
-                  className="premium-nav-btn-primary"
-                  style={{
-                    padding: '9px 18px',
-                    fontSize: '0.82rem',
-                    fontFamily: 'Inter',
-                    fontWeight: 600,
-                    border: 'none',
-                    borderRadius: 'var(--radius-md)',
-                    cursor: 'pointer',
-                    color: 'white',
-                    background: 'var(--primary)',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  Join Us
-                </button>
-              </>
-            )}
-          </div>
+      {/* Navbar */}
+      <header style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <BkbLogo size={42} showText={true} />
+        </div>
+
+        <nav className="hidden md:flex" style={{ gap: 40, fontWeight: 700, fontSize: '0.95rem' }}>
+          <a href="#" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Home</a>
+          <a href="#menu" onClick={(e) => { e.preventDefault(); navigate('/menu'); }} style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>Menu</a>
+          <a href="#services" style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>Services</a>
+          <a href="#contact" style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>Contact</a>
+        </nav>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <button onClick={toggleTheme} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex' }}>
+            {theme === 'light' ? <Moon size={22} /> : <Sun size={22} />}
+          </button>
+          <button onClick={() => navigate('/menu')} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex' }}>
+            <Search size={22} />
+          </button>
+          <button onClick={() => navigate('/cart')} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', position: 'relative' }}>
+            <ShoppingBag size={22} />
+            <span style={{ position: 'absolute', top: -5, right: -5, background: 'var(--primary)', color: 'white', fontSize: '0.65rem', fontWeight: 800, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>0</span>
+          </button>
+          {!isAuthenticated && (
+            <button onClick={() => navigate('/login')} style={{ marginLeft: 10, padding: '8px 20px', background: 'var(--cream-dark)', border: '1px solid var(--border)', borderRadius: 99, fontWeight: 700, color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem' }}>
+              Login
+            </button>
+          )}
         </div>
       </header>
 
       {/* Hero Section */}
-      <section
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '60px 24px',
-          alignItems: 'center',
-          width: '100%'
-        }}
-        className="landing-hero-grid"
-      >
-        {/* Left Side: Brand Story & Slogan */}
-        <div style={{ zIndex: 2 }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'rgba(255, 107, 0, 0.08)',
-              color: 'var(--primary)',
-              padding: '6px 12px',
-              borderRadius: '99px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              marginBottom: '24px'
-            }}
-          >
-            <Flame size={14} fill="currentColor" /> Premium Street Burgers
-          </div>
-
-          <h1
-            style={{
-              fontSize: '3.6rem',
-              fontWeight: 900,
-              lineHeight: 1.1,
-              letterSpacing: '-1.5px',
-              color: 'var(--text-dark)',
-              marginBottom: '20px'
-            }}
-          >
-            <span style={{ color: 'var(--primary)' }}>Crafted Fresh.</span>
-            <br />
-            Served Fast.
-            <br />
-            Loved by Everyone.
+      <section style={{ maxWidth: 1200, margin: '40px auto 80px', padding: '0 24px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 60 }}>
+        
+        {/* Hero Left Content */}
+        <div style={{ flex: '1 1 400px', zIndex: 2 }}>
+          <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: 2 }}>Welcome</span>
+          <h1 style={{ fontSize: 'clamp(3rem, 5vw, 4.5rem)', fontWeight: 900, lineHeight: 1.1, margin: '15px 0 24px', letterSpacing: '-1px' }}>
+            Enjoy Your <br />
+            <span style={{ color: 'var(--primary)' }}>Delicious Food</span>
           </h1>
-
-          <p
-            style={{
-              fontSize: '1.05rem',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.6,
-              maxWidth: '480px',
-              marginBottom: '32px'
-            }}
-          >
-            Welcome to Bukan Kedai Burger. We craft premium, mouth-watering street burgers freshly grilled upon request. Indulge in local culinary excellence today!
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, marginBottom: 40, maxWidth: 450, fontWeight: 500 }}>
+            Taste the best street grills, juicy burgers, and spicy crispy chicken, made fresh just for you. Delivery is fast and food is always hot.
           </p>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-            <button
-              onClick={handleOrderNow}
-              className="btn-primary"
-              style={{
-                width: 'auto',
-                padding: '12px 28px',
-                fontSize: '0.9rem'
-              }}
-            >
-              Order Online Now <ArrowRight size={16} style={{ marginLeft: 4 }} />
-            </button>
-            {!isAuthenticated && (
-              <button
-                onClick={() => navigate('/login')}
-                className="btn-outline"
-                style={{
-                  width: 'auto',
-                  padding: '11px 28px',
-                  fontSize: '0.9rem'
-                }}
-              >
-                Continue as Guest
-              </button>
-            )}
-          </div>
-
-          {/* Social Proof */}
-          <div style={{ display: 'flex', gap: '28px', marginTop: '48px', borderTop: '1px solid var(--border)', paddingTop: '28px' }}>
-            <div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-dark)' }}>4.9 ★</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Customer Satisfaction Rating</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-dark)' }}>10K+</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Burgers Served Freshly</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-dark)' }}>100%</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Halal & Premium Ingredients</div>
-            </div>
-          </div>
+          <button onClick={handleOrderNow} className="hover-scale" style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '14px 32px', borderRadius: 99, fontWeight: 800, fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 12, cursor: 'pointer', boxShadow: '0 10px 25px rgba(255, 107, 0, 0.3)' }}>
+            Order Now 
+            <span style={{ background: 'white', color: 'var(--primary)', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronRight size={16} strokeWidth={3} />
+            </span>
+          </button>
         </div>
 
-        {/* Right Side: Visual Image & Floating Elements */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%' }}>
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: '520px',
-              height: '460px',
-              borderRadius: '24px',
-              overflow: 'hidden',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1.5px solid var(--border)'
-            }}
-          >
-            <img 
-              src="/bkb_premium_hero_burger.png" 
-              alt="Signature BKB Gourmet Burger" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-            />
-            {/* Visual gradient overlay to blend */}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%)',
-                zIndex: 1
-              }}
-            />
-            
-            {/* Floating Hot Badge */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'rgba(255, 107, 0, 0.9)',
-                color: 'white',
-                padding: '6px 12px',
-                borderRadius: '99px',
-                fontSize: '0.7rem',
-                fontWeight: 800,
-                letterSpacing: '0.8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 4px 10px rgba(255,107,0,0.35)',
-                zIndex: 3
-              }}
-            >
-              <Flame size={12} fill="white" /> HOT & FRESH
-            </div>
-
-            {/* Mini Glassmorphism Card */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '24px',
-                left: '24px',
-                right: '24px',
-                background: 'rgba(26, 26, 26, 0.65)',
-                backdropFilter: 'blur(16px) saturate(140%)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '16px',
-                padding: '20px',
-                zIndex: 4,
-                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FFF' }}>
-                <Award size={18} style={{ color: 'var(--secondary)' }} />
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>BKB Loyalty Club</span>
+        {/* Hero Right Visuals */}
+        <div style={{ flex: '1 1 500px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          
+          {/* Abstract Orange Shape */}
+          <div style={{ width: 320, height: 420, background: 'var(--primary)', borderRadius: '40px 100px 40px 40px', position: 'absolute', right: '15%' }}></div>
+          
+          {/* Floating Burger Image */}
+          <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=800&auto=format&fit=crop&bg=transparent" alt="Delicious Burger" style={{ width: '85%', maxWidth: 500, position: 'relative', zIndex: 2, transform: 'rotate(-5deg) translateY(-20px)', filter: 'drop-shadow(0 30px 30px rgba(0,0,0,0.3))' }} />
+          
+          {/* Floating Features List */}
+          <div className="hidden md:flex" style={{ flexDirection: 'column', gap: 30, position: 'absolute', right: -20, zIndex: 3 }}>
+            {[
+              { title: 'Fast delivery', sub: 'Delivery within 30 mins', icon: Truck },
+              { title: 'Pick up', sub: 'Pickup in 15 mins', icon: ShoppingBag },
+              { title: 'Dine In', sub: 'Enjoy your food here', icon: Utensils }
+            ].map((feat, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'var(--surface)', padding: '12px 20px 12px 12px', borderRadius: 99, boxShadow: '0 10px 30px rgba(0,0,0,0.08)', transform: `translateX(${idx === 1 ? -20 : 0}px)` }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255, 107, 0, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <feat.icon size={20} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.85rem' }}>{feat.title}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>{feat.sub}</div>
+                </div>
               </div>
-              <p style={{ fontSize: '0.8rem', color: '#FFF', opacity: 0.9, marginTop: '6px', fontWeight: 500, lineHeight: 1.4 }}>
-                Earn points with every bite. Join today to get your first free burger!
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Signature Showcase Section */}
-      <section
-        style={{
-          background: 'var(--secondary-bg)',
-          transition: 'all 0.3s ease',
-          padding: '80px 24px',
-          borderTop: '1px solid var(--border)',
-          borderBottom: '1px solid var(--border)'
-        }}
-      >
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-dark)' }}>
-              Explore Our Signature BKB Menu
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>
-              Hand-pressed patties, flame-grilled and packed with delicious local flavors.
-            </p>
+      {/* Ads / Promos Section */}
+      <section style={{ maxWidth: 1200, margin: '80px auto', padding: '0 24px', display: 'flex', flexWrap: 'wrap', gap: 20 }}>
+        <div style={{ flex: '2 1 400px', height: 280, borderRadius: 24, overflow: 'hidden', position: 'relative', background: '#111' }}>
+          <img src="https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?q=80&w=1200&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} alt="Promo" />
+          <div style={{ position: 'absolute', top: 40, left: 40, color: 'white' }}>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, lineHeight: 1.2, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Buy 2<br/>Get 1 free</h2>
+            <p style={{ marginTop: 10, fontSize: '0.9rem', opacity: 0.9 }}>Available on weekends only.</p>
           </div>
+        </div>
+        <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ flex: 1, height: 130, borderRadius: 24, background: '#222', overflow: 'hidden', position: 'relative' }}>
+            <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} alt="Pizza" />
+            <span style={{ position: 'absolute', bottom: 15, right: 20, color: 'white', fontWeight: 800, letterSpacing: 1 }}>PIZZA DEALS</span>
+          </div>
+          <div style={{ flex: 1, height: 130, borderRadius: 24, background: '#222', overflow: 'hidden', position: 'relative' }}>
+            <img src="https://images.unsplash.com/photo-1547592180-85f173990554?q=80&w=600&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} alt="Soup" />
+            <span style={{ position: 'absolute', bottom: 15, right: 20, color: 'white', fontWeight: 800, letterSpacing: 1 }}>HOT SOUPS</span>
+          </div>
+        </div>
+      </section>
 
-          <div
-            className="items-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '24px'
-            }}
-          >
-            {loadingAds ? (
-              Array.from({ length: 3 }).map((_, idx) => (
-                <div key={idx} style={{ background: 'var(--background)', height: 320, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }} className="animate-pulse" />
-              ))
-            ) : ads.length > 0 ? (
-              ads.map((ad) => (
-              <div
-                key={ad.id}
-                className="card card-hover"
-                style={{
-                  background: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px'
-                }}
-              >
-                <div
-                  style={{
-                    height: '200px',
-                    borderRadius: 'var(--radius-md)',
-                    overflow: 'hidden',
-                    position: 'relative',
-                    boxShadow: 'inset 0 0 20px rgba(0,0,0,0.02)'
-                  }}
-                >
-                  <img 
-                    src={getImageUrl(ad.imageUrl)} 
-                    alt={ad.title} 
-                    className="signature-card-img"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                  />
-                  {ad.type !== 'BANNER' && (
-                    <span style={{
-                      position: 'absolute',
-                      top: '12px',
-                      left: '12px',
-                      background: 'rgba(26, 26, 26, 0.75)',
-                      backdropFilter: 'blur(4px)',
-                      color: 'white',
-                      padding: '4px 10px',
-                      borderRadius: '99px',
-                      fontSize: '0.62rem',
-                      fontWeight: 800,
-                      letterSpacing: '0.5px'
-                    }}>
-                      {ad.type}
-                    </span>
-                  )}
+      {/* Best Products Section */}
+      <section style={{ maxWidth: 1200, margin: '100px auto', padding: '0 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 60 }}>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-0.5px' }}>Best <span style={{ color: 'var(--primary)' }}>Products</span></h2>
+          <button onClick={() => navigate('/menu')} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', letterSpacing: 1 }}>
+            VIEW ALL <ChevronRight size={14} />
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '50px 20px' }}>
+          {[
+            { name: 'Beefy Bites', price: 9.95, img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=400&auto=format&fit=crop', active: true },
+            { name: 'Max Burger', price: 12.00, img: 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=400&auto=format&fit=crop' },
+            { name: 'Roll Basket', price: 5.00, img: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=400&auto=format&fit=crop' },
+            { name: 'Veggie Voyage', price: 8.50, img: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=400&auto=format&fit=crop' },
+            { name: 'Chicken Wings', price: 15.50, img: 'https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?q=80&w=400&auto=format&fit=crop' },
+            { name: 'Supreme Symphony', price: 18.00, img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=400&auto=format&fit=crop' },
+            { name: 'Pepperoni Paradise', price: 22.00, img: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=400&auto=format&fit=crop' },
+            { name: 'Roast Chicken', price: 25.00, img: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?q=80&w=400&auto=format&fit=crop' }
+          ].map((item, idx) => (
+            <div key={idx} style={{ 
+              background: item.active ? 'var(--primary)' : 'var(--cream-dark)', 
+              color: item.active ? 'white' : 'var(--text-primary)',
+              borderRadius: 24, 
+              padding: '30px 20px 24px', 
+              position: 'relative', 
+              boxShadow: item.active ? '0 20px 40px rgba(255, 107, 0, 0.25)' : 'none',
+              border: item.active ? 'none' : '1px solid rgba(255,107,0,0.1)'
+            }}>
+              {/* Floating Product Image */}
+              <div style={{ position: 'absolute', top: -50, left: '50%', transform: 'translateX(-50%)', width: 120, height: 120, borderRadius: '50%', background: '#f5f5f5', overflow: 'hidden', boxShadow: '0 10px 20px rgba(0,0,0,0.15)' }}>
+                <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+
+              <div style={{ marginTop: 70 }}>
+                <h3 style={{ fontWeight: 800, fontSize: '1.05rem', margin: '0 0 8px' }}>{item.name}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#f59e0b', fontSize: '0.8rem', marginBottom: 12 }}>
+                  <Star fill="currentColor" size={12} />
+                  <Star fill="currentColor" size={12} />
+                  <Star fill="currentColor" size={12} />
+                  <Star fill="currentColor" size={12} />
+                  <Star fill="currentColor" size={12} />
+                  <span style={{ color: item.active ? 'rgba(255,255,255,0.7)' : 'var(--text-secondary)', marginLeft: 4 }}>(1k)</span>
                 </div>
-
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-dark)' }}>
-                      {ad.title}
-                    </h3>
-                  </div>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.4 }}>
-                    {ad.subtitle}
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    marginTop: 'auto',
-                    paddingTop: '12px',
-                    borderTop: '1px solid var(--border)'
-                  }}
-                >
-                  <button
-                    onClick={() => navigate('/menu')}
-                    style={{
-                      background: 'rgba(255, 107, 0, 0.06)',
-                      color: 'var(--primary)',
-                      border: '1.5px solid rgba(255, 107, 0, 0.15)',
-                      borderRadius: '8px',
-                      padding: '8px 14px',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      fontFamily: 'Outfit'
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = 'var(--primary)';
-                      e.currentTarget.style.color = 'white';
-                      e.currentTarget.style.borderColor = 'var(--primary)';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'rgba(255, 107, 0, 0.06)';
-                      e.currentTarget.style.color = 'var(--primary)';
-                      e.currentTarget.style.borderColor = 'rgba(255, 107, 0, 0.15)';
-                    }}
-                  >
-                    View Menu
+                <p style={{ fontSize: '0.75rem', color: item.active ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)', lineHeight: 1.4, marginBottom: 20 }}>
+                  Delicious taste for your tastebuds, made fresh every day.
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 800, fontSize: '1.2rem' }}>{formatRM(item.price)}</span>
+                  <button style={{ 
+                    width: 36, height: 36, borderRadius: '50%', 
+                    background: item.active ? 'white' : 'rgba(255, 107, 0, 0.1)', 
+                    color: item.active ? 'var(--primary)' : 'var(--primary)', 
+                    border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' 
+                  }}>
+                    <ShoppingBag size={16} strokeWidth={3} />
                   </button>
                 </div>
               </div>
-              ))
-            ) : (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                More exciting updates coming soon!
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Stories Section */}
+      <section style={{ maxWidth: 1200, margin: '120px auto 100px', padding: '0 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 60 }}>
+        
+        <div style={{ flex: '1 1 400px', position: 'relative', display: 'flex', justifyContent: 'flex-start' }}>
+          <div style={{ width: '85%', height: 450, background: 'var(--primary)', borderRadius: '40px 100px 40px 40px', position: 'absolute', bottom: 0, left: 0 }}></div>
+          <img src="https://images.unsplash.com/photo-1542385151-efd9000785a0?q=80&w=800&auto=format&fit=crop&bg=transparent" alt="Happy Customer" style={{ width: '90%', position: 'relative', zIndex: 2, filter: 'drop-shadow(10px 20px 30px rgba(0,0,0,0.2))', marginLeft: '5%' }} />
+        </div>
+
+        <div style={{ flex: '1 1 400px' }}>
+          <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 2 }}>The Experience</span>
+          <h2 style={{ fontSize: 'clamp(2.5rem, 4vw, 3.5rem)', fontWeight: 900, lineHeight: 1.1, margin: '15px 0 24px', letterSpacing: '-1px' }}>
+            Our <span style={{ color: 'var(--primary)' }}>Stories</span> Have<br/>Adventures.
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.7, marginBottom: 40, fontWeight: 500 }}>
+            There are many variations of food, but only a few bring true happiness. Over the years we have served thousands of satisfied customers who return for our authentic flavors and premium quality ingredients.
+          </p>
+          <div style={{ display: 'flex', gap: 15, flexWrap: 'wrap' }}>
+            {[
+              { stat: '12k+', label: 'Success Food' },
+              { stat: '16k+', label: 'Happy Customers' },
+              { stat: '20k+', label: 'Foods Delivery' }
+            ].map((st, i) => (
+              <div key={i} style={{ flex: 1, minWidth: 100, background: 'rgba(255, 107, 0, 0.05)', border: '1px solid rgba(255, 107, 0, 0.1)', padding: '24px 16px', borderRadius: 20, textAlign: 'center' }}>
+                <div style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '1.6rem', marginBottom: 6 }}>{st.stat}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>{st.label}</div>
               </div>
-            )}
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Trust Badges */}
-      <section style={{ padding: '60px 24px', maxWidth: '1200px', margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '32px'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-            <div style={{ color: 'var(--primary)', background: 'rgba(255,107,0,0.08)', padding: '12px', borderRadius: '12px' }}>
-              <ShieldCheck size={24} />
-            </div>
-            <div>
-              <h4 style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-dark)' }}>Strict Quality Standards</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>Only the freshest local beef, chicken, and bread, sourced daily.</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-            <div style={{ color: 'var(--primary)', background: 'rgba(255,107,0,0.08)', padding: '12px', borderRadius: '12px' }}>
-              <Flame size={24} />
-            </div>
-            <div>
-              <h4 style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-dark)' }}>Flame Grilled Fresh</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>Every single patty is grilled on-the-spot upon receiving your order.</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-            <div style={{ color: 'var(--primary)', background: 'rgba(255,107,0,0.08)', padding: '12px', borderRadius: '12px' }}>
-              <Award size={24} />
-            </div>
-            <div>
-              <h4 style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-dark)' }}>Earn Star Rewards</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>Redeem exclusive discount vouchers, merchandise, or free meals.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer
-        style={{
-          borderTop: '1px solid var(--border)',
-          transition: 'all 0.3s ease',
-          padding: '24px 24px',
-          textAlign: 'center',
-          fontSize: '0.78rem',
-          color: 'var(--text-secondary)'
-        }}
-      >
-        <p>© 2026 Bukan Kedai Burger (BKB). Crafted with passion for burger lovers.</p>
-      </footer>
-
-      <style>{`
-        .landing-hero-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 40px;
-          width: 100%;
-        }
-        @media (min-width: 1024px) {
-          .landing-hero-grid {
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 60px;
-          }
-        }
-        .signature-card-img {
-          transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .card-hover:hover .signature-card-img {
-          transform: scale(1.05);
-        }
-
-        /* ─── Premium Navigation Styles ─── */
-        .premium-nav-theme-toggle {
-          transition: all 0.2s ease;
-        }
-        .premium-nav-theme-toggle:hover {
-          transform: scale(1.08);
-          background: var(--border) !important;
-        }
-        .premium-nav-btn-text:hover {
-          color: var(--primary) !important;
-        }
-        .premium-nav-btn-primary:hover {
-          transform: translateY(-1.5px);
-          box-shadow: 0 6px 16px rgba(255, 107, 0, 0.35) !important;
-          filter: brightness(1.05);
-        }
-        .premium-nav-btn-primary:active {
-          transform: translateY(0);
-        }
-      `}</style>
     </div>
   );
 };
