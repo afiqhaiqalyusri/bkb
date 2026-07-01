@@ -52,13 +52,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt >= :since AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
     long countPaidSince(@Param("since") LocalDateTime since);
 
-    @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.createdAt >= :since AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
+    @Query("SELECT SUM(o.total) FROM Order o WHERE o.createdAt >= :since AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
     java.math.BigDecimal sumRevenueSince(@Param("since") LocalDateTime since);
 
-    @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
+    @Query("SELECT SUM(o.total) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
     java.math.BigDecimal sumRevenueBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("SELECT COALESCE(SUM(o.total - COALESCE(o.totalCost, 0)), 0) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
+    @Query("SELECT SUM(o.total - COALESCE(o.totalCost, 0)) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
     java.math.BigDecimal sumProfitBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt BETWEEN :from AND :to AND o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID")
@@ -70,7 +70,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query(value = "SELECT EXTRACT(HOUR FROM created_at) as hr, COUNT(*) as cnt FROM orders WHERE payment_status::varchar = 'PAID' AND created_at BETWEEN :from AND :to GROUP BY hr ORDER BY cnt DESC", nativeQuery = true)
     List<Object[]> getPeakHours(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID AND o.user IS NOT NULL")
+    @Query("SELECT SUM(o.total) FROM Order o WHERE o.paymentStatus = com.bkb.entity.enums.PaymentStatus.PAID AND o.user IS NOT NULL")
     java.math.BigDecimal sumUserRevenue();
 
     @Query(value = "SELECT COUNT(*) FROM (SELECT user_id FROM orders WHERE payment_status::varchar = 'PAID' AND user_id IS NOT NULL GROUP BY user_id HAVING COUNT(*) > 1) AS repeat_cust", nativeQuery = true)

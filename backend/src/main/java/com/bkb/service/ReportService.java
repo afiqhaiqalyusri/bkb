@@ -123,9 +123,10 @@ public class ReportService {
         LocalDateTime fromDt = from.atStartOfDay();
         LocalDateTime toDt = to.plusDays(1).atStartOfDay();
 
-        // Calculate current period
         BigDecimal rev = orderRepository.sumRevenueBetween(fromDt, toDt);
+        if (rev == null) rev = BigDecimal.ZERO;
         BigDecimal prof = orderRepository.sumProfitBetween(fromDt, toDt);
+        if (prof == null) prof = BigDecimal.ZERO;
         long ord = orderRepository.countOrdersBetween(fromDt, toDt);
         long cust = orderRepository.countUniqueCustomersBetween(fromDt, toDt);
 
@@ -135,7 +136,9 @@ public class ReportService {
         LocalDateTime prevToDt = toDt.minusDays(days);
 
         BigDecimal prevRev = orderRepository.sumRevenueBetween(prevFromDt, prevToDt);
+        if (prevRev == null) prevRev = BigDecimal.ZERO;
         BigDecimal prevProf = orderRepository.sumProfitBetween(prevFromDt, prevToDt);
+        if (prevProf == null) prevProf = BigDecimal.ZERO;
         long prevOrd = orderRepository.countOrdersBetween(prevFromDt, prevToDt);
         long prevCust = orderRepository.countUniqueCustomersBetween(prevFromDt, prevToDt);
 
@@ -240,6 +243,7 @@ public class ReportService {
         long totalUniqueCustomers = orderRepository.countUniqueCustomersBetween(beginningOfTime, now);
         long repeatCustomers = orderRepository.countRepeatCustomers();
         BigDecimal totalRevenueFromUsers = orderRepository.sumUserRevenue();
+        if (totalRevenueFromUsers == null) totalRevenueFromUsers = BigDecimal.ZERO;
         
         BigDecimal avgLtv = BigDecimal.ZERO;
         if (totalUniqueCustomers > 0) {
