@@ -133,23 +133,62 @@ export const LandingPage: React.FC = () => {
 
       {/* Ads / Promos Section */}
       <section className="px-6 flex flex-col md:flex-row gap-5" style={{ maxWidth: 1200, margin: '80px auto' }}>
-        <div className="flex-[2_1_400px] h-[200px] md:h-[280px] rounded-3xl overflow-hidden relative bg-[#111]">
-          <img src="https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?q=80&w=1200&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} alt="Promo" />
-          <div className="absolute top-6 left-6 md:top-10 md:left-10 text-white">
-            <h2 className="text-3xl md:text-4xl font-black leading-tight" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Buy 2<br/>Get 1 free</h2>
-            <p className="mt-2 text-sm opacity-90 hidden sm:block">Available on weekends only.</p>
-          </div>
-        </div>
-        <div className="flex-[1_1_200px] flex flex-row md:flex-col gap-5">
-          <div className="flex-1 h-[130px] rounded-3xl bg-[#222] overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity">
-            <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} alt="Pizza" />
-            <span className="absolute bottom-4 right-5 text-white font-black tracking-wider text-sm md:text-base">PIZZA DEALS</span>
-          </div>
-          <div className="flex-1 h-[130px] rounded-3xl bg-[#222] overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity">
-            <img src="https://images.unsplash.com/photo-1547592180-85f173990554?q=80&w=600&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} alt="Soup" />
-            <span className="absolute bottom-4 right-5 text-white font-black tracking-wider text-sm md:text-base">HOT SOUPS</span>
-          </div>
-        </div>
+        {ads.length > 0 ? (
+          <>
+            {/* Primary Large Ad */}
+            <div 
+              className="flex-[2_1_400px] h-[200px] md:h-[280px] rounded-3xl overflow-hidden relative bg-[#111] cursor-pointer hover:opacity-95 transition-opacity"
+              onClick={() => ads[0].targetPage && navigate(ads[0].targetPage)}
+            >
+              <img src={getImageUrl(ads[0].imageUrl)} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} alt={ads[0].title} />
+              <div className="absolute top-6 left-6 md:top-10 md:left-10 text-white">
+                <h2 className="text-3xl md:text-4xl font-black leading-tight" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)', whiteSpace: 'pre-line' }}>
+                  {ads[0].title.replace('\\n', '\n')}
+                </h2>
+                {ads[0].subtitle && (
+                  <p className="mt-2 text-sm opacity-90 hidden sm:block">{ads[0].subtitle}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Secondary Small Ads */}
+            {ads.length > 1 && (
+              <div className="flex-[1_1_200px] flex flex-row md:flex-col gap-5">
+                {ads.slice(1, 3).map((ad, idx) => (
+                  <div 
+                    key={ad.id} 
+                    className="flex-1 h-[130px] rounded-3xl bg-[#222] overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => ad.targetPage && navigate(ad.targetPage)}
+                  >
+                    <img src={getImageUrl(ad.imageUrl)} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} alt={ad.title} />
+                    <span className="absolute bottom-4 right-5 text-white font-black tracking-wider text-sm md:text-base uppercase">{ad.title}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          /* Static Fallback (if no ads configured in backend) */
+          <>
+            <div className="flex-[2_1_400px] h-[200px] md:h-[280px] rounded-3xl overflow-hidden relative bg-[#111]">
+              <img src="https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?q=80&w=1200&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} alt="Promo" />
+              <div className="absolute top-6 left-6 md:top-10 md:left-10 text-white">
+                <h2 className="text-3xl md:text-4xl font-black leading-tight" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Buy 2<br/>Get 1 free</h2>
+                <p className="mt-2 text-sm opacity-90 hidden sm:block">Available on weekends only.</p>
+              </div>
+            </div>
+            <div className="flex-[1_1_200px] flex flex-row md:flex-col gap-5">
+              <div className="flex-1 h-[130px] rounded-3xl bg-[#222] overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity">
+                <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} alt="Pizza" />
+                <span className="absolute bottom-4 right-5 text-white font-black tracking-wider text-sm md:text-base">PIZZA DEALS</span>
+              </div>
+              <div className="flex-1 h-[130px] rounded-3xl bg-[#222] overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity">
+                <img src="https://images.unsplash.com/photo-1547592180-85f173990554?q=80&w=600&auto=format&fit=crop" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} alt="Soup" />
+                <span className="absolute bottom-4 right-5 text-white font-black tracking-wider text-sm md:text-base">HOT SOUPS</span>
+              </div>
+            </div>
+          </>
+        )}
       </section>
 
       {/* Best Products Section (Real Menu Items) */}
