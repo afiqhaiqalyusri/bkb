@@ -89,4 +89,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o.completedByName, COUNT(o.id) FROM Order o WHERE o.completedById IS NOT NULL AND o.createdAt BETWEEN :from AND :to GROUP BY o.completedByName ORDER BY COUNT(o.id) DESC")
     List<Object[]> getStaffPerformance(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "UPDATE orders SET created_at = :createdAt WHERE id = :orderId", nativeQuery = true)
+    void updateOrderTimestamp(@Param("orderId") Long orderId, @Param("createdAt") LocalDateTime createdAt);
 }
