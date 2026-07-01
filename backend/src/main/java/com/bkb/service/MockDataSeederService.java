@@ -128,7 +128,7 @@ public class MockDataSeederService {
                     .guestName(guestName)
                     .status(OrderStatus.COMPLETED)
                     .paymentStatus(PaymentStatus.PAID)
-                    .orderNumber("ORD-MOCK-" + System.currentTimeMillis() + "-" + i)
+                    .orderNumber("MOCK-" + (System.currentTimeMillis() % 100000) + "-" + i)
                     .total(BigDecimal.ZERO)
                     .totalCost(BigDecimal.ZERO)
                     .rating(random.nextDouble() > 0.3 ? (3 + random.nextInt(3)) : null) // 70% chance to leave a rating (3-5)
