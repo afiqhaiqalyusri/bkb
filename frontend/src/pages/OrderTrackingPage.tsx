@@ -142,48 +142,26 @@ export const OrderTrackingPage: React.FC = () => {
                 Status for Order #{order.orderNumber}
               </h1>
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button
-                onClick={() => navigate('/')}
-                style={{
-                  background: 'transparent',
-                  color: 'var(--text-primary)',
-                  border: '1.5px solid var(--border)',
-                  borderRadius: 12,
-                  padding: '10px 18px',
-                  fontFamily: 'Outfit',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: 'var(--shadow-sm)'
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-              >
-                Back to Home
-              </button>
-              <button
-                onClick={() => navigate('/menu')}
-                style={{
-                  background: 'var(--surface)',
-                  color: 'var(--text-primary)',
-                  border: '1.5px solid var(--border)',
-                  borderRadius: 12,
-                  padding: '10px 18px',
-                  fontFamily: 'Outfit',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: 'var(--shadow-sm)'
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-              >
-                Back to Menu
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/menu')}
+              style={{
+                background: 'var(--surface)',
+                color: 'var(--text-primary)',
+                border: '1.5px solid var(--border)',
+                borderRadius: 12,
+                padding: '10px 18px',
+                fontFamily: 'Outfit',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            >
+              Back to Menu
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }} className="flex flex-col lg:flex-row">

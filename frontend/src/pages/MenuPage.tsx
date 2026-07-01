@@ -369,12 +369,35 @@ export const MenuPage: React.FC = () => {
           <div className="menu-items-area" style={{ paddingBottom:80 }}>
             {/* Header */}
             <div style={{ padding:'20px 16px 0' }}>
-              <p style={{ fontSize:'0.75rem', color:'var(--text-secondary)', marginBottom:2 }}>
-                {user ? `Hello, ${user.name.split(' ')[0]} 👋` : 'Hello there 👋'}
-              </p>
-              <h1 style={{ fontFamily:'Poppins', fontWeight:800, fontSize:'1.35rem', color:'var(--text-primary)', lineHeight:1.2, marginBottom:12 }}>
-                Find your <span style={{ color:'var(--red)' }}>favourite</span>
-              </h1>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <p style={{ fontSize:'0.75rem', color:'var(--text-secondary)', marginBottom:2 }}>
+                    {user ? `Hello, ${user.name.split(' ')[0]} 👋` : 'Hello there 👋'}
+                  </p>
+                  <h1 style={{ fontFamily:'Poppins', fontWeight:800, fontSize:'1.35rem', color:'var(--text-primary)', lineHeight:1.2, marginBottom:12 }}>
+                    Find your <span style={{ color:'var(--red)' }}>favourite</span>
+                  </h1>
+                </div>
+                <button
+                  onClick={() => navigate('/')}
+                  style={{
+                    background: 'transparent',
+                    color: 'var(--text-primary)',
+                    border: '1.5px solid var(--border)',
+                    borderRadius: 12,
+                    padding: '8px 14px',
+                    fontFamily: 'Outfit',
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                >
+                  Back to Home
+                </button>
+              </div>
 
               {/* Search */}
               <div style={{ display:'flex', alignItems:'center', gap:8, background:'var(--surface)', borderRadius:12, padding:'9px 14px', border:'1px solid var(--border)', boxShadow:'var(--shadow-sm)', marginBottom:14 }}>
