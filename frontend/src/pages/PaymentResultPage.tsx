@@ -12,6 +12,7 @@ export const PaymentResultPage: React.FC = () => {
   const orderIdStr = searchParams.get('order_id');
   
   const [loading, setLoading] = useState(true);
+  const [guestToken, setGuestToken] = useState<string | null>(null);
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -19,13 +20,13 @@ export const PaymentResultPage: React.FC = () => {
       const transactionId = searchParams.get('transaction_id');
       const amount = searchParams.get('amount');
       const msg = searchParams.get('msg') ?? searchParams.get('reason');
+      
+      let fetchedGuestToken: string | null = null;
 
       // Fallback verification: Tell the backend to verify the payment
-      // in case the server-to-server webhook failed or was delayed.
-      // Forward ALL query params so the backend has full context.
       if (billcode && statusId) {
         try {
-          await api.post('/api/payments/verify-redirect', {
+          const res = await api.post('/api/payments/verify-redirect', {
             billcode,
             status_id: statusId,
             transaction_id: transactionId,
@@ -33,6 +34,10 @@ export const PaymentResultPage: React.FC = () => {
             amount,
             msg,
           });
+          fetchedGuestToken = res.data?.data?.guestToken;
+          if (fetchedGuestToken) {
+            setGuestToken(fetchedGuestToken);
+          }
         } catch (err) {
           console.error("Failed to verify payment via redirect", err);
         }
@@ -41,26 +46,26 @@ export const PaymentResultPage: React.FC = () => {
       if (statusId === '1') {
         // Clear the cart on successful payment
         useCartStore.getState().clearCart();
+        
+        // Wait 2 seconds before redirecting
+        setTimeout(() => {
+          if (fetchedGuestToken) {
+            navigate(`/track/${fetchedGuestToken}`, { replace: true });
+          } else if (orderIdStr) {
+            navigate(`/order/${orderIdStr}/tracking`, { replace: true });
+          }
+        }, 2000);
+      } else {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     verifyPayment();
-  }, [statusId, searchParams, orderIdStr]);
+  }, [statusId, searchParams, orderIdStr, navigate]);
 
   const isSuccess = statusId === '1';
   const isPending = statusId === '2';
   const isFail = statusId === '3';
-
-  useEffect(() => {
-    if (isSuccess && orderIdStr) {
-      const timer = setTimeout(() => {
-        navigate(`/order/${orderIdStr}/tracking`, { replace: true });
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess, orderIdStr, navigate]);
 
   if (loading) {
     return <FullScreenLoader message="Verifying your payment..." />;
@@ -91,7 +96,7 @@ export const PaymentResultPage: React.FC = () => {
                 <em>Redirecting to tracking page...</em>
               </p>
               <button 
-                onClick={() => navigate(`/order/${orderIdStr}/tracking`, { replace: true })}
+                onClick={() => navigate(guestToken ? `/track/${guestToken}` : `/order/${orderIdStr}/tracking`, { replace: true })}
                 style={{
                   background: 'var(--primary)',
                   color: 'white',

@@ -26,9 +26,23 @@ public class PaymentController {
     }
 
     @PostMapping("/verify-redirect")
-    public ResponseEntity<ApiResponse<Void>> verifyRedirect(@RequestBody java.util.Map<String, String> payload) {
+    public ResponseEntity<ApiResponse<java.util.Map<String, String>>> verifyRedirect(@RequestBody java.util.Map<String, String> payload) {
         toyyibPayService.verifyPayment(payload);
-        return ResponseEntity.ok(ApiResponse.success("Payment verified from redirect", null));
+        
+        java.util.Map<String, String> responseData = new java.util.HashMap<>();
+        String orderIdStr = payload.get("order_id");
+        if (orderIdStr != null && !orderIdStr.trim().isEmpty()) {
+            try {
+                com.bkb.payload.response.OrderResponse order = orderService.getOrderById(Long.parseLong(orderIdStr));
+                if (order != null && order.getGuestToken() != null) {
+                    responseData.put("guestToken", order.getGuestToken());
+                }
+            } catch (Exception e) {
+                // Ignore if order not found
+            }
+        }
+        
+        return ResponseEntity.ok(ApiResponse.success("Payment verified from redirect", responseData));
     }
 
     @PostMapping("/toyyibpay/{orderId}")
