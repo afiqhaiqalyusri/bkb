@@ -194,7 +194,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponse updateOrderStatus(Long id, String newStatus, User user) {
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findByIdWithItems(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
         OrderStatus status;
