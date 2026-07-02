@@ -48,7 +48,7 @@ public class PaymentService {
      */
     @Transactional
     public Payment confirmCashPayment(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
         Payment payment = paymentRepository.findByOrderId(orderId)
@@ -76,7 +76,7 @@ public class PaymentService {
      */
     @Transactional
     public Payment confirmOnlinePayment(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
         Payment payment = paymentRepository.findByOrderId(orderId)
@@ -100,7 +100,7 @@ public class PaymentService {
 
     @Transactional
     public Payment confirmOnlinePaymentByRef(String ref) {
-        Order order = OrderRef.resolve(ref, orderRepository);
+        Order order = OrderRef.resolveWithItems(ref, orderRepository);
 
         Payment payment = paymentRepository.findByOrderId(order.getId())
                 .orElseGet(() -> Payment.builder()
@@ -123,7 +123,7 @@ public class PaymentService {
 
     @Transactional
     public Payment failOnlinePaymentByRef(String ref) {
-        Order order = OrderRef.resolve(ref, orderRepository);
+        Order order = OrderRef.resolveWithItems(ref, orderRepository);
 
         Payment payment = paymentRepository.findByOrderId(order.getId())
                 .orElseGet(() -> Payment.builder()
