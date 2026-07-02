@@ -17,7 +17,7 @@ public class EmailTemplateService {
                 </head>
                 <body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px;">
                   <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%%, #16213e 100%%); padding: 32px 40px; text-align: center;">
                       <h1 style="color: #f5a623; margin: 0; font-size: 28px; letter-spacing: 2px;">🍔 BKB</h1>
                       <p style="color: #a0a8b0; margin: 8px 0 0; font-size: 14px;">Bukan Kedai Burger</p>
                     </div>
@@ -55,7 +55,7 @@ public class EmailTemplateService {
                 </head>
                 <body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px;">
                   <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%%, #16213e 100%%); padding: 32px 40px; text-align: center;">
                       <h1 style="color: #f5a623; margin: 0; font-size: 28px; letter-spacing: 2px;">🍔 BKB</h1>
                       <p style="color: #a0a8b0; margin: 8px 0 0; font-size: 14px;">Bukan Kedai Burger</p>
                     </div>
@@ -91,7 +91,7 @@ public class EmailTemplateService {
                 <html>
                 <body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px;">
                   <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%%, #16213e 100%%); padding: 32px 40px; text-align: center;">
                       <h1 style="color: #f5a623; margin: 0; font-size: 28px; letter-spacing: 2px;">🍔 BKB</h1>
                       <p style="color: #a0a8b0; margin: 8px 0 0; font-size: 14px;">Bukan Kedai Burger</p>
                     </div>
@@ -123,7 +123,7 @@ public class EmailTemplateService {
                 <html>
                 <body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px;">
                   <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%%, #16213e 100%%); padding: 32px 40px; text-align: center;">
                       <h1 style="color: #f5a623; margin: 0; font-size: 28px; letter-spacing: 2px;">🍔 BKB</h1>
                       <p style="color: #a0a8b0; margin: 8px 0 0; font-size: 14px;">Bukan Kedai Burger</p>
                     </div>
@@ -150,7 +150,7 @@ public class EmailTemplateService {
                 <html>
                 <body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px;">
                   <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%%, #16213e 100%%); padding: 32px 40px; text-align: center;">
                       <h1 style="color: #f5a623; margin: 0; font-size: 28px; letter-spacing: 2px;">🍔 BKB</h1>
                       <p style="color: #a0a8b0; margin: 8px 0 0; font-size: 14px;">Bukan Kedai Burger</p>
                     </div>
@@ -179,7 +179,7 @@ public class EmailTemplateService {
                 <html>
                 <body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px;">
                   <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%%, #16213e 100%%); padding: 32px 40px; text-align: center;">
                       <h1 style="color: #f5a623; margin: 0; font-size: 28px; letter-spacing: 2px;">🍔 BKB</h1>
                       <p style="color: #a0a8b0; margin: 8px 0 0; font-size: 14px;">Bukan Kedai Burger</p>
                     </div>
@@ -206,7 +206,7 @@ public class EmailTemplateService {
                 <html>
                 <body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 20px;">
                   <div style="max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 32px 40px; text-align: center;">
+                    <div style="background: linear-gradient(135deg, #1a1a2e 0%%, #16213e 100%%); padding: 32px 40px; text-align: center;">
                       <h1 style="color: #f5a623; margin: 0; font-size: 28px; letter-spacing: 2px;">🍔 BKB</h1>
                       <p style="color: #a0a8b0; margin: 8px 0 0; font-size: 14px;">Bukan Kedai Burger</p>
                     </div>
