@@ -135,16 +135,18 @@ public class InventoryService {
         }
 
         // Parse customisations from JSON
-        List<Map<String, String>> customisations;
-        if (orderItem.getCustomisations() == null || orderItem.getCustomisations().trim().isEmpty()) {
+        List<Map<String, String>> customisations = null;
+        if (orderItem.getCustomisations() == null || orderItem.getCustomisations().trim().isEmpty() || "null".equals(orderItem.getCustomisations().trim())) {
             customisations = List.of();
         } else {
             try {
                 customisations = objectMapper.readValue(orderItem.getCustomisations(), new TypeReference<List<Map<String, String>>>(){});
-            } catch (JsonProcessingException | IllegalArgumentException e) {
+            } catch (Exception e) {
                 log.error("Failed to parse customisations JSON for order item {}: {}", orderItem.getId(), e.getMessage());
-                customisations = List.of();
             }
+        }
+        if (customisations == null) {
+            customisations = List.of();
         }
 
         for (RecipeIngredient recipeIngredient : recipe.getIngredients()) {
@@ -172,13 +174,15 @@ public class InventoryService {
                 String ingredientName = cust.get("ingredient");
                 String level = cust.get("level");
                 
-                customizationRuleRepository.findByIngredientNameAndLevel(ingredientName, level)
-                        .ifPresent(rule -> {
-                            if (rule.getInventory().getId().equals(lockedInvId)) {
-                                BigDecimal adjustment = rule.getAdjustmentQuantity().multiply(BigDecimal.valueOf(orderQty));
-                                finalNeeded[0] = finalNeeded[0].add(adjustment);
-                            }
-                        });
+                if (ingredientName != null && level != null) {
+                    customizationRuleRepository.findByIngredientNameAndLevel(ingredientName, level)
+                            .ifPresent(rule -> {
+                                if (rule.getInventory().getId().equals(lockedInvId)) {
+                                    BigDecimal adjustment = rule.getAdjustmentQuantity().multiply(BigDecimal.valueOf(orderQty));
+                                    finalNeeded[0] = finalNeeded[0].add(adjustment);
+                                }
+                            });
+                }
             }
 
             // Fallback for missing customisation rule but standard level logic mapping
