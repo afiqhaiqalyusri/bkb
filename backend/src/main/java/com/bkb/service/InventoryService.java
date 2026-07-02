@@ -148,8 +148,8 @@ public class InventoryService {
         if (customisations == null) {
             customisations = List.of();
         }
-
-        for (RecipeIngredient recipeIngredient : recipe.getIngredients()) {
+        List<RecipeIngredient> ingredientsCopy = new java.util.ArrayList<>(recipe.getIngredients());
+        for (RecipeIngredient recipeIngredient : ingredientsCopy) {
             Inventory inv = recipeIngredient.getInventory();
 
             // Only deduct automatically tracked items
