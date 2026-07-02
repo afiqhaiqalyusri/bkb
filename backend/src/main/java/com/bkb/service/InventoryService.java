@@ -136,11 +136,15 @@ public class InventoryService {
 
         // Parse customisations from JSON
         List<Map<String, String>> customisations;
-        try {
-            customisations = objectMapper.readValue(orderItem.getCustomisations(), new TypeReference<List<Map<String, String>>>(){});
-        } catch (JsonProcessingException e) {
-            log.error("Failed to parse customisations JSON for order item {}: {}", orderItem.getId(), e.getMessage());
+        if (orderItem.getCustomisations() == null || orderItem.getCustomisations().trim().isEmpty()) {
             customisations = List.of();
+        } else {
+            try {
+                customisations = objectMapper.readValue(orderItem.getCustomisations(), new TypeReference<List<Map<String, String>>>(){});
+            } catch (JsonProcessingException | IllegalArgumentException e) {
+                log.error("Failed to parse customisations JSON for order item {}: {}", orderItem.getId(), e.getMessage());
+                customisations = List.of();
+            }
         }
 
         for (RecipeIngredient recipeIngredient : recipe.getIngredients()) {
